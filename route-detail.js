@@ -247,9 +247,8 @@
     btn.textContent = '导航启动中…';
     btn.style.opacity = '0.7';
     setTimeout(() => {
-      btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 18 18" fill="none"><polygon points="5,3 15,9 5,15" fill="white"/></svg> 开始旅程`;
-      btn.style.opacity = '1';
-    }, 1800);
+      window.location.href = 'ai-chat.html';
+    }, 600);
   });
 
   /* ---- Favorite button logic ---------------------- */
