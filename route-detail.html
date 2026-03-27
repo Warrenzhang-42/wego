@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>大栅栏胡同人文探访 · WeGO</title>
+  <meta name="description" content="探访大栅栏胡同，感受老北京的历史文化与非遗技艺" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="route-detail.css" />
+</head>
+<body>
+  <div id="app">
+
+    <!-- ===== MAP SECTION ===== -->
+    <div class="rd-map-wrapper" id="rd-map-wrapper">
+      <!-- Back button -->
+      <button class="rd-back-btn" id="rd-back-btn" aria-label="返回">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M13 4L7 10L13 16" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <!-- Map canvas -->
+      <div class="rd-map-canvas">
+        <!-- SVG Map with route and spots -->
+        <svg id="rd-map-svg" viewBox="0 0 390 280" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+          <!-- Map background (street grid) -->
+          <rect width="390" height="280" fill="#EFF1F0"/>
+
+          <!-- Streets background -->
+          <g stroke="#D8DCE0" stroke-width="9" stroke-linecap="round">
+            <!-- Horizontal streets -->
+            <line x1="0" y1="55"  x2="390" y2="55"/>
+            <line x1="0" y1="100" x2="390" y2="108"/>
+            <line x1="0" y1="155" x2="390" y2="150"/>
+            <line x1="0" y1="210" x2="390" y2="205"/>
+            <line x1="0" y1="260" x2="390" y2="260"/>
+            <!-- Vertical streets -->
+            <line x1="60"  y1="0" x2="65"  y2="280"/>
+            <line x1="140" y1="0" x2="145" y2="280"/>
+            <line x1="220" y1="0" x2="215" y2="280"/>
+            <line x1="300" y1="0" x2="298" y2="280"/>
+            <line x1="360" y1="0" x2="360" y2="280"/>
+          </g>
+          <!-- Streets highlight (lighter) -->
+          <g stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" opacity="0.6">
+            <line x1="0" y1="55"  x2="390" y2="55"/>
+            <line x1="0" y1="100" x2="390" y2="108"/>
+            <line x1="0" y1="155" x2="390" y2="150"/>
+            <line x1="0" y1="210" x2="390" y2="205"/>
+            <line x1="0" y1="260" x2="390" y2="260"/>
+            <line x1="60"  y1="0" x2="65"  y2="280"/>
+            <line x1="140" y1="0" x2="145" y2="280"/>
+            <line x1="220" y1="0" x2="215" y2="280"/>
+            <line x1="300" y1="0" x2="298" y2="280"/>
+            <line x1="360" y1="0" x2="360" y2="280"/>
+          </g>
+
+          <!-- Blocks / Buildings -->
+          <g fill="#E2E5E3" stroke="#D0D4D2" stroke-width="0.5">
+            <rect x="70" y="5"  width="65" height="44" rx="3"/>
+            <rect x="150" y="5" width="60" height="44" rx="3"/>
+            <rect x="225" y="5" width="68" height="44" rx="3"/>
+            <rect x="305" y="5" width="45" height="44" rx="3"/>
+
+            <rect x="70"  y="65"  width="65" height="37" rx="3"/>
+            <rect x="150" y="65"  width="60" height="30" rx="3"/>
+            <rect x="155" y="75"  width="50" height="38" rx="3"/>
+            <rect x="225" y="65"  width="68" height="38" rx="3"/>
+            <rect x="305" y="65"  width="45" height="38" rx="3"/>
+
+            <rect x="5"   y="115" width="50" height="33" rx="3"/>
+            <rect x="70"  y="115" width="65" height="33" rx="3"/>
+            <rect x="150" y="115" width="60" height="28" rx="3"/>
+            <rect x="225" y="118" width="68" height="25" rx="3"/>
+            <rect x="305" y="115" width="45" height="33" rx="3"/>
+
+            <rect x="5"   y="160" width="50" height="43" rx="3"/>
+            <rect x="70"  y="160" width="65" height="43" rx="3"/>
+            <rect x="150" y="160" width="60" height="43" rx="3"/>
+            <rect x="225" y="160" width="68" height="43" rx="3"/>
+            <rect x="305" y="160" width="45" height="43" rx="3"/>
+
+            <rect x="5"   y="215" width="50" height="40" rx="3"/>
+            <rect x="70"  y="215" width="65" height="40" rx="3"/>
+            <rect x="150" y="215" width="60" height="40" rx="3"/>
+            <rect x="225" y="215" width="68" height="40" rx="3"/>
+            <rect x="305" y="215" width="45" height="40" rx="3"/>
+          </g>
+
+          <!-- Route Path (dashed blue loop) -->
+          <path 
+            d="M 298 35 L 298 55 L 298 100 L 298 108 L 216 108 L 143 108 L 143 155 L 143 150 L 64 150 L 64 205 L 64 210 L 143 210 L 215 210 L 215 155 L 215 150 L 298 150 L 298 100"
+            stroke="#3B82F6" stroke-width="3.5" stroke-dasharray="10 6" stroke-linecap="round" stroke-linejoin="round" fill="none"
+            class="route-path-animated"
+          />
+
+          <!-- Start marker (top right, checkmark circle) -->
+          <circle cx="298" cy="35" r="16" fill="#60A5FA" stroke="white" stroke-width="2.5"/>
+          <path d="M292 35 L296 39 L305 30" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+          <!-- End marker B (bottom left) -->
+          <circle cx="64" cy="210" r="12" fill="#1E3A8A" stroke="white" stroke-width="2"/>
+          <text x="64" y="215" text-anchor="middle" font-size="12" font-weight="800" fill="white" font-family="Outfit, sans-serif">B</text>
+
+          <!-- Current position (triangle/navigation arrow) -->
+          <circle cx="143" cy="130" r="14" fill="white" stroke="#3B82F6" stroke-width="2"/>
+          <polygon points="143,123 137,138 149,138" fill="#3B82F6"/>
+
+          <!-- Spot markers (clickable) – 5 spots -->
+          <!-- Spot 1: 大栅栏市场 (top area) -->
+          <g class="map-spot-marker" data-spot="0" transform="translate(298, 108)" style="cursor:pointer;">
+            <circle r="18" fill="#6EE7B7" fill-opacity="0.3" />
+            <circle r="13" fill="#34D399" />
+            <text y="4" text-anchor="middle" font-size="14" fill="white" font-weight="800" font-family="Outfit, sans-serif">?</text>
+          </g>
+          <!-- Spot 2: 梅兰芳故居 -->
+          <g class="map-spot-marker" data-spot="1" transform="translate(143, 108)" style="cursor:pointer;">
+            <circle r="18" fill="#6EE7B7" fill-opacity="0.3" />
+            <circle r="13" fill="#34D399" />
+            <text y="4" text-anchor="middle" font-size="14" fill="white" font-weight="800" font-family="Outfit, sans-serif">?</text>
+          </g>
+          <!-- Spot 3: 煤市街博物馆 -->
+          <g class="map-spot-marker" data-spot="2" transform="translate(64, 150)" style="cursor:pointer;">
+            <circle r="18" fill="#6EE7B7" fill-opacity="0.3" />
+            <circle r="13" fill="#34D399" />
+            <text y="4" text-anchor="middle" font-size="14" fill="white" font-weight="800" font-family="Outfit, sans-serif">?</text>
+          </g>
+          <!-- Spot 4: 纪晓岚故居 -->
+          <g class="map-spot-marker" data-spot="3" transform="translate(215, 210)" style="cursor:pointer;">
+            <circle r="18" fill="#6EE7B7" fill-opacity="0.3" />
+            <circle r="13" fill="#34D399" />
+            <text y="4" text-anchor="middle" font-size="14" fill="white" font-weight="800" font-family="Outfit, sans-serif">?</text>
+          </g>
+          <!-- Spot 5: 陕西巷 -->
+          <g class="map-spot-marker" data-spot="4" transform="translate(298, 175)" style="cursor:pointer;">
+            <circle r="18" fill="#6EE7B7" fill-opacity="0.3" />
+            <circle r="13" fill="#34D399" />
+            <text y="4" text-anchor="middle" font-size="14" fill="white" font-weight="800" font-family="Outfit, sans-serif">?</text>
+          </g>
+
+          <!-- Spot labels -->
+          <text x="298" y="86" text-anchor="middle" font-size="9.5" fill="#374151" font-family="Outfit, sans-serif" font-weight="600">大栅栏等</text>
+          <text x="112" y="93" text-anchor="middle" font-size="9.5" fill="#374151" font-family="Outfit, sans-serif" font-weight="600">梅兰芳故居</text>
+          <text x="38" y="135" text-anchor="middle" font-size="9.5" fill="#374151" font-family="Outfit, sans-serif" font-weight="600">煤市街博物馆</text>
+          <text x="215" y="192" text-anchor="middle" font-size="9.5" fill="#374151" font-family="Outfit, sans-serif" font-weight="600">纪晓岚故居等</text>
+          <text x="325" y="159" text-anchor="middle" font-size="9.5" fill="#374151" font-family="Outfit, sans-serif" font-weight="600">陕西巷</text>
+        </svg>
+
+        <!-- Spot tooltip -->
+        <div class="map-spot-tooltip" id="map-spot-tooltip">
+          <div class="mst-name"></div>
+          <div class="mst-desc"></div>
+        </div>
+      </div>
+
+      <!-- Fullscreen button (top right of map) -->
+      <button class="rd-fullscreen-btn" id="rd-fullscreen-btn" aria-label="全屏地图">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M1 5V2H4M12 2H15V5M15 11V14H12M4 14H1V11" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        全屏
+      </button>
+    </div>
+
+    <!-- ===== DETAIL PANEL ===== -->
+    <div class="rd-detail-panel" id="rd-detail-panel">
+
+      <!-- Panel drag handle -->
+      <div class="rd-panel-handle"></div>
+
+      <!-- Route header info -->
+      <div class="rd-header">
+        <div class="rd-header-main">
+          <h1 class="rd-title">大栅栏胡同人文探访</h1>
+          <button class="rd-fullscreen-text-btn" id="rd-fullscreen-text-btn" aria-label="全屏地图">全屏</button>
+        </div>
+        <p class="rd-subtitle">副标题：穿越百年胡同肌理，聆听老北京的历史回音</p>
+
+        <!-- Heat + Tags -->
+        <div class="rd-meta-row">
+          <div class="route-heat">
+            <span class="heat-label">热度</span>
+            <div class="heat-dots">
+              <span class="heat-dot hot"></span>
+              <span class="heat-dot hot"></span>
+              <span class="heat-dot hot"></span>
+              <span class="heat-dot hot"></span>
+              <span class="heat-dot half"></span>
+            </div>
+            <span class="heat-num">18.2k</span>
+          </div>
+          <div class="rd-tags-row">
+            <span class="tag tag-history">历史</span>
+            <span class="tag tag-culture">文化</span>
+            <span class="tag tag-walking">徒步</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== STATS STRIP (scrollable) ===== -->
+      <div class="rd-stats-scroll-wrapper" id="rd-stats-scroll-wrapper">
+        <div class="rd-stats-strip" id="rd-stats-strip">
+          <button class="rd-stat-item active" data-stat="spots" id="stat-spots"  aria-label="景点数量">
+            <span class="rd-stat-num">4</span>
+            <span class="rd-stat-label">景点</span>
+          </button>
+          <button class="rd-stat-item" data-stat="stories" id="stat-stories" aria-label="故事数量">
+            <span class="rd-stat-num">1</span>
+            <span class="rd-stat-label">故事</span>
+          </button>
+          <button class="rd-stat-item" data-stat="eggs" id="stat-eggs" aria-label="彩蛋数量">
+            <span class="rd-stat-num">10</span>
+            <span class="rd-stat-label">彩蛋</span>
+          </button>
+          <button class="rd-stat-item" data-stat="knowledge" id="stat-knowledge" aria-label="知识卡片">
+            <span class="rd-stat-num">2</span>
+            <span class="rd-stat-label">知识</span>
+          </button>
+          <button class="rd-stat-item" data-stat="activities" id="stat-activities" aria-label="活动数量">
+            <span class="rd-stat-num">3</span>
+            <span class="rd-stat-label">活动</span>
+          </button>
+          <button class="rd-stat-item" data-stat="photos" id="stat-photos" aria-label="打卡照片">
+            <span class="rd-stat-num">56</span>
+            <span class="rd-stat-label">打卡</span>
+          </button>
+          <button class="rd-stat-item" data-stat="tips" id="stat-tips" aria-label="旅行贴士">
+            <span class="rd-stat-num">7</span>
+            <span class="rd-stat-label">贴士</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Stat detail cards (shown on tap) -->
+      <div class="rd-stat-detail-area" id="rd-stat-detail-area">
+        <!-- auto-populated by JS -->
+      </div>
+
+      <!-- ===== SPOT LIST ===== -->
+      <div class="rd-spot-list" id="rd-spot-list">
+
+        <!-- Spot 1 -->
+        <div class="rd-spot-card" data-spot-idx="0" id="spot-card-0">
+          <div class="rd-spot-number">1</div>
+          <div class="rd-spot-thumb">
+            <div class="rd-spot-thumb-placeholder" style="background: linear-gradient(135deg,#a8d5c0,#54a87a);">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+            </div>
+          </div>
+          <div class="rd-spot-info">
+            <div class="rd-spot-title-row">
+              <h3 class="rd-spot-name">大栅栏商业街</h3>
+              <button class="rd-spot-expand-btn" data-spot-idx="0" aria-label="展开">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M4 6L8 10L12 6" stroke="#888" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </div>
+            <p class="rd-spot-desc">景点说明：百年前商贾云集之地，民国风韵的历史商业街区</p>
+          </div>
+        </div>
+        <!-- Spot 1 expanded content -->
+        <div class="rd-spot-expanded" id="spot-expanded-0">
+          <div class="rd-spot-ex-content">
+            <p>大栅栏街道是北京历史最为悠久的商业街，至今已有600余年历史。街区内保留了大量明清时期的建筑风貌与老字号店铺，是感受老北京商业文化的绝佳之地。</p>
+            <div class="rd-spot-ex-tags">
+              <span class="rd-ex-tag">🏛️ 历史建筑</span>
+              <span class="rd-ex-tag">🛍️ 老字号</span>
+              <span class="rd-ex-tag">⏱️ 约40分钟</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Spot 2 -->
+        <div class="rd-spot-card" data-spot-idx="1" id="spot-card-1">
+          <div class="rd-spot-number">2</div>
+          <div class="rd-spot-thumb">
+            <div class="rd-spot-thumb-placeholder" style="background: linear-gradient(135deg,#f9c784,#e08c2a);">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            </div>
+          </div>
+          <div class="rd-spot-info">
+            <div class="rd-spot-title-row">
+              <h3 class="rd-spot-name">梅兰芳故居</h3>
+              <button class="rd-spot-expand-btn" data-spot-idx="1" aria-label="展开">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M4 6L8 10L12 6" stroke="#888" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </div>
+            <p class="rd-spot-desc">景点说明：京剧大师梅兰芳先生的生平故居，收藏丰富戏剧文物</p>
+          </div>
+        </div>
+        <div class="rd-spot-expanded" id="spot-expanded-1">
+          <div class="rd-spot-ex-content">
+            <p>梅兰芳故居位于护国寺街9号，是一座典型的北京四合院。故居内陈列着梅兰芳先生珍贵的戏服、剧照和手稿，AI导览将带你深入了解京剧艺术的精髓与传承。</p>
+            <div class="rd-spot-ex-tags">
+              <span class="rd-ex-tag">🎭 传统戏剧</span>
+              <span class="rd-ex-tag">🏠 四合院</span>
+              <span class="rd-ex-tag">⏱️ 约30分钟</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Spot 3 -->
+        <div class="rd-spot-card" data-spot-idx="2" id="spot-card-2">
+          <div class="rd-spot-number">3</div>
+          <div class="rd-spot-thumb">
+            <div class="rd-spot-thumb-placeholder" style="background: linear-gradient(135deg,#a5c8f0,#3a7cc1);">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><path d="M4 19h16M4 15l6-6 4 3 6-8"/></svg>
+            </div>
+          </div>
+          <div class="rd-spot-info">
+            <div class="rd-spot-title-row">
+              <h3 class="rd-spot-name">煤市街第一博物馆</h3>
+              <button class="rd-spot-expand-btn" data-spot-idx="2" aria-label="展开">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M4 6L8 10L12 6" stroke="#888" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </div>
+            <p class="rd-spot-desc">景点说明：大栅栏街道社区博物馆，展示胡同居民百年生活记忆</p>
+          </div>
+        </div>
+        <div class="rd-spot-expanded" id="spot-expanded-2">
+          <div class="rd-spot-ex-content">
+            <p>这座社区博物馆由老北京居民共同创立，收藏着胡同生活的点滴记忆：老照片、老物件、传统手工艺品。每一件展品背后都有一段独特的家族故事，展现了胡同文化的人情温度。</p>
+            <div class="rd-spot-ex-tags">
+              <span class="rd-ex-tag">📸 老照片</span>
+              <span class="rd-ex-tag">🏺 民俗文物</span>
+              <span class="rd-ex-tag">⏱️ 约45分钟</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Spot 4 -->
+        <div class="rd-spot-card" data-spot-idx="3" id="spot-card-3">
+          <div class="rd-spot-number">4</div>
+          <div class="rd-spot-thumb">
+            <div class="rd-spot-thumb-placeholder" style="background: linear-gradient(135deg,#d4a5f5,#8b5cf6);">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+            </div>
+          </div>
+          <div class="rd-spot-info">
+            <div class="rd-spot-title-row">
+              <h3 class="rd-spot-name">纪晓岚故居</h3>
+              <button class="rd-spot-expand-btn" data-spot-idx="3" aria-label="展开">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M4 6L8 10L12 6" stroke="#888" stroke-width="1.8" stroke-linecap="round"/>
+                </svg>
+              </button>
+            </div>
+            <p class="rd-spot-desc">景点说明：清代大学士纪晓岚的故居，宅院幽深书香浓郁</p>
+          </div>
+        </div>
+        <div class="rd-spot-expanded" id="spot-expanded-3">
+          <div class="rd-spot-ex-content">
+            <p>纪晓岚故居位于珠市口西大街，是清代著名文学家、《四库全书》总编纂官纪晓岚生活近40年的地方。院内古树参天，书斋陈设还原了当年文人生活的雅致情趣。</p>
+            <div class="rd-spot-ex-tags">
+              <span class="rd-ex-tag">📚 四库全书</span>
+              <span class="rd-ex-tag">🌳 古树名木</span>
+              <span class="rd-ex-tag">⏱️ 约35分钟</span>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /.rd-spot-list -->
+
+    </div><!-- /.rd-detail-panel -->
+
+    <!-- Spacer for bottom bar -->
+    <div style="height: 90px;"></div>
+
+  </div><!-- #app -->
+
+  <!-- ===== BOTTOM ACTION BAR ===== -->
+  <div class="rd-bottom-bar" id="rd-bottom-bar">
+    <button class="rd-start-btn" id="rd-start-btn">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <polygon points="5,3 15,9 5,15" fill="white"/>
+      </svg>
+      开始旅程
+    </button>
+    <button class="rd-ai-btn" id="rd-ai-btn">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <circle cx="8" cy="8" r="7" stroke="#4CAF82" stroke-width="1.5"/>
+        <path d="M5 8h6M8 5v6" stroke="#4CAF82" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      问问导游
+    </button>
+  </div>
+
+  <!-- ===== FULLSCREEN OVERLAY ===== -->
+  <div class="rd-fullscreen-overlay" id="rd-fullscreen-overlay" aria-hidden="true">
+    <div class="rd-fs-map-container">
+      <!-- reuse same svg in fullscreen via JS clone -->
+    </div>
+    <button class="rd-fs-close-btn" id="rd-fs-close-btn" aria-label="退出全屏">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M5 5L15 15M15 5L5 15" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <!-- Fullscreen bottom sheet panel -->
+    <div class="rd-fs-bottom-sheet" id="rd-fs-bottom-sheet">
+      <div class="rd-panel-handle"></div>
+      <div class="rd-fs-sheet-content">
+        <h2 class="rd-fs-route-name">大栅栏胡同人文探访</h2>
+        <div class="rd-fs-spot-pills" id="rd-fs-spot-pills">
+          <button class="rd-fs-pill active" data-spot="0">① 大栅栏商业街</button>
+          <button class="rd-fs-pill" data-spot="1">② 梅兰芳故居</button>
+          <button class="rd-fs-pill" data-spot="2">③ 煤市街博物馆</button>
+          <button class="rd-fs-pill" data-spot="3">④ 纪晓岚故居</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="route-detail.js"></script>
+</body>
+</html>

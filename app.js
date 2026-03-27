@@ -60,6 +60,14 @@
     startAuto();
   });
 
+  // CTA click
+  document.querySelectorAll('.slide-cta-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      window.location.href = 'route-detail.html';
+    });
+  });
+
   goTo(0);
   startAuto();
 })();
@@ -114,16 +122,19 @@
 })();
 
 
-// ---- Route Cards: ripple tap effect ------------------
+// ---- Route Cards: ripple tap effect & navigation ----
 (function initRouteCards() {
   const cards = document.querySelectorAll('.route-card');
   cards.forEach(card => {
     card.addEventListener('click', () => {
       card.style.transition = 'transform 0.12s';
       card.style.transform  = 'scale(0.97)';
+      
+      // Navigate after a short delay to let the ripple effect be seen
       setTimeout(() => {
         card.style.transform = '';
-      }, 200);
+        window.location.href = 'route-detail.html';
+      }, 150);
     });
     card.addEventListener('keydown', e => {
       if (e.key === 'Enter' || e.key === ' ') card.click();
