@@ -490,114 +490,37 @@
 
     </div>
 
-    <!-- ===== AI HIGHLIGHT BANNER ===== -->
-    <div class="ai-banner" id="ai-banner">
-      <div class="ai-banner-icon">🧠</div>
-      <div class="ai-banner-text">
-        <strong>WeGO AI</strong> 正根据您的偏好个性化推荐，已为 <em>128万+</em> 旅行者提供服务
-      </div>
-      <button class="ai-banner-btn" id="ai-banner-btn">试试</button>
-    </div>
+
 
     <!-- ===== BOTTOM SPACER for tab bar ===== -->
-    <div style="height: 90px;"></div>
+    <div style="height: 110px;"></div>
 
   </div><!-- #app -->
 
-  <!-- ===== BOTTOM NAV (FIXED) ===== -->
-  <nav class="bottom-nav" aria-label="底部导航">
+  <!-- ===== BOTTOM NAV (MODERN PILL) ===== -->
+  <nav class="bottom-nav tab-explore" aria-label="底部导航" id="bottom-nav">
+    <div class="nav-indicator"></div>
+
     <!-- Explore -->
-    <button class="bottom-nav-item active" id="bnav-explore" aria-label="探索" data-tab="explore">
+    <button class="bottom-nav-item active" id="bnav-explore" aria-label="探索" data-nav="explore">
       <div class="bnav-icon-wrap">
-        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-          <!-- Footprint icon -->
-          <ellipse cx="8.5" cy="7" rx="2.5" ry="3.5" fill="currentColor" transform="rotate(-15 8.5 7)"/>
-          <ellipse cx="6.5" cy="3.5" rx="1.2" ry="1.6" fill="currentColor" transform="rotate(-15 6.5 3.5)"/>
-          <ellipse cx="9.5" cy="2.5" rx="1.1" ry="1.5" fill="currentColor" transform="rotate(-15 9.5 2.5)"/>
-          <ellipse cx="12" cy="2.8" rx="1" ry="1.4" fill="currentColor" transform="rotate(-15 12 2.8)"/>
-          <ellipse cx="14" cy="4" rx="0.9" ry="1.3" fill="currentColor" transform="rotate(-15 14 4)"/>
-          <!-- Second footprint -->
-          <ellipse cx="14" cy="15" rx="2.5" ry="3.5" fill="currentColor" transform="rotate(15 14 15)"/>
-          <ellipse cx="16.5" cy="11.5" rx="1.2" ry="1.6" fill="currentColor" transform="rotate(15 16.5 11.5)"/>
-          <ellipse cx="13.5" cy="10.5" rx="1.1" ry="1.5" fill="currentColor" transform="rotate(15 13.5 10.5)"/>
-          <ellipse cx="11" cy="11" rx="1" ry="1.4" fill="currentColor" transform="rotate(15 11 11)"/>
-          <ellipse cx="9.5" cy="12.5" rx="0.9" ry="1.3" fill="currentColor" transform="rotate(15 9.5 12.5)"/>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
         </svg>
       </div>
       <span class="bnav-label">探索</span>
     </button>
 
-    <!-- Routes -->
-    <button class="bottom-nav-item" id="bnav-routes" aria-label="路线" data-tab="routes">
+    <!-- My Destinations -->
+    <button class="bottom-nav-item" id="bnav-destinations" aria-label="我的目的地" data-nav="destinations">
       <div class="bnav-icon-wrap">
-        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-          <path d="M3 18 Q6 12 11 11 Q16 10 19 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/>
-          <circle cx="3" cy="18" r="2.5" fill="currentColor"/>
-          <circle cx="19" cy="4" r="2.5" fill="currentColor"/>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+          <circle cx="12" cy="10" r="3"></circle>
         </svg>
       </div>
-      <span class="bnav-label">路线</span>
-    </button>
-
-    <!-- Center Footprint Button (Explore → Destination) -->
-    <div class="bottom-nav-center" id="bnav-center">
-      <button class="center-fab" id="btn-start-guide" aria-label="开始AI导览">
-        <div class="fab-footprints">
-          <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-            <ellipse cx="9" cy="9" rx="3" ry="4.5" fill="white" transform="rotate(-15 9 9)"/>
-            <ellipse cx="7" cy="4.5" rx="1.5" ry="2" fill="white" transform="rotate(-15 7 4.5)"/>
-            <ellipse cx="11" cy="3.5" rx="1.4" ry="1.8" fill="white" transform="rotate(-15 11 3.5)"/>
-            <ellipse cx="13.5" cy="4" rx="1.2" ry="1.6" fill="white" transform="rotate(-15 13.5 4)"/>
-            <ellipse cx="15.5" cy="5.5" rx="1.1" ry="1.4" fill="white" transform="rotate(-15 15.5 5.5)"/>
-            <ellipse cx="19" cy="19" rx="3" ry="4.5" fill="white" transform="rotate(15 19 19)"/>
-            <ellipse cx="21.5" cy="14.5" rx="1.5" ry="2" fill="white" transform="rotate(15 21.5 14.5)"/>
-            <ellipse cx="18" cy="13" rx="1.4" ry="1.8" fill="white" transform="rotate(15 18 13)"/>
-            <ellipse cx="15" cy="13.5" rx="1.2" ry="1.6" fill="white" transform="rotate(15 15 13.5)"/>
-            <ellipse cx="13" cy="15" rx="1.1" ry="1.4" fill="white" transform="rotate(15 13 15)"/>
-          </svg>
-        </div>
-        <span class="fab-text">Go!</span>
-      </button>
-      <!-- Dashed footprint trail -->
-      <div class="trail-line" aria-hidden="true">
-        <svg width="120" height="20" viewBox="0 0 120 20" fill="none">
-          <!-- Left side: "探索" label area -->
-          <text x="0" y="14" font-size="9" fill="#4CAF82" font-weight="600" font-family="Nunito">探索</text>
-          <!-- Dashed footprint trail -->
-          <path d="M32 10 Q60 10 88 10" stroke="#4CAF82" stroke-width="2" stroke-dasharray="4 4" stroke-linecap="round"/>
-          <!-- Footprint dots along path -->
-          <ellipse cx="38" cy="8" rx="2" ry="3" fill="#4CAF8260" transform="rotate(-10 38 8)"/>
-          <ellipse cx="48" cy="10" rx="2" ry="3" fill="#4CAF8260" transform="rotate(10 48 10)"/>
-          <ellipse cx="58" cy="8" rx="2" ry="3" fill="#4CAF8270" transform="rotate(-10 58 8)"/>
-          <ellipse cx="68" cy="10" rx="2" ry="3" fill="#4CAF8270" transform="rotate(10 68 10)"/>
-          <ellipse cx="78" cy="8" rx="2" ry="3" fill="#4CAF8280" transform="rotate(-10 78 8)"/>
-          <!-- Right label -->
-          <text x="92" y="14" font-size="9" fill="#4CAF82" font-weight="600" font-family="Nunito">我的目的地</text>
-        </svg>
-      </div>
-    </div>
-
-    <!-- My Trips -->
-    <button class="bottom-nav-item" id="bnav-trips" aria-label="行程" data-tab="trips">
-      <div class="bnav-icon-wrap">
-        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-          <rect x="3" y="5" width="16" height="15" rx="2" stroke="currentColor" stroke-width="1.8"/>
-          <path d="M7 3V7M15 3V7M3 10H19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-          <path d="M7 14H10M7 17H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-      </div>
-      <span class="bnav-label">行程</span>
-    </button>
-
-    <!-- Profile -->
-    <button class="bottom-nav-item" id="bnav-profile" aria-label="我的" data-tab="profile">
-      <div class="bnav-icon-wrap">
-        <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
-          <circle cx="11" cy="8" r="4" stroke="currentColor" stroke-width="1.8"/>
-          <path d="M3 19C3 15.7 6.6 13 11 13C15.4 13 19 15.7 19 19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-        </svg>
-      </div>
-      <span class="bnav-label">我的</span>
+      <span class="bnav-label">我的目的地</span>
     </button>
   </nav>
 

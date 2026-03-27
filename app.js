@@ -95,10 +95,20 @@
 // ---- Bottom Nav--------------------------------------
 (function initBottomNav() {
   const items = document.querySelectorAll('.bottom-nav-item');
+  const navContainer = document.getElementById('bottom-nav');
   items.forEach(item => {
     item.addEventListener('click', () => {
       items.forEach(i => i.classList.remove('active'));
       item.classList.add('active');
+      
+      const tabId = item.dataset.nav;
+      if (tabId === 'destinations') {
+        navContainer.classList.remove('tab-explore');
+        navContainer.classList.add('tab-destinations');
+      } else {
+        navContainer.classList.remove('tab-destinations');
+        navContainer.classList.add('tab-explore');
+      }
     });
   });
 })();
@@ -122,19 +132,7 @@
 })();
 
 
-// ---- FAB Start Guide (pulse on click) ----------------
-document.getElementById('btn-start-guide').addEventListener('click', function () {
-  this.style.transform = 'translateX(-50%) translateY(-16px) scale(0.9)';
-  setTimeout(() => { this.style.transform = ''; }, 200);
-  // Show a simple toast as demo
-  showToast('🌏 AI导览已启动，正在识别您附近的景点…');
-});
 
-
-// ---- AI Banner button --------------------------------
-document.getElementById('ai-banner-btn').addEventListener('click', () => {
-  showToast('🧠 AI正在根据您的偏好定制专属路线');
-});
 
 
 // ---- Search bar click --------------------------------
@@ -187,12 +185,3 @@ function showToast(msg) {
 }
 
 
-// ---- Scroll-aware bottom nav shadow ------------------
-window.addEventListener('scroll', () => {
-  const nav = document.querySelector('.bottom-nav');
-  if (window.scrollY > 20) {
-    nav.style.boxShadow = '0 -6px 24px rgba(0,0,0,0.12)';
-  } else {
-    nav.style.boxShadow = '0 -4px 20px rgba(0,0,0,0.08)';
-  }
-}, { passive: true });
