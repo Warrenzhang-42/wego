@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>我的目的地 · WeGO</title>
+  <meta name="description" content="收藏与进行中的旅行路线" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="trip-end.css" />
+  <link rel="stylesheet" href="my-destinations.css" />
+</head>
+<body>
+  <div id="app" class="md-app">
+
+    <header class="md-top">
+      <a href="index.html" class="md-back" aria-label="返回探索">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </a>
+      <h1 class="md-title">我的目的地</h1>
+      <span class="md-top-spacer" aria-hidden="true"></span>
+    </header>
+
+    <div class="md-scroll" id="md-scroll">
+
+      <div class="md-harvest-wrap te-section te-harvest-section">
+        <div class="te-harvest-sticky-sentinel" aria-hidden="true"></div>
+        <div class="te-harvest-sticky md-harvest-sticky">
+          <p class="md-subline">收藏与行程状态</p>
+
+          <div class="te-harvest-tabs" role="tablist" aria-label="路线状态">
+            <button type="button" class="te-harvest-tab is-active" role="tab" aria-selected="true" data-status="progress" id="md-tab-progress">
+              <span class="te-harvest-tab-icon">🚶</span>
+              <span class="te-harvest-tab-text">进行中</span>
+              <span class="te-harvest-tab-num">1</span>
+            </button>
+            <button type="button" class="te-harvest-tab" role="tab" aria-selected="false" data-status="upcoming" id="md-tab-upcoming">
+              <span class="te-harvest-tab-icon">📅</span>
+              <span class="te-harvest-tab-text">未开始</span>
+              <span class="te-harvest-tab-num">3</span>
+            </button>
+            <button type="button" class="te-harvest-tab" role="tab" aria-selected="false" data-status="done" id="md-tab-done">
+              <span class="te-harvest-tab-icon">✅</span>
+              <span class="te-harvest-tab-text">已完成</span>
+              <span class="te-harvest-tab-num">1</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="md-cards" id="md-cards">
+
+          <!-- 进行中 x1 -->
+          <div class="route-card md-route-card" data-status="progress" role="button" tabindex="0" aria-label="路线：南锣鼓巷与后海漫步">
+            <div class="route-thumb">
+              <img src="https://images.unsplash.com/photo-1508804185872-d7badad00f7d?w=400&h=400&fit=crop" alt="胡同漫步" class="route-thumb-img" />
+            </div>
+            <div class="route-info">
+              <div class="route-title-row">
+                <h3 class="route-title">南锣鼓巷与后海漫步</h3>
+              </div>
+              <p class="route-subtitle">副标题：胡同烟火与湖光倒影的一日轻徒步</p>
+              <div class="route-heat">
+                <span class="heat-label">热度</span>
+                <div class="heat-dots">
+                  <span class="heat-dot hot"></span>
+                  <span class="heat-dot hot"></span>
+                  <span class="heat-dot hot"></span>
+                  <span class="heat-dot hot"></span>
+                  <span class="heat-dot half"></span>
+                </div>
+                <span class="heat-num">18.2k</span>
+              </div>
+              <div class="route-tags">
+                <span class="tag tag-food">美食</span>
+                <span class="tag tag-walking">徒步</span>
+              </div>
+            </div>
+            <div class="route-map-thumb">
+              <div class="map-mini" aria-label="路线示意">
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="64" height="64" rx="14" fill="#FFF8E8"/>
+                  <path d="M10 54V40H30V24H45L54 10" stroke="#FF9800" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  <circle cx="10" cy="54" r="4" fill="white" stroke="#FF9800" stroke-width="2"/>
+                  <circle cx="54" cy="10" r="5" fill="#FF5757"/>
+                  <circle cx="54" cy="10" r="2" fill="white"/>
+                </svg>
+                <span class="map-duration">2h</span>
+              </div>
+              <span class="route-label">路线</span>
+            </div>
+          </div>
+
+          <!-- 未开始 x3 -->
+          <div class="route-card md-route-card" data-status="upcoming" role="button" tabindex="0" aria-label="路线：颐和园皇家园林大赏">
+            <div class="route-thumb">
+              <img src="https://images.unsplash.com/photo-1547981609-4b6bfe67ca0b?w=400&h=400&fit=crop" alt="颐和园" class="route-thumb-img" />
+            </div>
+            <div class="route-info">
+              <div class="route-title-row">
+                <h3 class="route-title">颐和园皇家园林大赏</h3>
+              </div>
+              <p class="route-subtitle">副标题：漫步昆明湖畔，感受古典园林巅峰之作</p>
+              <div class="route-heat">
+                <span class="heat-label">热度</span>
+                <div class="heat-dots">
+                  <span class="heat-dot hot"></span>
+                  <span class="heat-dot hot"></span>
+                  <span class="heat-dot hot"></span>
+                  <span class="heat-dot hot"></span>
+                  <span class="heat-dot"></span>
+                </div>
+                <span class="heat-num">24.5k</span>
+              </div>
+              <div class="route-tags">
+                <span class="tag tag-nature">自然</span>
+                <span class="tag tag-history">历史</span>
+              </div>
+            </div>
+            <div class="route-map-thumb">
+              <div class="map-mini" aria-label="路线示意">
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="64" height="64" rx="14" fill="#EBF7F0"/>
+                  <path d="M8 32 C 16 10, 48 10, 56 32" stroke="#4CAF82" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  <circle cx="8" cy="32" r="4" fill="white" stroke="#4CAF82" stroke-width="2"/>
+                  <circle cx="56" cy="32" r="5" fill="#FF5757"/>
+                  <circle cx="56" cy="32" r="2" fill="white"/>
+                </svg>
+                <span class="map-duration">4h</span>
+              </div>
+              <span class="route-label">路线</span>
+            </div>
+          </div>
+
+          <div class="route-card md-route-card" data-status="upcoming" role="button" tabindex="0" aria-label="路线：798艺术区创意半日">
+            <div class="route-thumb">
+              <img src="https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=400&h=400&fit=crop" alt="艺术区" class="route-thumb-img" />
+            </div>
+            <div class="route-info">
+              <div class="route-title-row">
+                <h3 class="route-title">798艺术区创意半日</h3>
+              </div>
+              <p class="route-subtitle">副标题：画廊、装置与咖啡店的灵感漫步</p>
+              <div class="route-heat">
+                <span class="heat-label">热度</span>
+                <div class="heat-dots">
+                  <span class="heat-dot hot"></span>
+                  <span class="heat-dot hot"></span>
+                  <span class="heat-dot hot"></span>
+                  <span class="heat-dot"></span>
+                  <span class="heat-dot"></span>
+                </div>
+                <span class="heat-num">11.0k</span>
+              </div>
+              <div class="route-tags">
+                <span class="tag tag-art">艺术</span>
+                <span class="tag tag-culture">文化</span>
+              </div>
+            </div>
+            <div class="route-map-thumb">
+              <div class="map-mini" aria-label="路线示意">
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="64" height="64" rx="14" fill="#F5F0FF"/>
+                  <path d="M12 48 L28 40 L32 22 L48 14" stroke="#FF9800" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  <circle cx="12" cy="48" r="4" fill="white" stroke="#FF9800" stroke-width="2"/>
+                  <circle cx="48" cy="14" r="5" fill="#FF5757"/>
+                </svg>
+                <span class="map-duration">3h</span>
+              </div>
+              <span class="route-label">路线</span>
+            </div>
+          </div>
+
+          <div class="route-card md-route-card" data-status="upcoming" role="button" tabindex="0" aria-label="路线：长城慕田峪精华段">
+            <div class="route-thumb">
+              <img src="https://images.unsplash.com/photo-1547036965-4507e89c6618?w=400&h=400&fit=crop" alt="长城" class="route-thumb-img" />
+            </div>
+            <div class="route-info">
+              <div class="route-title-row">
+                <h3 class="route-title">长城慕田峪精华段</h3>
+              </div>
+              <p class="route-subtitle">副标题：缆车上下，省力打卡地标雄姿</p>
+              <div class="route-heat">
+                <span class="heat-label">热度</span>
+                <div class="heat-dots">
+                  <span class="heat-dot hot"></span>
+                  <span class="heat-dot hot"></span>
+                  <span class="heat-dot hot"></span>
+                  <span class="heat-dot hot"></span>
+                  <span class="heat-dot hot"></span>
+                </div>
+                <span class="heat-num">33.8k</span>
+              </div>
+              <div class="route-tags">
+                <span class="tag tag-adventure">探险</span>
+                <span class="tag tag-nature">自然</span>
+              </div>
+            </div>
+            <div class="route-map-thumb">
+              <div class="map-mini" aria-label="路线示意">
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="64" height="64" rx="14" fill="#E8F5ED"/>
+                  <path d="M8 40 L20 28 L35 35 L50 12" stroke="#4CAF82" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  <circle cx="8" cy="40" r="4" fill="white" stroke="#4CAF82" stroke-width="2"/>
+                  <circle cx="50" cy="12" r="5" fill="#FF5757"/>
+                </svg>
+                <span class="map-duration">5h</span>
+              </div>
+              <span class="route-label">路线</span>
+            </div>
+          </div>
+
+          <!-- 已完成 x1 -->
+          <div class="route-card md-route-card" data-status="done" role="button" tabindex="0" aria-label="路线：哥特区历史漫步">
+            <div class="route-thumb">
+              <img src="https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=400&h=400&fit=crop" alt="哥特区" class="route-thumb-img" />
+            </div>
+            <div class="route-info">
+              <div class="route-title-row">
+                <h3 class="route-title">哥特区历史漫步</h3>
+              </div>
+              <p class="route-subtitle">副标题：探访千年历史，穿越中世纪迷宫街道</p>
+              <div class="route-heat">
+                <span class="heat-label">热度</span>
+                <div class="heat-dots">
+                  <span class="heat-dot hot"></span>
+                  <span class="heat-dot hot"></span>
+                  <span class="heat-dot hot"></span>
+                  <span class="heat-dot hot"></span>
+                  <span class="heat-dot half"></span>
+                </div>
+                <span class="heat-num">9.2k</span>
+              </div>
+              <div class="route-tags">
+                <span class="tag tag-history">历史</span>
+                <span class="tag tag-walking">徒步</span>
+              </div>
+            </div>
+            <div class="route-map-thumb">
+              <div class="map-mini" aria-label="路线示意">
+                <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect width="64" height="64" rx="14" fill="#E8F5ED"/>
+                  <path d="M10 52 L22 45 L20 35 L32 26 L42 28 L54 15" stroke="#4CAF82" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  <circle cx="10" cy="52" r="4" fill="white" stroke="#4CAF82" stroke-width="2"/>
+                  <circle cx="54" cy="15" r="5" fill="#FF5757"/>
+                  <circle cx="54" cy="15" r="2" fill="white"/>
+                </svg>
+                <span class="map-duration">2.5h</span>
+              </div>
+              <span class="route-label">路线</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="md-bottom-spacer"></div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav tab-destinations" aria-label="底部导航" id="bottom-nav">
+    <div class="nav-indicator"></div>
+    <a href="index.html" class="bottom-nav-item" id="bnav-explore" aria-label="探索" data-nav="explore">
+      <div class="bnav-icon-wrap">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+        </svg>
+      </div>
+      <span class="bnav-label">探索</span>
+    </a>
+    <button type="button" class="bottom-nav-item active" id="bnav-destinations" aria-label="我的目的地" data-nav="destinations" aria-current="page">
+      <div class="bnav-icon-wrap">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+          <circle cx="12" cy="10" r="3"></circle>
+        </svg>
+      </div>
+      <span class="bnav-label">我的目的地</span>
+    </button>
+  </nav>
+
+  <script src="my-destinations.js"></script>
+</body>
+</html>

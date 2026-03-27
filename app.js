@@ -106,17 +106,15 @@
   const navContainer = document.getElementById('bottom-nav');
   items.forEach(item => {
     item.addEventListener('click', () => {
-      items.forEach(i => i.classList.remove('active'));
-      item.classList.add('active');
-      
       const tabId = item.dataset.nav;
       if (tabId === 'destinations') {
-        navContainer.classList.remove('tab-explore');
-        navContainer.classList.add('tab-destinations');
-      } else {
-        navContainer.classList.remove('tab-destinations');
-        navContainer.classList.add('tab-explore');
+        window.location.href = 'my-destinations.html';
+        return;
       }
+      items.forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      navContainer.classList.remove('tab-destinations');
+      navContainer.classList.add('tab-explore');
     });
   });
 })();
