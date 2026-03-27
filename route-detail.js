@@ -178,6 +178,14 @@
     }, 1800);
   });
 
+  /* ---- Favorite button logic ---------------------- */
+  const favBtn = document.getElementById('rd-fav-btn');
+  if (favBtn) {
+    favBtn.addEventListener('click', () => {
+      favBtn.classList.toggle('is-favorited');
+    });
+  }
+
   /* ---- AI guide button placeholder ---------------- */
   document.getElementById('rd-ai-btn').addEventListener('click', () => {
     alert('AI导游功能即将上线，敬请期待！');
