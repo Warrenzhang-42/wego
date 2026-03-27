@@ -21,6 +21,70 @@
     });
   }
 
+  // Long press end button
+  const endBtn = document.getElementById('ac-end-btn');
+  if (endBtn) {
+    const HOLD_MS = 1200;
+    let holdStartAt = 0;
+    let holdRafId = null;
+    let holdCompleted = false;
+
+    const resetEndBtn = () => {
+      endBtn.style.setProperty('--hold-progress', '0');
+      endBtn.classList.remove('is-pressing');
+      endBtn.classList.remove('is-complete');
+      endBtn.textContent = '结束';
+      holdStartAt = 0;
+      holdCompleted = false;
+      if (holdRafId) {
+        cancelAnimationFrame(holdRafId);
+        holdRafId = null;
+      }
+    };
+
+    const completeEndHold = () => {
+      holdCompleted = true;
+      endBtn.classList.remove('is-pressing');
+      endBtn.classList.add('is-complete');
+      endBtn.style.setProperty('--hold-progress', '100');
+      endBtn.textContent = '已结束';
+      setTimeout(() => {
+        window.location.href = 'route-detail.html';
+      }, 180);
+    };
+
+    const tickHoldProgress = () => {
+      if (!holdStartAt || holdCompleted) return;
+      const elapsed = performance.now() - holdStartAt;
+      const progress = Math.min(100, (elapsed / HOLD_MS) * 100);
+      endBtn.style.setProperty('--hold-progress', progress.toFixed(1));
+      if (progress >= 100) {
+        completeEndHold();
+        return;
+      }
+      holdRafId = requestAnimationFrame(tickHoldProgress);
+    };
+
+    const startHold = (e) => {
+      if (e) e.preventDefault();
+      if (holdStartAt || holdCompleted) return;
+      holdStartAt = performance.now();
+      endBtn.classList.add('is-pressing');
+      holdRafId = requestAnimationFrame(tickHoldProgress);
+    };
+
+    const cancelHold = () => {
+      if (holdCompleted || !holdStartAt) return;
+      resetEndBtn();
+    };
+
+    endBtn.addEventListener('pointerdown', startHold);
+    endBtn.addEventListener('pointerup', cancelHold);
+    endBtn.addEventListener('pointerleave', cancelHold);
+    endBtn.addEventListener('pointercancel', cancelHold);
+    endBtn.addEventListener('contextmenu', (e) => e.preventDefault());
+  }
+
   // Handle "Change Guide"
   const changeGuideBtn = document.querySelector('.ac-change-guide');
   if (changeGuideBtn) {

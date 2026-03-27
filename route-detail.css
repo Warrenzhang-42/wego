@@ -34,8 +34,8 @@
   animation: spotPulse 2s ease-in-out infinite;
 }
 @keyframes spotPulse {
-  0%, 100% { r: 18; opacity: 0.3; }
-  50%       { r: 22; opacity: 0.15; }
+  0%, 100% { r: 18; opacity: 0.55; }
+  50%       { r: 22; opacity: 0.35; }
 }
 
 /* Back button */
