@@ -31,11 +31,28 @@ body {
 
 /* ---- Congrats Section ---- */
 .te-congrats-section {
+  position: relative;
   padding: 40px 12px 20px;
-  background: var(--clr-bg);
+  background: linear-gradient(180deg, #f8fbf9 0%, var(--clr-bg) 100%);
+  overflow: hidden;
+}
+
+.te-congrats-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.te-congrats-bg-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 .te-congrats-row {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -45,15 +62,15 @@ body {
 
 .te-congrats-ornament {
   flex-shrink: 0;
-  width: 40px;
+  width: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.92;
+  opacity: 0.46;
 }
 
 .te-congrats-ornament svg {
-  width: 40px;
+  width: 34px;
   height: auto;
   max-height: 120px;
 }
@@ -68,6 +85,7 @@ body {
   line-height: 1.5;
   margin: 0;
   text-align: center;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.55);
   animation: fadeUp 0.5s 0.1s ease both;
 }
 
@@ -305,19 +323,33 @@ body {
 }
 
 .te-reward-card-head {
+  margin-bottom: 8px;
+}
+
+/* 标题行：左侧标题可换行，右侧「时间 + 状态」整体靠右、同一行 */
+.te-reward-card-row {
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 6px;
-  margin-bottom: 6px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.te-reward-meta {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  max-width: 48%;
+  padding-top: 1px;
 }
 
 .te-reward-time {
-  align-self: flex-end;
   font-size: 11px;
   font-weight: 700;
   color: var(--clr-text-muted);
   letter-spacing: 0.1px;
+  white-space: nowrap;
 }
 
 .te-reward-badge {
@@ -341,8 +373,10 @@ body {
 }
 
 .te-reward-title {
+  flex: 1;
+  min-width: 0;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 4px 6px;
   font-size: 14px;
@@ -351,6 +385,7 @@ body {
   color: var(--clr-text-h);
   margin: 0;
   line-height: 1.45;
+  overflow: hidden;
 }
 
 .te-reward-title-emoji {
@@ -377,16 +412,18 @@ body {
 }
 
 .te-reward-title-text {
-  flex: 1 1 120px;
+  flex: 1 1 0;
   min-width: 0;
   font-size: 15px;
   font-weight: 800;
   color: var(--clr-text-h);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.te-reward-title .te-reward-badge {
+.te-reward-meta .te-reward-badge {
   flex-shrink: 0;
-  align-self: center;
 }
 
 .te-reward-desc {
@@ -394,6 +431,57 @@ body {
   line-height: 1.5;
   color: var(--clr-text-b);
   margin: 0;
+}
+
+.te-reward-desc + .te-reward-desc {
+  margin-top: 6px;
+}
+
+.te-reward-desc--secondary {
+  font-size: 12px;
+  color: var(--clr-text-muted);
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.04);
+  border-left: 3px solid var(--clr-primary);
+}
+
+/* 按类型区分视觉（对齐聊天知识点 / 路线景点等来源） */
+.te-reward-card[data-type="spot"] {
+  border-left: 3px solid var(--clr-primary);
+  padding-left: 13px;
+}
+
+.te-reward-card[data-type="knowledge"] {
+  background: #f3fbf4;
+  border-color: #cde8d1;
+}
+
+.te-reward-card[data-type="knowledge"] .te-reward-title-type {
+  color: #2d8a5c;
+}
+
+.te-reward-card[data-type="activity"] {
+  background: linear-gradient(180deg, #fffbf5 0%, var(--clr-card) 100%);
+  border-color: rgba(255, 152, 0, 0.35);
+}
+
+.te-reward-card[data-type="egg"] {
+  background: linear-gradient(135deg, #faf8ff 0%, var(--clr-card) 100%);
+  border-color: rgba(124, 92, 191, 0.28);
+}
+
+.te-reward-card[data-type="story"] {
+  background: linear-gradient(180deg, #fffaf3 0%, var(--clr-card) 100%);
+  border-color: rgba(180, 140, 90, 0.25);
+}
+
+@media (max-width: 360px) {
+  .te-reward-meta {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    max-width: none;
+  }
 }
 
 /* ---- Fixed bottom bar ---- */

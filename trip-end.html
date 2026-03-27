@@ -19,34 +19,179 @@
 
       <!-- Congrats Header -->
       <div class="te-congrats-section">
+        <div class="te-congrats-bg" aria-hidden="true">
+          <svg class="te-congrats-bg-svg" viewBox="0 0 400 168" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="te-ribbon-pink" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#F05A97"/>
+                <stop offset="1" stop-color="#C2185B"/>
+              </linearGradient>
+              <linearGradient id="te-ribbon-blue" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#6CC7FF"/>
+                <stop offset="1" stop-color="#2389D7"/>
+              </linearGradient>
+              <linearGradient id="te-ribbon-green" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#A7E76D"/>
+                <stop offset="1" stop-color="#5CBF32"/>
+              </linearGradient>
+              <symbol id="te-mini-burst" viewBox="0 0 24 24">
+                <g stroke-linecap="round">
+                  <line x1="12" y1="12" x2="12" y2="4" stroke="#4CAF82" stroke-width="1.5"/>
+                  <line x1="12" y1="12" x2="18" y2="6" stroke="#3B82F6" stroke-width="1.3"/>
+                  <line x1="12" y1="12" x2="20" y2="12" stroke="#FF9800" stroke-width="1.3"/>
+                  <line x1="12" y1="12" x2="18" y2="18" stroke="#8BC9A8" stroke-width="1.2"/>
+                  <line x1="12" y1="12" x2="12" y2="20" stroke="#4CAF82" stroke-width="1.3"/>
+                  <line x1="12" y1="12" x2="6" y2="18" stroke="#F05A97" stroke-width="1.2"/>
+                  <line x1="12" y1="12" x2="4" y2="12" stroke="#3B82F6" stroke-width="1.2"/>
+                  <line x1="12" y1="12" x2="6" y2="6" stroke="#FFCA28" stroke-width="1.1"/>
+                </g>
+                <circle cx="12" cy="12" r="1.4" fill="#F05A97"/>
+              </symbol>
+            </defs>
+
+            <!-- 左侧卷曲彩带 -->
+            <path d="M32 146 C6 134 8 108 30 99 C56 88 63 63 42 46 C28 35 29 17 44 10"
+              stroke="url(#te-ribbon-pink)" fill="none" stroke-width="4.2" stroke-linecap="round" opacity="0.78"/>
+            <path d="M58 108 C36 99 36 83 55 76 C79 67 84 48 67 36"
+              stroke="url(#te-ribbon-pink)" fill="none" stroke-width="3.2" stroke-linecap="round" opacity="0.48"/>
+            <path d="M92 118 C72 108 72 93 88 86 C109 77 114 61 100 50"
+              stroke="#F6A9C4" fill="none" stroke-width="3.5" stroke-linecap="round" opacity="0.64"/>
+
+            <!-- 右侧卷曲彩带 -->
+            <path d="M346 145 C372 132 370 107 349 98 C323 87 316 62 338 45 C352 34 351 16 336 10"
+              stroke="url(#te-ribbon-blue)" fill="none" stroke-width="4.2" stroke-linecap="round" opacity="0.76"/>
+            <path d="M322 110 C344 100 344 84 324 77 C301 68 296 50 311 38"
+              stroke="url(#te-ribbon-blue)" fill="none" stroke-width="3.2" stroke-linecap="round" opacity="0.5"/>
+            <path d="M368 48 C382 39 383 23 371 13"
+              stroke="url(#te-ribbon-green)" fill="none" stroke-width="4" stroke-linecap="round" opacity="0.75"/>
+            <path d="M372 66 C385 58 386 45 376 36"
+              stroke="url(#te-ribbon-green)" fill="none" stroke-width="3" stroke-linecap="round" opacity="0.58"/>
+
+            <!-- 顶部彩屑椭圆 -->
+            <ellipse cx="196" cy="16" rx="12" ry="16" fill="#7AD64A" opacity="0.55"/>
+            <ellipse cx="205" cy="17" rx="6" ry="12" fill="#B3EE89" opacity="0.35"/>
+            <ellipse cx="265" cy="20" rx="6" ry="16" fill="#FF7474" opacity="0.8" transform="rotate(-24 265 20)"/>
+            <ellipse cx="120" cy="14" rx="5" ry="10" fill="#9EE356" opacity="0.7"/>
+
+            <!-- 四角小礼花 -->
+            <use href="#te-mini-burst" transform="translate(70 42) scale(0.86)" opacity="0.68"/>
+            <use href="#te-mini-burst" transform="translate(290 50) scale(0.84)" opacity="0.68"/>
+            <use href="#te-mini-burst" transform="translate(352 112) scale(0.7)" opacity="0.58"/>
+            <use href="#te-mini-burst" transform="translate(44 112) scale(0.7)" opacity="0.58"/>
+
+            <!-- 彩色碎屑点（中心留白） -->
+            <circle cx="22" cy="14" r="4" fill="#E85E97" opacity="0.62"/>
+            <circle cx="54" cy="20" r="1.8" fill="#E85E97" opacity="0.6"/>
+            <circle cx="74" cy="8" r="2.2" fill="#A7E76D" opacity="0.62"/>
+            <circle cx="104" cy="26" r="2" fill="#3B82F6" opacity="0.62"/>
+            <circle cx="286" cy="8" r="2.4" fill="#FFCA28" opacity="0.72"/>
+            <circle cx="308" cy="18" r="1.7" fill="#FFCA28" opacity="0.66"/>
+            <circle cx="334" cy="12" r="3.2" fill="#E85E97" opacity="0.62"/>
+            <circle cx="356" cy="24" r="2.1" fill="#E85E97" opacity="0.58"/>
+            <circle cx="376" cy="16" r="1.8" fill="#A7E76D" opacity="0.66"/>
+            <circle cx="22" cy="74" r="2.4" fill="#3B82F6" opacity="0.66"/>
+            <circle cx="42" cy="94" r="3.3" fill="#FFCA28" opacity="0.68"/>
+            <circle cx="62" cy="90" r="2.2" fill="#3B82F6" opacity="0.62"/>
+            <circle cx="356" cy="80" r="3.2" fill="#A7E76D" opacity="0.66"/>
+            <circle cx="378" cy="90" r="2.5" fill="#3B82F6" opacity="0.68"/>
+            <circle cx="338" cy="94" r="2.1" fill="#E85E97" opacity="0.6"/>
+            <circle cx="18" cy="136" r="5.4" fill="#E85E97" opacity="0.62"/>
+            <circle cx="54" cy="150" r="2.2" fill="#FFCA28" opacity="0.66"/>
+            <circle cx="94" cy="140" r="3" fill="#A7E76D" opacity="0.58"/>
+            <circle cx="330" cy="140" r="2.6" fill="#3B82F6" opacity="0.62"/>
+            <circle cx="364" cy="150" r="3.1" fill="#A7E76D" opacity="0.62"/>
+            <circle cx="386" cy="136" r="2" fill="#FFCA28" opacity="0.66"/>
+          </svg>
+        </div>
         <div class="te-congrats-row">
           <span class="te-congrats-ornament te-congrats-ornament--left" aria-hidden="true">
             <svg viewBox="0 0 48 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M24 4c-2 8-12 14-12 24 0 8 6 12 10 18-6 4-14 10-14 20 0 10 8 16 14 22-4 6-10 14-10 24 0 8 6 14 12 20 6-6 12-12 12-20 0-10-6-18-10-24 6-6 14-12 14-22 0-10-8-16-14-20 4-6 10-10 10-18 0-10-10-16-12-24z" fill="url(#te-grad-l)" opacity="0.55"/>
-              <path d="M8 48c4-2 8-2 12 0M8 72c4 2 8 2 12 0M12 96c6-3 12-3 18 0" stroke="#4CAF82" stroke-width="1.2" stroke-linecap="round" opacity="0.35"/>
-              <circle cx="24" cy="56" r="3" fill="#4CAF82" opacity="0.25"/>
-              <circle cx="18" cy="80" r="2.5" fill="#FF9800" opacity="0.3"/>
-              <defs>
-                <linearGradient id="te-grad-l" x1="12" y1="4" x2="36" y2="120" gradientUnits="userSpaceOnUse">
-                  <stop stop-color="#4CAF82"/>
-                  <stop offset="1" stop-color="#8BC9A8"/>
-                </linearGradient>
-              </defs>
+              <!-- 礼花：上 (cx20 cy26) -->
+              <g stroke-linecap="round">
+                <line x1="20" y1="26" x2="20" y2="11" stroke="#4CAF82" stroke-width="2" opacity="0.62"/>
+                <line x1="20" y1="26" x2="32" y2="18" stroke="#3B82F6" stroke-width="1.7" opacity="0.55"/>
+                <line x1="20" y1="26" x2="35" y2="26" stroke="#FF9800" stroke-width="1.7" opacity="0.55"/>
+                <line x1="20" y1="26" x2="32" y2="34" stroke="#4CAF82" stroke-width="1.7" opacity="0.5"/>
+                <line x1="20" y1="26" x2="20" y2="41" stroke="#60A5FA" stroke-width="1.7" opacity="0.52"/>
+                <line x1="20" y1="26" x2="8" y2="34" stroke="#FF9800" stroke-width="1.7" opacity="0.5"/>
+                <line x1="20" y1="26" x2="5" y2="26" stroke="#4CAF82" stroke-width="1.7" opacity="0.52"/>
+                <line x1="20" y1="26" x2="8" y2="18" stroke="#8BC9A8" stroke-width="1.6" opacity="0.48"/>
+              </g>
+              <circle cx="20" cy="11" r="2" fill="#4CAF82" opacity="0.65"/><circle cx="32" cy="18" r="1.6" fill="#3B82F6" opacity="0.6"/><circle cx="35" cy="26" r="1.6" fill="#FF9800" opacity="0.6"/>
+              <circle cx="32" cy="34" r="1.5" fill="#4CAF82" opacity="0.55"/><circle cx="20" cy="41" r="1.6" fill="#60A5FA" opacity="0.55"/><circle cx="8" cy="34" r="1.5" fill="#FF9800" opacity="0.55"/>
+              <circle cx="5" cy="26" r="1.5" fill="#4CAF82" opacity="0.55"/><circle cx="8" cy="18" r="1.4" fill="#8BC9A8" opacity="0.5"/>
+              <!-- 礼花：中 (cx18 cy72) -->
+              <g stroke-linecap="round">
+                <line x1="18" y1="72" x2="18" y2="59" stroke="#4CAF82" stroke-width="1.8" opacity="0.58"/>
+                <line x1="18" y1="72" x2="28" y2="65" stroke="#3B82F6" stroke-width="1.5" opacity="0.52"/>
+                <line x1="18" y1="72" x2="30" y2="72" stroke="#FF9800" stroke-width="1.5" opacity="0.52"/>
+                <line x1="18" y1="72" x2="28" y2="79" stroke="#4CAF82" stroke-width="1.5" opacity="0.48"/>
+                <line x1="18" y1="72" x2="18" y2="85" stroke="#60A5FA" stroke-width="1.5" opacity="0.5"/>
+                <line x1="18" y1="72" x2="8" y2="79" stroke="#FF9800" stroke-width="1.5" opacity="0.48"/>
+                <line x1="18" y1="72" x2="6" y2="72" stroke="#4CAF82" stroke-width="1.5" opacity="0.5"/>
+                <line x1="18" y1="72" x2="8" y2="65" stroke="#8BC9A8" stroke-width="1.4" opacity="0.45"/>
+              </g>
+              <circle cx="18" cy="59" r="1.7" fill="#4CAF82" opacity="0.6"/><circle cx="28" cy="65" r="1.4" fill="#3B82F6" opacity="0.55"/><circle cx="30" cy="72" r="1.4" fill="#FF9800" opacity="0.55"/>
+              <circle cx="28" cy="79" r="1.3" fill="#4CAF82" opacity="0.5"/><circle cx="18" cy="85" r="1.4" fill="#60A5FA" opacity="0.52"/><circle cx="8" cy="79" r="1.3" fill="#FF9800" opacity="0.5"/>
+              <circle cx="6" cy="72" r="1.3" fill="#4CAF82" opacity="0.52"/><circle cx="8" cy="65" r="1.2" fill="#8BC9A8" opacity="0.48"/>
+              <!-- 礼花：下 (cx22 cy106) 小号 -->
+              <g stroke-linecap="round">
+                <line x1="22" y1="106" x2="22" y2="96" stroke="#4CAF82" stroke-width="1.6" opacity="0.55"/>
+                <line x1="22" y1="106" x2="30" y2="101" stroke="#3B82F6" stroke-width="1.3" opacity="0.5"/>
+                <line x1="22" y1="106" x2="32" y2="106" stroke="#FF9800" stroke-width="1.3" opacity="0.5"/>
+                <line x1="22" y1="106" x2="30" y2="111" stroke="#4CAF82" stroke-width="1.3" opacity="0.48"/>
+                <line x1="22" y1="106" x2="22" y2="116" stroke="#60A5FA" stroke-width="1.3" opacity="0.5"/>
+                <line x1="22" y1="106" x2="14" y2="111" stroke="#FF9800" stroke-width="1.3" opacity="0.48"/>
+                <line x1="22" y1="106" x2="12" y2="106" stroke="#4CAF82" stroke-width="1.3" opacity="0.5"/>
+                <line x1="22" y1="106" x2="14" y2="101" stroke="#8BC9A8" stroke-width="1.2" opacity="0.45"/>
+              </g>
+              <circle cx="22" cy="96" r="1.4" fill="#4CAF82" opacity="0.58"/><circle cx="30" cy="101" r="1.1" fill="#3B82F6" opacity="0.52"/><circle cx="32" cy="106" r="1.1" fill="#FF9800" opacity="0.52"/>
+              <circle cx="30" cy="111" r="1.1" fill="#4CAF82" opacity="0.48"/><circle cx="22" cy="116" r="1.1" fill="#60A5FA" opacity="0.5"/><circle cx="14" cy="111" r="1.1" fill="#FF9800" opacity="0.48"/>
+              <circle cx="12" cy="106" r="1.1" fill="#4CAF82" opacity="0.5"/><circle cx="14" cy="101" r="1" fill="#8BC9A8" opacity="0.46"/>
             </svg>
           </span>
           <h1 class="te-congrats-title">恭喜你，<br>你完成了这个旅行，<br>希望你玩的开心！</h1>
           <span class="te-congrats-ornament te-congrats-ornament--right" aria-hidden="true">
             <svg viewBox="0 0 48 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M24 4c2 8 12 14 12 24 0 8-6 12-10 18 6 4 14 10 14 20 0 10-8 16-14 22 4 6 10 14 10 24 0 8-6 14-12 20-6-6-12-12-12-20 0-10 6-18 10-24-6-6-14-12-14-22 0-10 8-16 14-20-4-6-10-10-10-18 0-10 10-16 12-24z" fill="url(#te-grad-r)" opacity="0.55"/>
-              <path d="M40 48c-4-2-8-2-12 0M40 72c-4 2-8 2-12 0M36 96c-6-3-12-3-18 0" stroke="#4CAF82" stroke-width="1.2" stroke-linecap="round" opacity="0.35"/>
-              <circle cx="24" cy="56" r="3" fill="#4CAF82" opacity="0.25"/>
-              <circle cx="30" cy="80" r="2.5" fill="#FF9800" opacity="0.3"/>
-              <defs>
-                <linearGradient id="te-grad-r" x1="36" y1="4" x2="12" y2="120" gradientUnits="userSpaceOnUse">
-                  <stop stop-color="#4CAF82"/>
-                  <stop offset="1" stop-color="#8BC9A8"/>
-                </linearGradient>
-              </defs>
+              <g stroke-linecap="round">
+                <line x1="28" y1="26" x2="28" y2="11" stroke="#4CAF82" stroke-width="2" opacity="0.62"/>
+                <line x1="28" y1="26" x2="16" y2="18" stroke="#3B82F6" stroke-width="1.7" opacity="0.55"/>
+                <line x1="28" y1="26" x2="13" y2="26" stroke="#FF9800" stroke-width="1.7" opacity="0.55"/>
+                <line x1="28" y1="26" x2="16" y2="34" stroke="#4CAF82" stroke-width="1.7" opacity="0.5"/>
+                <line x1="28" y1="26" x2="28" y2="41" stroke="#60A5FA" stroke-width="1.7" opacity="0.52"/>
+                <line x1="28" y1="26" x2="40" y2="34" stroke="#FF9800" stroke-width="1.7" opacity="0.5"/>
+                <line x1="28" y1="26" x2="43" y2="26" stroke="#4CAF82" stroke-width="1.7" opacity="0.52"/>
+                <line x1="28" y1="26" x2="40" y2="18" stroke="#8BC9A8" stroke-width="1.6" opacity="0.48"/>
+              </g>
+              <circle cx="28" cy="11" r="2" fill="#4CAF82" opacity="0.65"/><circle cx="16" cy="18" r="1.6" fill="#3B82F6" opacity="0.6"/><circle cx="13" cy="26" r="1.6" fill="#FF9800" opacity="0.6"/>
+              <circle cx="16" cy="34" r="1.5" fill="#4CAF82" opacity="0.55"/><circle cx="28" cy="41" r="1.6" fill="#60A5FA" opacity="0.55"/><circle cx="40" cy="34" r="1.5" fill="#FF9800" opacity="0.55"/>
+              <circle cx="43" cy="26" r="1.5" fill="#4CAF82" opacity="0.55"/><circle cx="40" cy="18" r="1.4" fill="#8BC9A8" opacity="0.5"/>
+              <g stroke-linecap="round">
+                <line x1="30" y1="72" x2="30" y2="59" stroke="#4CAF82" stroke-width="1.8" opacity="0.58"/>
+                <line x1="30" y1="72" x2="20" y2="65" stroke="#3B82F6" stroke-width="1.5" opacity="0.52"/>
+                <line x1="30" y1="72" x2="18" y2="72" stroke="#FF9800" stroke-width="1.5" opacity="0.52"/>
+                <line x1="30" y1="72" x2="20" y2="79" stroke="#4CAF82" stroke-width="1.5" opacity="0.48"/>
+                <line x1="30" y1="72" x2="30" y2="85" stroke="#60A5FA" stroke-width="1.5" opacity="0.5"/>
+                <line x1="30" y1="72" x2="40" y2="79" stroke="#FF9800" stroke-width="1.5" opacity="0.48"/>
+                <line x1="30" y1="72" x2="42" y2="72" stroke="#4CAF82" stroke-width="1.5" opacity="0.5"/>
+                <line x1="30" y1="72" x2="40" y2="65" stroke="#8BC9A8" stroke-width="1.4" opacity="0.45"/>
+              </g>
+              <circle cx="30" cy="59" r="1.7" fill="#4CAF82" opacity="0.6"/><circle cx="20" cy="65" r="1.4" fill="#3B82F6" opacity="0.55"/><circle cx="18" cy="72" r="1.4" fill="#FF9800" opacity="0.55"/>
+              <circle cx="20" cy="79" r="1.3" fill="#4CAF82" opacity="0.5"/><circle cx="30" cy="85" r="1.4" fill="#60A5FA" opacity="0.52"/><circle cx="40" cy="79" r="1.3" fill="#FF9800" opacity="0.5"/>
+              <circle cx="42" cy="72" r="1.3" fill="#4CAF82" opacity="0.52"/><circle cx="40" cy="65" r="1.2" fill="#8BC9A8" opacity="0.48"/>
+              <g stroke-linecap="round">
+                <line x1="26" y1="106" x2="26" y2="96" stroke="#4CAF82" stroke-width="1.6" opacity="0.55"/>
+                <line x1="26" y1="106" x2="18" y2="101" stroke="#3B82F6" stroke-width="1.3" opacity="0.5"/>
+                <line x1="26" y1="106" x2="16" y2="106" stroke="#FF9800" stroke-width="1.3" opacity="0.5"/>
+                <line x1="26" y1="106" x2="18" y2="111" stroke="#4CAF82" stroke-width="1.3" opacity="0.48"/>
+                <line x1="26" y1="106" x2="26" y2="116" stroke="#60A5FA" stroke-width="1.3" opacity="0.5"/>
+                <line x1="26" y1="106" x2="34" y2="111" stroke="#FF9800" stroke-width="1.3" opacity="0.48"/>
+                <line x1="26" y1="106" x2="36" y2="106" stroke="#4CAF82" stroke-width="1.3" opacity="0.5"/>
+                <line x1="26" y1="106" x2="34" y2="101" stroke="#8BC9A8" stroke-width="1.2" opacity="0.45"/>
+              </g>
+              <circle cx="26" cy="96" r="1.4" fill="#4CAF82" opacity="0.58"/><circle cx="18" cy="101" r="1.1" fill="#3B82F6" opacity="0.52"/><circle cx="16" cy="106" r="1.1" fill="#FF9800" opacity="0.52"/>
+              <circle cx="18" cy="111" r="1.1" fill="#4CAF82" opacity="0.48"/><circle cx="26" cy="116" r="1.1" fill="#60A5FA" opacity="0.5"/><circle cx="34" cy="111" r="1.1" fill="#FF9800" opacity="0.48"/>
+              <circle cx="36" cy="106" r="1.1" fill="#4CAF82" opacity="0.5"/><circle cx="34" cy="101" r="1" fill="#8BC9A8" opacity="0.46"/>
             </svg>
           </span>
         </div>
@@ -262,56 +407,68 @@
         </div>
 
         <div class="te-harvest-cards" id="te-harvest-cards">
-          <!-- 景点 -->
+          <!-- 景点（路线详情页风格：白底 + 左侧强调线） -->
           <article class="te-reward-card" data-type="spot" id="te-card-spot-first">
             <div class="te-reward-card-head">
-              <h3 class="te-reward-title">
-                <span class="te-reward-title-emoji" aria-hidden="true">📍</span>
-                <span class="te-reward-title-type">景点</span>
-                <span class="te-reward-title-sep" aria-hidden="true">｜</span>
-                <span class="te-reward-title-text">大栅栏商业街</span>
-                <span class="te-reward-title-sep" aria-hidden="true">｜</span>
-                <span class="te-reward-badge te-reward-badge--ok">已打卡</span>
-              </h3>
+              <div class="te-reward-card-row">
+                <h3 class="te-reward-title">
+                  <span class="te-reward-title-emoji" aria-hidden="true">📍</span>
+                  <span class="te-reward-title-type">景点</span>
+                  <span class="te-reward-title-sep" aria-hidden="true">｜</span>
+                  <span class="te-reward-title-text">大栅栏商业街</span>
+                </h3>
+                <div class="te-reward-meta">
+                  <span class="te-reward-badge te-reward-badge--ok">已打卡</span>
+                </div>
+              </div>
             </div>
-            <p class="te-reward-desc">北京最具代表性的历史商业街区之一，老字号林立。</p>
+            <p class="te-reward-desc">北京最具代表性的历史商业街区之一，老字号林立。沿街可见瑞蚨祥、内联升等老字号门面，适合步行感受老城商业氛围。</p>
           </article>
           <article class="te-reward-card" data-type="spot">
             <div class="te-reward-card-head">
-              <h3 class="te-reward-title">
-                <span class="te-reward-title-emoji" aria-hidden="true">📍</span>
-                <span class="te-reward-title-type">景点</span>
-                <span class="te-reward-title-sep" aria-hidden="true">｜</span>
-                <span class="te-reward-title-text">梅兰芳故居</span>
-                <span class="te-reward-title-sep" aria-hidden="true">｜</span>
-                <span class="te-reward-badge te-reward-badge--ok">已打卡</span>
-              </h3>
+              <div class="te-reward-card-row">
+                <h3 class="te-reward-title">
+                  <span class="te-reward-title-emoji" aria-hidden="true">📍</span>
+                  <span class="te-reward-title-type">景点</span>
+                  <span class="te-reward-title-sep" aria-hidden="true">｜</span>
+                  <span class="te-reward-title-text">梅兰芳故居</span>
+                </h3>
+                <div class="te-reward-meta">
+                  <span class="te-reward-badge te-reward-badge--ok">已打卡</span>
+                </div>
+              </div>
             </div>
             <p class="te-reward-desc">京剧大师梅兰芳晚年居所，保存大量戏曲文献与实物。</p>
           </article>
           <article class="te-reward-card" data-type="spot">
             <div class="te-reward-card-head">
-              <h3 class="te-reward-title">
-                <span class="te-reward-title-emoji" aria-hidden="true">📍</span>
-                <span class="te-reward-title-type">景点</span>
-                <span class="te-reward-title-sep" aria-hidden="true">｜</span>
-                <span class="te-reward-title-text">煤市街博物馆</span>
-                <span class="te-reward-title-sep" aria-hidden="true">｜</span>
-                <span class="te-reward-badge te-reward-badge--ok">已打卡</span>
-              </h3>
+              <div class="te-reward-card-row">
+                <h3 class="te-reward-title">
+                  <span class="te-reward-title-emoji" aria-hidden="true">📍</span>
+                  <span class="te-reward-title-type">景点</span>
+                  <span class="te-reward-title-sep" aria-hidden="true">｜</span>
+                  <span class="te-reward-title-text">煤市街博物馆</span>
+                </h3>
+                <div class="te-reward-meta">
+                  <span class="te-reward-badge te-reward-badge--ok">已打卡</span>
+                </div>
+              </div>
             </div>
             <p class="te-reward-desc">社区记忆博物馆，展示胡同居民生活史与城市变迁。</p>
           </article>
           <article class="te-reward-card" data-type="spot">
             <div class="te-reward-card-head">
-              <h3 class="te-reward-title">
-                <span class="te-reward-title-emoji" aria-hidden="true">📍</span>
-                <span class="te-reward-title-type">景点</span>
-                <span class="te-reward-title-sep" aria-hidden="true">｜</span>
-                <span class="te-reward-title-text">纪晓岚故居</span>
-                <span class="te-reward-title-sep" aria-hidden="true">｜</span>
-                <span class="te-reward-badge te-reward-badge--muted">未打卡</span>
-              </h3>
+              <div class="te-reward-card-row">
+                <h3 class="te-reward-title">
+                  <span class="te-reward-title-emoji" aria-hidden="true">📍</span>
+                  <span class="te-reward-title-type">景点</span>
+                  <span class="te-reward-title-sep" aria-hidden="true">｜</span>
+                  <span class="te-reward-title-text">纪晓岚故居</span>
+                </h3>
+                <div class="te-reward-meta">
+                  <span class="te-reward-badge te-reward-badge--muted">未打卡</span>
+                </div>
+              </div>
             </div>
             <p class="te-reward-desc">清代文人宅邸遗址，兼具人文典故与古都建筑特色。</p>
           </article>
@@ -319,14 +476,17 @@
           <!-- 故事 -->
           <article class="te-reward-card" data-type="story" id="te-card-story-first">
             <div class="te-reward-card-head">
-              <h3 class="te-reward-title">
-                <span class="te-reward-title-emoji" aria-hidden="true">📖</span>
-                <span class="te-reward-title-type">故事</span>
-                <span class="te-reward-title-sep" aria-hidden="true">｜</span>
-                <span class="te-reward-title-text">胡同里的「大栅栏」往事</span>
-                <span class="te-reward-title-sep" aria-hidden="true">｜</span>
-                <span class="te-reward-badge te-reward-badge--muted">未打卡</span>
-              </h3>
+              <div class="te-reward-card-row">
+                <h3 class="te-reward-title">
+                  <span class="te-reward-title-emoji" aria-hidden="true">📖</span>
+                  <span class="te-reward-title-type">故事</span>
+                  <span class="te-reward-title-sep" aria-hidden="true">｜</span>
+                  <span class="te-reward-title-text">胡同里的「大栅栏」往事</span>
+                </h3>
+                <div class="te-reward-meta">
+                  <span class="te-reward-badge te-reward-badge--muted">未打卡</span>
+                </div>
+              </div>
             </div>
             <p class="te-reward-desc">走完全程后可解锁完整故事线。</p>
           </article>
@@ -334,68 +494,84 @@
           <!-- 彩蛋 -->
           <article class="te-reward-card" data-type="egg" id="te-card-egg-first">
             <div class="te-reward-card-head">
-              <h3 class="te-reward-title">
-                <span class="te-reward-title-emoji" aria-hidden="true">🥚</span>
-                <span class="te-reward-title-type">彩蛋</span>
-                <span class="te-reward-title-sep" aria-hidden="true">｜</span>
-                <span class="te-reward-title-text">老字号门头彩蛋</span>
-                <span class="te-reward-title-sep" aria-hidden="true">｜</span>
-                <span class="te-reward-badge te-reward-badge--ok">已打卡</span>
-              </h3>
+              <div class="te-reward-card-row">
+                <h3 class="te-reward-title">
+                  <span class="te-reward-title-emoji" aria-hidden="true">🥚</span>
+                  <span class="te-reward-title-type">彩蛋</span>
+                  <span class="te-reward-title-sep" aria-hidden="true">｜</span>
+                  <span class="te-reward-title-text">老字号门头彩蛋</span>
+                </h3>
+                <div class="te-reward-meta">
+                  <span class="te-reward-badge te-reward-badge--ok">已打卡</span>
+                </div>
+              </div>
             </div>
             <p class="te-reward-desc">在同仁堂附近发现隐藏打卡点。</p>
           </article>
           <article class="te-reward-card" data-type="egg">
             <div class="te-reward-card-head">
-              <h3 class="te-reward-title">
-                <span class="te-reward-title-emoji" aria-hidden="true">🥚</span>
-                <span class="te-reward-title-type">彩蛋</span>
-                <span class="te-reward-title-sep" aria-hidden="true">｜</span>
-                <span class="te-reward-title-text">胡同转角语音彩蛋</span>
-                <span class="te-reward-title-sep" aria-hidden="true">｜</span>
-                <span class="te-reward-badge te-reward-badge--ok">已打卡</span>
-              </h3>
+              <div class="te-reward-card-row">
+                <h3 class="te-reward-title">
+                  <span class="te-reward-title-emoji" aria-hidden="true">🥚</span>
+                  <span class="te-reward-title-type">彩蛋</span>
+                  <span class="te-reward-title-sep" aria-hidden="true">｜</span>
+                  <span class="te-reward-title-text">胡同转角语音彩蛋</span>
+                </h3>
+                <div class="te-reward-meta">
+                  <span class="te-reward-badge te-reward-badge--ok">已打卡</span>
+                </div>
+              </div>
             </div>
             <p class="te-reward-desc">触发 AI 导游特别解说。</p>
           </article>
           <article class="te-reward-card" data-type="egg">
             <div class="te-reward-card-head">
-              <h3 class="te-reward-title">
-                <span class="te-reward-title-emoji" aria-hidden="true">🥚</span>
-                <span class="te-reward-title-type">彩蛋</span>
-                <span class="te-reward-title-sep" aria-hidden="true">｜</span>
-                <span class="te-reward-title-text">还有 8 枚彩蛋等你发现</span>
-                <span class="te-reward-title-sep" aria-hidden="true">｜</span>
-                <span class="te-reward-badge te-reward-badge--muted">未打卡</span>
-              </h3>
+              <div class="te-reward-card-row">
+                <h3 class="te-reward-title">
+                  <span class="te-reward-title-emoji" aria-hidden="true">🥚</span>
+                  <span class="te-reward-title-type">彩蛋</span>
+                  <span class="te-reward-title-sep" aria-hidden="true">｜</span>
+                  <span class="te-reward-title-text">还有 8 枚彩蛋等你发现</span>
+                </h3>
+                <div class="te-reward-meta">
+                  <span class="te-reward-badge te-reward-badge--muted">未打卡</span>
+                </div>
+              </div>
             </div>
             <p class="te-reward-desc">继续探索路线可收集更多彩蛋。</p>
           </article>
 
-          <!-- 知识 -->
+          <!-- 知识（聊天页知识点卡片：浅绿底） -->
           <article class="te-reward-card" data-type="knowledge" id="te-card-knowledge-first">
             <div class="te-reward-card-head">
-              <h3 class="te-reward-title">
-                <span class="te-reward-title-emoji" aria-hidden="true">💡</span>
-                <span class="te-reward-title-type">知识</span>
-                <span class="te-reward-title-sep" aria-hidden="true">｜</span>
-                <span class="te-reward-title-text">门钉与等级礼制</span>
-                <span class="te-reward-title-sep" aria-hidden="true">｜</span>
-                <span class="te-reward-badge te-reward-badge--ok">已打卡</span>
-              </h3>
+              <div class="te-reward-card-row">
+                <h3 class="te-reward-title">
+                  <span class="te-reward-title-emoji" aria-hidden="true">💡</span>
+                  <span class="te-reward-title-type">知识</span>
+                  <span class="te-reward-title-sep" aria-hidden="true">｜</span>
+                  <span class="te-reward-title-text">门钉与等级礼制</span>
+                </h3>
+                <div class="te-reward-meta">
+                  <span class="te-reward-badge te-reward-badge--ok">已打卡</span>
+                </div>
+              </div>
             </div>
             <p class="te-reward-desc">大栅栏一带商号门面保留了明清商业街的礼制与审美线索。</p>
+            <p class="te-reward-desc te-reward-desc--secondary">补充：清代规制中，门钉数量与建筑等级相关，商号门面常通过装饰细节传递「体面」与行业身份。</p>
           </article>
           <article class="te-reward-card" data-type="knowledge">
             <div class="te-reward-card-head">
-              <h3 class="te-reward-title">
-                <span class="te-reward-title-emoji" aria-hidden="true">💡</span>
-                <span class="te-reward-title-type">知识</span>
-                <span class="te-reward-title-sep" aria-hidden="true">｜</span>
-                <span class="te-reward-title-text">京剧与四合院</span>
-                <span class="te-reward-title-sep" aria-hidden="true">｜</span>
-                <span class="te-reward-badge te-reward-badge--ok">已打卡</span>
-              </h3>
+              <div class="te-reward-card-row">
+                <h3 class="te-reward-title">
+                  <span class="te-reward-title-emoji" aria-hidden="true">💡</span>
+                  <span class="te-reward-title-type">知识</span>
+                  <span class="te-reward-title-sep" aria-hidden="true">｜</span>
+                  <span class="te-reward-title-text">京剧与四合院</span>
+                </h3>
+                <div class="te-reward-meta">
+                  <span class="te-reward-badge te-reward-badge--ok">已打卡</span>
+                </div>
+              </div>
             </div>
             <p class="te-reward-desc">梅兰芳故居与典型四合院形制。</p>
           </article>
@@ -403,40 +579,49 @@
           <!-- 活动 -->
           <article class="te-reward-card" data-type="activity" id="te-card-activity-first">
             <div class="te-reward-card-head">
-              <h3 class="te-reward-title">
-                <span class="te-reward-title-emoji" aria-hidden="true">🎯</span>
-                <span class="te-reward-title-type">活动</span>
-                <span class="te-reward-title-sep" aria-hidden="true">｜</span>
-                <span class="te-reward-title-text">AI 语音导览挑战</span>
-                <span class="te-reward-title-sep" aria-hidden="true">｜</span>
-                <span class="te-reward-badge te-reward-badge--ok">已打卡</span>
-              </h3>
+              <div class="te-reward-card-row">
+                <h3 class="te-reward-title">
+                  <span class="te-reward-title-emoji" aria-hidden="true">🎯</span>
+                  <span class="te-reward-title-type">活动</span>
+                  <span class="te-reward-title-sep" aria-hidden="true">｜</span>
+                  <span class="te-reward-title-text">AI 语音导览挑战</span>
+                </h3>
+                <div class="te-reward-meta">
+                  <span class="te-reward-badge te-reward-badge--ok">已打卡</span>
+                </div>
+              </div>
             </div>
             <p class="te-reward-desc">与小 go 完成指定路线问答。</p>
           </article>
           <article class="te-reward-card" data-type="activity">
             <div class="te-reward-card-head">
-              <h3 class="te-reward-title">
-                <span class="te-reward-title-emoji" aria-hidden="true">🎯</span>
-                <span class="te-reward-title-type">活动</span>
-                <span class="te-reward-title-sep" aria-hidden="true">｜</span>
-                <span class="te-reward-title-text">胡同摄影打卡</span>
-                <span class="te-reward-title-sep" aria-hidden="true">｜</span>
-                <span class="te-reward-badge te-reward-badge--muted">未打卡</span>
-              </h3>
+              <div class="te-reward-card-row">
+                <h3 class="te-reward-title">
+                  <span class="te-reward-title-emoji" aria-hidden="true">🎯</span>
+                  <span class="te-reward-title-type">活动</span>
+                  <span class="te-reward-title-sep" aria-hidden="true">｜</span>
+                  <span class="te-reward-title-text">胡同摄影打卡</span>
+                </h3>
+                <div class="te-reward-meta">
+                  <span class="te-reward-badge te-reward-badge--muted">未打卡</span>
+                </div>
+              </div>
             </div>
             <p class="te-reward-desc">在 3 个点位拍摄并上传可完成。</p>
           </article>
           <article class="te-reward-card" data-type="activity">
             <div class="te-reward-card-head">
-              <h3 class="te-reward-title">
-                <span class="te-reward-title-emoji" aria-hidden="true">🎯</span>
-                <span class="te-reward-title-type">活动</span>
-                <span class="te-reward-title-sep" aria-hidden="true">｜</span>
-                <span class="te-reward-title-text">老字号印章收集</span>
-                <span class="te-reward-title-sep" aria-hidden="true">｜</span>
-                <span class="te-reward-badge te-reward-badge--muted">未打卡</span>
-              </h3>
+              <div class="te-reward-card-row">
+                <h3 class="te-reward-title">
+                  <span class="te-reward-title-emoji" aria-hidden="true">🎯</span>
+                  <span class="te-reward-title-type">活动</span>
+                  <span class="te-reward-title-sep" aria-hidden="true">｜</span>
+                  <span class="te-reward-title-text">老字号印章收集</span>
+                </h3>
+                <div class="te-reward-meta">
+                  <span class="te-reward-badge te-reward-badge--muted">未打卡</span>
+                </div>
+              </div>
             </div>
             <p class="te-reward-desc">到访指定老字号可盖章。</p>
           </article>

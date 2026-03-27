@@ -32,13 +32,13 @@
   function injectCardTimes() {
     const baseDate = new Date();
     cards.forEach((card, index) => {
-      const head = card.querySelector('.te-reward-card-head');
-      if (!head || head.querySelector('.te-reward-time')) return;
+      const meta = card.querySelector('.te-reward-meta');
+      if (!meta || meta.querySelector('.te-reward-time')) return;
       const date = new Date(baseDate.getTime() - index * 16 * 60 * 1000);
       const timeEl = document.createElement('span');
       timeEl.className = 'te-reward-time';
       timeEl.textContent = formatDateTime(date);
-      head.appendChild(timeEl);
+      meta.insertBefore(timeEl, meta.firstChild);
     });
   }
 
