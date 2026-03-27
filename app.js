@@ -73,6 +73,17 @@
       chips.forEach(c => { c.classList.remove('active'); c.setAttribute('aria-selected', 'false'); });
       chip.classList.add('active');
       chip.setAttribute('aria-selected', 'true');
+
+      // Toggle tab content
+      const tabId = chip.dataset.tab;
+      document.querySelectorAll('.route-group').forEach(group => {
+        group.style.display = 'none';
+      });
+      const targetGroup = document.getElementById('tab-content-' + tabId);
+      if (targetGroup) {
+        targetGroup.style.display = 'block';
+      }
+
       // Micro-animation feedback
       chip.style.transform = 'scale(0.93)';
       setTimeout(() => { chip.style.transform = ''; }, 160);
