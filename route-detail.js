@@ -185,14 +185,19 @@
     document.body.style.overflow = '';
   }
 
-  document.getElementById('rd-fullscreen-btn').addEventListener('click', (e) => {
+  const togglePanelFullscreen = (e) => {
     e.stopPropagation();
-    openFullscreen();
-  });
-  document.getElementById('rd-fullscreen-text-btn').addEventListener('click', (e) => {
-    e.stopPropagation();
-    openFullscreen();
-  });
+    const isFull = detailPanel.classList.toggle('is-full');
+    const btn = document.getElementById('rd-fullscreen-text-btn');
+    btn.textContent = isFull ? '收起' : '全屏';
+
+    if (isFull) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  document.getElementById('rd-fullscreen-btn').addEventListener('click', togglePanelFullscreen);
+  document.getElementById('rd-fullscreen-text-btn').addEventListener('click', togglePanelFullscreen);
 
   fsFsCloseBtn.addEventListener('click', closeFullscreen);
 
