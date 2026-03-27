@@ -455,10 +455,11 @@ input { font-family: inherit; }
   align-items: center;
   gap: 5px;
   margin-bottom: 5px;
+  --heat-color: #F4C430; /* 默认：黄 */
 }
 .heat-label {
   font-size: 10px;
-  color: var(--clr-danger);
+  color: var(--heat-color);
   font-weight: 700;
 }
 .heat-dots { display: flex; gap: 3px; }
@@ -469,15 +470,30 @@ input { font-family: inherit; }
   background: #eee;
   transition: background 0.2s;
 }
-.heat-dot.hot  { background: var(--clr-danger); }
+.heat-dot.hot { background: var(--heat-color); }
 .heat-dot.half {
-  background: linear-gradient(to right, var(--clr-danger) 50%, #eee 50%);
+  background: linear-gradient(to right, var(--heat-color) 50%, #eee 50%);
 }
 .heat-num {
   font-size: 10px;
-  color: var(--clr-danger);
+  color: var(--heat-color);
   font-weight: 700;
   margin-left: 2px;
+}
+
+/* 热度统一色：文案、圆点、数值同色
+   0-1 黄；1-3 橙；4-5 红 */
+.route-heat:has(.heat-dot.hot:nth-child(2)),
+.route-heat:has(.heat-dot.half:nth-child(2)),
+.route-heat:has(.heat-dot.hot:nth-child(3)),
+.route-heat:has(.heat-dot.half:nth-child(3)) {
+  --heat-color: #FF9800;
+}
+.route-heat:has(.heat-dot.hot:nth-child(4)),
+.route-heat:has(.heat-dot.half:nth-child(4)),
+.route-heat:has(.heat-dot.hot:nth-child(5)),
+.route-heat:has(.heat-dot.half:nth-child(5)) {
+  --heat-color: #FF5757;
 }
 .route-tags { display: flex; flex-wrap: wrap; gap: 4px; }
 .tag {
