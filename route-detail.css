@@ -200,133 +200,80 @@
   flex-wrap: wrap;
 }
 
-/* ---- Stats Strip ----------------------------------- */
-.rd-stats-scroll-wrapper {
-  padding: 0 18px;
-  overflow: hidden;
-}
-
-.rd-stats-strip {
+.rd-stats-row {
   display: flex;
-  gap: 8px;
-  padding: 10px 0 8px;
+  gap: 0;
+  padding: 6px 0 4px;
   overflow-x: auto;
   scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
-  /* Fade edges */
-  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 5%, black 92%, transparent 100%);
-  mask-image: linear-gradient(to right, transparent 0%, black 5%, black 92%, transparent 100%);
+  margin-top: 2px;
 }
-.rd-stats-strip::-webkit-scrollbar { display: none; }
+.rd-stats-row::-webkit-scrollbar { display: none; }
 
-.rd-stat-item {
+.rd-stat-badge {
   flex-shrink: 0;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+}
+.rd-stat-badge:first-child {
+  padding-left: 0;
+}
+.rd-stat-badge:not(:last-child) {
+  border-right: 1px solid rgba(0,0,0,0.08);
+}
+
+.rd-stat-icon {
+  font-size: 13px;
+  display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 68px;
-  padding: 10px 14px;
-  border-radius: var(--radius-md);
-  background: #E8F5ED;
-  border: 2px solid transparent;
-  cursor: pointer;
-  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
-  position: relative;
-  overflow: hidden;
-}
-.rd-stat-item::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, var(--clr-primary), var(--clr-primary-dark));
-  opacity: 0;
-  transition: opacity 0.22s;
-}
-.rd-stat-item:hover { transform: translateY(-2px); border-color: var(--clr-primary); }
-.rd-stat-item.active { border-color: var(--clr-primary); box-shadow: 0 3px 14px rgba(76,175,130,0.30); }
-.rd-stat-item.active::before { opacity: 1; }
-
-.rd-stat-num {
-  font-size: 22px;
-  font-weight: 800;
-  color: var(--clr-primary-dark);
-  font-family: var(--font-head);
-  line-height: 1.1;
-  position: relative;
-  z-index: 1;
-  transition: color 0.22s;
-}
-.rd-stat-label {
-  font-size: 11.5px;
-  font-weight: 700;
-  color: var(--clr-primary-dark);
-  margin-top: 2px;
-  position: relative;
-  z-index: 1;
-  transition: color 0.22s;
-}
-.rd-stat-item.active .rd-stat-num,
-.rd-stat-item.active .rd-stat-label {
-  color: white;
+  opacity: 0.85;
 }
 
-/* ---- Stat Detail Area ------------------------------ */
-.rd-stat-detail-area {
-  margin: 0 18px;
-  overflow: hidden;
-  max-height: 0;
-  transition: max-height 0.35s ease, opacity 0.3s ease, margin 0.3s ease;
-  opacity: 0;
-}
-.rd-stat-detail-area.open {
-  max-height: 300px;
-  opacity: 1;
-  margin-bottom: 6px;
+.rd-stat-info-box {
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
 }
 
-.rd-stat-card {
-  background: var(--clr-primary-light);
-  border: 1.5px solid rgba(76,175,130,0.2);
-  border-radius: var(--radius-md);
-  padding: 14px 16px;
-  animation: slideUp 0.28s ease both;
-}
-.rd-stat-card-title {
-  font-size: 13px;
+.rd-stat-val {
+  font-size: 15px;
   font-weight: 800;
   color: var(--clr-text-h);
   font-family: var(--font-head);
-  margin-bottom: 8px;
+  line-height: 1;
+}
+
+.rd-stat-key {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--clr-text-muted);
+  letter-spacing: 0.1px;
+}
+
+/* Section Header */
+.rd-section-header {
+  padding: 10px 18px 8px;
   display: flex;
   align-items: center;
-  gap: 6px;
 }
-.rd-stat-card-title .stat-icon {
+.rd-section-title {
   font-size: 16px;
-}
-.rd-stat-card-list {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.rd-stat-card-item {
+  font-weight: 800;
+  color: var(--clr-text-h);
+  font-family: var(--font-head);
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 12.5px;
-  color: var(--clr-text-b);
-  padding: 6px 10px;
-  background: white;
-  border-radius: 8px;
-  border: 1px solid rgba(76,175,130,0.1);
 }
-.rd-stat-card-item-num {
-  font-weight: 800;
-  color: var(--clr-primary);
+.rd-section-icon {
   font-size: 14px;
-  min-width: 22px;
+  opacity: 0.8;
 }
+
 
 /* ---- Spot List ------------------------------------- */
 .rd-spot-list {
