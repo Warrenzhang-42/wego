@@ -19,51 +19,8 @@
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
+  padding-top: env(safe-area-inset-top, 0px);
   padding-bottom: calc(88px + env(safe-area-inset-bottom, 0px));
-}
-
-.md-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 12px 8px;
-  background: var(--clr-card);
-  border-bottom: 1px solid var(--clr-border);
-  position: sticky;
-  top: 0;
-  z-index: 40;
-}
-
-.md-back {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--clr-text-h);
-  background: var(--clr-bg);
-  transition: background 0.15s, transform 0.12s;
-}
-.md-back:hover {
-  background: var(--clr-primary-light);
-}
-.md-back:active {
-  transform: scale(0.96);
-}
-
-.md-title {
-  font-size: 18px;
-  font-weight: 800;
-  font-family: var(--font-head);
-  color: var(--clr-text-h);
-  margin: 0;
-  letter-spacing: -0.02em;
-}
-
-.md-top-spacer {
-  width: 40px;
-  flex-shrink: 0;
 }
 
 .md-harvest-wrap {
@@ -76,18 +33,10 @@
   margin-top: -4px;
 }
 
-.md-subline {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--clr-text-muted);
-  margin: 0 0 8px 2px;
-  letter-spacing: 0.02em;
-}
-
 .md-cards {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 0;
   padding-top: 4px;
 }
 

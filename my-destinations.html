@@ -15,34 +15,25 @@
 <body>
   <div id="app" class="md-app">
 
-    <header class="md-top">
-      <a href="index.html" class="md-back" aria-label="返回探索">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
-      </a>
-      <h1 class="md-title">我的目的地</h1>
-      <span class="md-top-spacer" aria-hidden="true"></span>
-    </header>
-
     <div class="md-scroll" id="md-scroll">
 
       <div class="md-harvest-wrap te-section te-harvest-section">
         <div class="te-harvest-sticky-sentinel" aria-hidden="true"></div>
         <div class="te-harvest-sticky md-harvest-sticky">
-          <p class="md-subline">收藏与行程状态</p>
-
           <div class="te-harvest-tabs" role="tablist" aria-label="路线状态">
-            <button type="button" class="te-harvest-tab is-active" role="tab" aria-selected="true" data-status="progress" id="md-tab-progress">
-              <span class="te-harvest-tab-icon">🚶</span>
+            <button type="button" class="te-harvest-tab is-active" role="tab" aria-selected="true" data-status="all" id="md-tab-all">
+              <span class="te-harvest-tab-text">全部</span>
+              <span class="te-harvest-tab-num">5</span>
+            </button>
+            <button type="button" class="te-harvest-tab" role="tab" aria-selected="false" data-status="progress" id="md-tab-progress">
               <span class="te-harvest-tab-text">进行中</span>
               <span class="te-harvest-tab-num">1</span>
             </button>
             <button type="button" class="te-harvest-tab" role="tab" aria-selected="false" data-status="upcoming" id="md-tab-upcoming">
-              <span class="te-harvest-tab-icon">📅</span>
               <span class="te-harvest-tab-text">未开始</span>
               <span class="te-harvest-tab-num">3</span>
             </button>
             <button type="button" class="te-harvest-tab" role="tab" aria-selected="false" data-status="done" id="md-tab-done">
-              <span class="te-harvest-tab-icon">✅</span>
               <span class="te-harvest-tab-text">已完成</span>
               <span class="te-harvest-tab-num">1</span>
             </button>
@@ -54,13 +45,13 @@
           <!-- 进行中 x1 -->
           <div class="route-card md-route-card" data-status="progress" role="button" tabindex="0" aria-label="路线：南锣鼓巷与后海漫步">
             <div class="route-thumb">
-              <img src="https://images.unsplash.com/photo-1508804185872-d7badad00f7d?w=400&h=400&fit=crop" alt="胡同漫步" class="route-thumb-img" />
+              <img src="/Users/a111111/.gemini/antigravity/brain/2ae3e13e-4b00-463f-830e-75ee220409db/spot_hutong_houhai_1774578137395.png" alt="胡同后海" class="route-thumb-img" />
             </div>
             <div class="route-info">
               <div class="route-title-row">
                 <h3 class="route-title">南锣鼓巷与后海漫步</h3>
               </div>
-              <p class="route-subtitle">副标题：胡同烟火与湖光倒影的一日轻徒步</p>
+              <p class="route-subtitle">穿梭百年胡同，品尝地道老北京小吃</p>
               <div class="route-heat">
                 <span class="heat-label">热度</span>
                 <div class="heat-dots">
@@ -78,10 +69,16 @@
               </div>
             </div>
             <div class="route-map-thumb">
-              <div class="map-mini" aria-label="路线示意">
+              <div class="map-mini" aria-label="南锣鼓巷与后海漫步地图">
                 <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <rect width="64" height="64" rx="14" fill="#FFF8E8"/>
+                  <g stroke="#F2E6C9" stroke-width="1.2">
+                    <path d="M5 10H59M5 20H59M5 30H59M5 40H59M5 50H59" />
+                    <path d="M15 5V59M25 5V59M35 5V59M45 5V59M55 5V59" />
+                  </g>
                   <path d="M10 54V40H30V24H45L54 10" stroke="#FF9800" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  <circle cx="30" cy="40" r="2" fill="white" stroke="#FF9800" stroke-width="1.5"/>
+                  <circle cx="45" cy="24" r="2" fill="white" stroke="#FF9800" stroke-width="1.5"/>
                   <circle cx="10" cy="54" r="4" fill="white" stroke="#FF9800" stroke-width="2"/>
                   <circle cx="54" cy="10" r="5" fill="#FF5757"/>
                   <circle cx="54" cy="10" r="2" fill="white"/>
@@ -95,13 +92,13 @@
           <!-- 未开始 x3 -->
           <div class="route-card md-route-card" data-status="upcoming" role="button" tabindex="0" aria-label="路线：颐和园皇家园林大赏">
             <div class="route-thumb">
-              <img src="https://images.unsplash.com/photo-1547981609-4b6bfe67ca0b?w=400&h=400&fit=crop" alt="颐和园" class="route-thumb-img" />
+              <img src="/Users/a111111/.gemini/antigravity/brain/2ae3e13e-4b00-463f-830e-75ee220409db/spot_summer_palace_1774578169000.png" alt="颐和园" class="route-thumb-img" />
             </div>
             <div class="route-info">
               <div class="route-title-row">
                 <h3 class="route-title">颐和园皇家园林大赏</h3>
               </div>
-              <p class="route-subtitle">副标题：漫步昆明湖畔，感受古典园林巅峰之作</p>
+              <p class="route-subtitle">漫步昆明湖畔，感受古典园林的巅峰之作</p>
               <div class="route-heat">
                 <span class="heat-label">热度</span>
                 <div class="heat-dots">
@@ -119,9 +116,12 @@
               </div>
             </div>
             <div class="route-map-thumb">
-              <div class="map-mini" aria-label="路线示意">
+              <div class="map-mini" aria-label="颐和园皇家园林大赏地图">
                 <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <rect width="64" height="64" rx="14" fill="#EBF7F0"/>
+                  <path d="M10 45Q20 35 35 45T60 35" stroke="#D1E8D9" stroke-width="2" fill="none" stroke-dasharray="4 4" />
+                  <path d="M15 15Q25 25 40 10" stroke="#D1E8D9" stroke-width="2" fill="none" />
+                  <circle cx="45" cy="35" r="8" fill="#D1E8D9" fill-opacity="0.3" />
                   <path d="M8 32 C 16 10, 48 10, 56 32" stroke="#4CAF82" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
                   <circle cx="8" cy="32" r="4" fill="white" stroke="#4CAF82" stroke-width="2"/>
                   <circle cx="56" cy="32" r="5" fill="#FF5757"/>
@@ -135,13 +135,13 @@
 
           <div class="route-card md-route-card" data-status="upcoming" role="button" tabindex="0" aria-label="路线：798艺术区创意半日">
             <div class="route-thumb">
-              <img src="https://images.unsplash.com/photo-1518998053901-5348d3961a04?w=400&h=400&fit=crop" alt="艺术区" class="route-thumb-img" />
+              <img src="/Users/a111111/.gemini/antigravity/brain/c1ac1afa-9609-4abf-b6c3-bcad842c7764/spot_museum_1774541185996.png" alt="798艺术区" class="route-thumb-img" />
             </div>
             <div class="route-info">
               <div class="route-title-row">
                 <h3 class="route-title">798艺术区创意半日</h3>
               </div>
-              <p class="route-subtitle">副标题：画廊、装置与咖啡店的灵感漫步</p>
+              <p class="route-subtitle">画廊、装置与咖啡店的灵感漫步</p>
               <div class="route-heat">
                 <span class="heat-label">热度</span>
                 <div class="heat-dots">
@@ -159,12 +159,19 @@
               </div>
             </div>
             <div class="route-map-thumb">
-              <div class="map-mini" aria-label="路线示意">
+              <div class="map-mini" aria-label="798艺术区创意半日地图">
                 <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect width="64" height="64" rx="14" fill="#F5F0FF"/>
-                  <path d="M12 48 L28 40 L32 22 L48 14" stroke="#FF9800" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                  <circle cx="12" cy="48" r="4" fill="white" stroke="#FF9800" stroke-width="2"/>
-                  <circle cx="48" cy="14" r="5" fill="#FF5757"/>
+                  <rect width="64" height="64" rx="14" fill="#F0EEFF"/>
+                  <g stroke="#D4CCFF" stroke-width="1" fill="#E8E5FA">
+                    <rect x="8" y="8" width="20" height="20" />
+                    <rect x="32" y="8" width="24" height="30" />
+                    <rect x="8" y="32" width="20" height="24" />
+                    <rect x="32" y="42" width="24" height="14" />
+                  </g>
+                  <path d="M14 44 L14 18 L44 18 L44 48 L50 48" stroke="#7C5CBF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  <circle cx="14" cy="44" r="4" fill="white" stroke="#7C5CBF" stroke-width="2"/>
+                  <circle cx="50" cy="48" r="5" fill="#FF5757"/>
+                  <circle cx="50" cy="48" r="2" fill="white"/>
                 </svg>
                 <span class="map-duration">3h</span>
               </div>
@@ -174,13 +181,13 @@
 
           <div class="route-card md-route-card" data-status="upcoming" role="button" tabindex="0" aria-label="路线：长城慕田峪精华段">
             <div class="route-thumb">
-              <img src="https://images.unsplash.com/photo-1547036965-4507e89c6618?w=400&h=400&fit=crop" alt="长城" class="route-thumb-img" />
+              <img src="/Users/a111111/.gemini/antigravity/brain/c1ac1afa-9609-4abf-b6c3-bcad842c7764/spot_nature_trail_1774541168935.png" alt="山野徒步" class="route-thumb-img" />
             </div>
             <div class="route-info">
               <div class="route-title-row">
                 <h3 class="route-title">长城慕田峪精华段</h3>
               </div>
-              <p class="route-subtitle">副标题：缆车上下，省力打卡地标雄姿</p>
+              <p class="route-subtitle">缆车上下，省力打卡地标雄姿</p>
               <div class="route-heat">
                 <span class="heat-label">热度</span>
                 <div class="heat-dots">
@@ -198,12 +205,18 @@
               </div>
             </div>
             <div class="route-map-thumb">
-              <div class="map-mini" aria-label="路线示意">
+              <div class="map-mini" aria-label="长城慕田峪精华段地图">
                 <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect width="64" height="64" rx="14" fill="#E8F5ED"/>
-                  <path d="M8 40 L20 28 L35 35 L50 12" stroke="#4CAF82" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                  <circle cx="8" cy="40" r="4" fill="white" stroke="#4CAF82" stroke-width="2"/>
-                  <circle cx="50" cy="12" r="5" fill="#FF5757"/>
+                  <rect width="64" height="64" rx="14" fill="#EBF7F0"/>
+                  <g stroke="#C6E8D5" stroke-width="1.2" fill="none">
+                    <path d="M-10 10 Q 10 5 20 20 T 50 15 T 70 30" />
+                    <path d="M-10 30 Q 15 25 25 40 T 55 35 T 70 50" />
+                    <path d="M-10 50 Q 20 45 30 60 T 60 55 T 70 70" />
+                  </g>
+                  <path d="M8 54 C 18 52, 12 42, 22 36 C 30 31, 28 20, 40 18 C 48 16, 56 12, 56 12" stroke="#4CAF82" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                  <circle cx="8" cy="54" r="4" fill="white" stroke="#4CAF82" stroke-width="2"/>
+                  <circle cx="56" cy="12" r="5" fill="#FF5757"/>
+                  <circle cx="56" cy="12" r="2" fill="white"/>
                 </svg>
                 <span class="map-duration">5h</span>
               </div>
@@ -214,13 +227,13 @@
           <!-- 已完成 x1 -->
           <div class="route-card md-route-card" data-status="done" role="button" tabindex="0" aria-label="路线：哥特区历史漫步">
             <div class="route-thumb">
-              <img src="https://images.unsplash.com/photo-1539037116277-4db20889f2d4?w=400&h=400&fit=crop" alt="哥特区" class="route-thumb-img" />
+              <img src="/Users/a111111/.gemini/antigravity/brain/c1ac1afa-9609-4abf-b6c3-bcad842c7764/spot_old_town_1774541150339.png" alt="哥特区" class="route-thumb-img" />
             </div>
             <div class="route-info">
               <div class="route-title-row">
                 <h3 class="route-title">哥特区历史漫步</h3>
               </div>
-              <p class="route-subtitle">副标题：探访千年历史，穿越中世纪迷宫街道</p>
+              <p class="route-subtitle">探访2000年历史，穿越中世纪迷宫街道</p>
               <div class="route-heat">
                 <span class="heat-label">热度</span>
                 <div class="heat-dots">
@@ -238,9 +251,14 @@
               </div>
             </div>
             <div class="route-map-thumb">
-              <div class="map-mini" aria-label="路线示意">
+              <div class="map-mini" aria-label="哥特区历史漫步地图">
                 <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <rect width="64" height="64" rx="14" fill="#E8F5ED"/>
+                  <g stroke="#CBE6D6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M-5 15L70 25 M-5 35L70 40 M-5 55L70 50" />
+                    <path d="M15 -5L20 70 M35 -5L30 70 M55 -5L50 70" />
+                    <path d="M20 70L70 40 M15 -5L70 25" stroke-dasharray="4 4" />
+                  </g>
                   <path d="M10 52 L22 45 L20 35 L32 26 L42 28 L54 15" stroke="#4CAF82" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
                   <circle cx="10" cy="52" r="4" fill="white" stroke="#4CAF82" stroke-width="2"/>
                   <circle cx="54" cy="15" r="5" fill="#FF5757"/>

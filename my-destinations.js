@@ -21,6 +21,10 @@
 
   function filterByStatus(status) {
     cards.forEach((card) => {
+      if (status === 'all') {
+        card.classList.remove('is-hidden');
+        return;
+      }
       const match = card.getAttribute('data-status') === status;
       card.classList.toggle('is-hidden', !match);
     });
