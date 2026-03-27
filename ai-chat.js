@@ -49,7 +49,7 @@
       endBtn.style.setProperty('--hold-progress', '100');
       endBtn.textContent = '已结束';
       setTimeout(() => {
-        window.location.href = 'route-detail.html';
+        window.location.href = 'trip-end.html';
       }, 180);
     };
 
