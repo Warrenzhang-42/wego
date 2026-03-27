@@ -166,15 +166,25 @@
             </div>
           </div>
           <div class="route-map-thumb">
-            <div class="map-mini" aria-label="路线地图缩略图">
-              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="64" height="64">
-                <rect width="64" height="64" rx="10" fill="#E8F5ED"/>
-                <path d="M32 10 L32 54" stroke="#FF5757" stroke-width="4" stroke-linecap="round"/>
-                <circle cx="32" cy="10" r="4" fill="white" stroke="#FF5757" stroke-width="2"/>
-                <circle cx="32" cy="54" r="4" fill="#FF5757"/>
-                <circle cx="32" cy="54" r="1.5" fill="white"/>
+            <div class="map-mini" aria-label="故宫中轴线探秘地图">
+              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Bg Pattern: Palace Courtyards -->
+                <rect width="64" height="64" rx="14" fill="#F9EBE8"/>
+                <g stroke="#E8D4D0" stroke-width="1.5" stroke-linecap="round">
+                  <path d="M12 10V22M12 42V54M52 10V22M52 42V54M20 32H44M10 32H15M49 32H54" />
+                  <rect x="24" y="10" width="16" height="12" rx="2" />
+                  <rect x="24" y="42" width="16" height="12" rx="2" />
+                  <rect x="26" y="26" width="12" height="12" rx="1" />
+                </g>
+                <!-- Route Path: Central Axis with side detours -->
+                <path d="M32 56V48L36 44V36L32 32V24L28 20V12" stroke="#FF5757" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                <!-- Start Dot -->
+                <circle cx="32" cy="56" r="4" fill="white" stroke="#FF5757" stroke-width="2"/>
+                <!-- End Pin -->
+                <circle cx="28" cy="12" r="5" fill="#FF5757"/>
+                <circle cx="28" cy="12" r="2" fill="white"/>
               </svg>
-              <span class="map-duration">3h</span>
+              <span class="map-duration">3.5h</span>
             </div>
             <span class="route-label">路线</span>
           </div>
@@ -208,13 +218,24 @@
             </div>
           </div>
           <div class="route-map-thumb">
-            <div class="map-mini" aria-label="路线地图缩略图">
-              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="64" height="64">
-                <rect width="64" height="64" rx="10" fill="#FFF8E8"/>
-                <path d="M10 50 L30 30 L40 40 L50 20" stroke="#FF9800" stroke-width="3" stroke-linecap="round" fill="none"/>
-                <circle cx="10" cy="50" r="3.5" fill="white" stroke="#FF9800" stroke-width="2"/>
-                <circle cx="50" cy="20" r="4.5" fill="#FF5757"/>
-                <circle cx="50" cy="20" r="1.5" fill="white"/>
+            <div class="map-mini" aria-label="南锣鼓巷与后海漫步地图">
+              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Bg Pattern: Hutong Grid -->
+                <rect width="64" height="64" rx="14" fill="#FFF8E8"/>
+                <g stroke="#F2E6C9" stroke-width="1.2">
+                  <path d="M5 10H59M5 20H59M5 30H59M5 40H59M5 50H59" />
+                  <path d="M15 5V59M25 5V59M35 5V59M45 5V59M55 5V59" />
+                </g>
+                <!-- Route Path: Alleys to Lake -->
+                <path d="M10 54V40H30V24H45L54 10" stroke="#FF9800" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                <!-- Waypoints -->
+                <circle cx="30" cy="40" r="2" fill="white" stroke="#FF9800" stroke-width="1.5"/>
+                <circle cx="45" cy="24" r="2" fill="white" stroke="#FF9800" stroke-width="1.5"/>
+                <!-- Start Dot -->
+                <circle cx="10" cy="54" r="4" fill="white" stroke="#FF9800" stroke-width="2"/>
+                <!-- End Pin -->
+                <circle cx="54" cy="10" r="5" fill="#FF5757"/>
+                <circle cx="54" cy="10" r="2" fill="white"/>
               </svg>
               <span class="map-duration">2h</span>
             </div>
@@ -250,13 +271,20 @@
             </div>
           </div>
           <div class="route-map-thumb">
-            <div class="map-mini" aria-label="路线地图缩略图">
-              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="64" height="64">
-                <rect width="64" height="64" rx="10" fill="#EBF7F0"/>
-                <path d="M10 32 Q 32 10 54 32" stroke="#4CAF82" stroke-width="3" stroke-linecap="round" fill="none"/>
-                <circle cx="10" cy="32" r="3.5" fill="white" stroke="#4CAF82" stroke-width="2"/>
-                <circle cx="54" cy="32" r="4.5" fill="#FF5757"/>
-                <circle cx="54" cy="32" r="1.5" fill="white"/>
+            <div class="map-mini" aria-label="颐和园皇家园林大赏地图">
+              <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Bg Pattern: Lake & Islands -->
+                <rect width="64" height="64" rx="14" fill="#EBF7F0"/>
+                <path d="M10 45Q20 35 35 45T60 35" stroke="#D1E8D9" stroke-width="2" fill="none" stroke-dasharray="4 4" />
+                <path d="M15 15Q25 25 40 10" stroke="#D1E8D9" stroke-width="2" fill="none" />
+                <circle cx="45" cy="35" r="8" fill="#D1E8D9" fill-opacity="0.3" />
+                <!-- Route Path: Lakeside Curved Trail -->
+                <path d="M8 32 C 16 10, 48 10, 56 32" stroke="#4CAF82" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+                <!-- Start Dot -->
+                <circle cx="8" cy="32" r="4" fill="white" stroke="#4CAF82" stroke-width="2"/>
+                <!-- End Pin -->
+                <circle cx="56" cy="32" r="5" fill="#FF5757"/>
+                <circle cx="56" cy="32" r="2" fill="white"/>
               </svg>
               <span class="map-duration">4h</span>
             </div>
@@ -296,23 +324,21 @@
           </div>
         </div>
         <div class="route-map-thumb">
-          <div class="map-mini" aria-label="路线地图缩略图">
-            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="64" height="64">
+          <div class="map-mini" aria-label="哥特区历史漫步地图">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
               <!-- Bg Pattern: Urban grid -->
-              <rect width="64" height="64" rx="10" fill="#E8F5ED"/>
+              <rect width="64" height="64" rx="14" fill="#E8F5ED"/>
               <g stroke="#CBE6D6" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M-5 15L70 25 M-5 35L70 40 M-5 55L70 50" />
                 <path d="M15 -5L20 70 M35 -5L30 70 M55 -5L50 70" />
                 <path d="M20 70L70 40 M15 -5L70 25" stroke-dasharray="4 4" />
               </g>
               <!-- Route Path: Complex urban turns -->
-              <path d="M10 52 L22 45 L20 35 L32 26 L42 28 L54 15" stroke="#4CAF82" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-              <!-- Start Dot -->
-              <circle cx="10" cy="52" r="3.5" fill="white" stroke="#4CAF82" stroke-width="2"/>
-              <!-- End Pin -->
-              <circle cx="54" cy="15" r="4.5" fill="#FF5757"/>
-              <path d="M54 19 L54 23" stroke="#FF5757" stroke-width="2" stroke-linecap="round"/>
-              <circle cx="54" cy="15" r="1.5" fill="white"/>
+              <path d="M10 52 L22 45 L20 35 L32 26 L42 28 L54 15" stroke="#4CAF82" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              <!-- Nodes -->
+              <circle cx="10" cy="52" r="4" fill="white" stroke="#4CAF82" stroke-width="2"/>
+              <circle cx="54" cy="15" r="5" fill="#FF5757"/>
+              <circle cx="54" cy="15" r="2" fill="white"/>
             </svg>
             <span class="map-duration">2.5h</span>
           </div>
@@ -348,10 +374,10 @@
           </div>
         </div>
         <div class="route-map-thumb">
-          <div class="map-mini" aria-label="路线地图缩略图">
-            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="64" height="64">
+          <div class="map-mini" aria-label="亚洲夜市美食探秘地图">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
               <!-- Bg Pattern: Dense blocks -->
-              <rect width="64" height="64" rx="10" fill="#FFF8E8"/>
+              <rect width="64" height="64" rx="14" fill="#FFF8E8"/>
               <g stroke="#F0E0C0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="5" y="5" width="20" height="20" rx="3" />
                 <rect x="35" y="10" width="22" height="15" rx="3" />
@@ -359,16 +385,14 @@
                 <rect x="38" y="35" width="20" height="20" rx="3" />
               </g>
               <!-- Route Path: Zig-zagging through alleys -->
-              <path d="M12 56 L34 50 L31 38 L45 32 L40 18 L52 14" stroke="#FF9800" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-              <!-- Waypoints -->
+              <path d="M12 56 L34 50 L31 38 L45 32 L40 18 L52 14" stroke="#FF9800" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              <!-- Nodes -->
               <circle cx="34" cy="50" r="2" fill="white" stroke="#FF9800" stroke-width="1.5"/>
               <circle cx="31" cy="38" r="2" fill="white" stroke="#FF9800" stroke-width="1.5"/>
               <circle cx="45" cy="32" r="2" fill="white" stroke="#FF9800" stroke-width="1.5"/>
-              <!-- Start / End -->
-              <circle cx="12" cy="56" r="3.5" fill="white" stroke="#FF9800" stroke-width="2"/>
-              <circle cx="52" cy="14" r="4.5" fill="#FF5757"/>
-              <path d="M52 18 L52 22" stroke="#FF5757" stroke-width="2" stroke-linecap="round"/>
-              <circle cx="52" cy="14" r="1.5" fill="white"/>
+              <circle cx="12" cy="56" r="4" fill="white" stroke="#FF9800" stroke-width="2"/>
+              <circle cx="52" cy="14" r="5" fill="#FF5757"/>
+              <circle cx="52" cy="14" r="2" fill="white"/>
             </svg>
             <span class="map-duration">3h</span>
           </div>
@@ -404,26 +428,21 @@
           </div>
         </div>
         <div class="route-map-thumb">
-          <div class="map-mini" aria-label="路线地图缩略图">
-            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="64" height="64">
+          <div class="map-mini" aria-label="山野瀑布徒步探险地图">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
               <!-- Bg Pattern: Topography lines -->
-              <rect width="64" height="64" rx="10" fill="#EBF7F0"/>
+              <rect width="64" height="64" rx="14" fill="#EBF7F0"/>
               <g stroke="#C6E8D5" stroke-width="1.2" fill="none">
                 <path d="M-10 10 Q 10 5 20 20 T 50 15 T 70 30" />
                 <path d="M-10 30 Q 15 25 25 40 T 55 35 T 70 50" />
                 <path d="M-10 50 Q 20 45 30 60 T 60 55 T 70 70" />
-                <path d="M15 15 Q 25 10 30 20 T 45 15 T 55 25" stroke="#90CFA8" stroke-dasharray="2 4"/>
               </g>
               <!-- Route Path: Meandering mountain trail -->
-              <path d="M8 54 C 18 52, 12 42, 22 36 C 30 31, 28 20, 40 18 C 48 16, 46 8, 56 12" stroke="#4CAF82" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none" stroke-dasharray="5 3"/>
-              <!-- Trail Markers -->
-              <path d="M22 36 L24 33" stroke="#4CAF82" stroke-width="2" stroke-linecap="round"/>
-              <path d="M40 18 L42 15" stroke="#4CAF82" stroke-width="2" stroke-linecap="round"/>
-              <!-- Start / End -->
-              <circle cx="8" cy="54" r="3.5" fill="white" stroke="#4CAF82" stroke-width="2"/>
-              <circle cx="56" cy="12" r="4.5" fill="#FF5757"/>
-              <path d="M56 16 L56 20" stroke="#FF5757" stroke-width="2" stroke-linecap="round"/>
-              <circle cx="56" cy="12" r="1.5" fill="white"/>
+              <path d="M8 54 C 18 52, 12 42, 22 36 C 30 31, 28 20, 40 18 C 48 16, 56 12, 56 12" stroke="#4CAF82" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              <!-- Nodes -->
+              <circle cx="8" cy="54" r="4" fill="white" stroke="#4CAF82" stroke-width="2"/>
+              <circle cx="56" cy="12" r="5" fill="#FF5757"/>
+              <circle cx="56" cy="12" r="2" fill="white"/>
             </svg>
             <span class="map-duration">5h</span>
           </div>
@@ -459,26 +478,22 @@
           </div>
         </div>
         <div class="route-map-thumb">
-          <div class="map-mini" aria-label="路线地图缩略图">
-            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" width="64" height="64">
+          <div class="map-mini" aria-label="当代艺术馆文化之旅地图">
+            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
               <!-- Bg Pattern: Museum floorplan -->
-              <rect width="64" height="64" rx="10" fill="#F0EEFF"/>
+              <rect width="64" height="64" rx="14" fill="#F0EEFF"/>
               <g stroke="#D4CCFF" stroke-width="1" fill="#E8E5FA">
                 <rect x="8" y="8" width="20" height="20" />
                 <rect x="32" y="8" width="24" height="30" />
                 <rect x="8" y="32" width="20" height="24" />
                 <rect x="32" y="42" width="24" height="14" />
               </g>
-              <g stroke="#D4CCFF" stroke-width="2" stroke-linecap="round" fill="none">
-                <path d="M28 15 L32 15 M28 45 L32 45 M18 28 L18 32 M44 38 L44 42" />
-              </g>
               <!-- Route Path: Geometric indoor walk -->
-              <path d="M14 44 L14 18 L44 18 L44 48 L50 48" stroke="#7C5CBF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-              <!-- Start / End -->
-              <circle cx="14" cy="44" r="3.5" fill="white" stroke="#7C5CBF" stroke-width="2"/>
-              <circle cx="50" cy="48" r="4.5" fill="#FF5757"/>
-              <path d="M50 52 L50 56" stroke="#FF5757" stroke-width="2" stroke-linecap="round"/>
-              <circle cx="50" cy="48" r="1.5" fill="white"/>
+              <path d="M14 44 L14 18 L44 18 L44 48 L50 48" stroke="#7C5CBF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              <!-- Nodes -->
+              <circle cx="14" cy="44" r="4" fill="white" stroke="#7C5CBF" stroke-width="2"/>
+              <circle cx="50" cy="48" r="5" fill="#FF5757"/>
+              <circle cx="50" cy="48" r="2" fill="white"/>
             </svg>
             <span class="map-duration">2h</span>
           </div>
