@@ -273,6 +273,9 @@ input { font-family: inherit; }
   gap: 3px;
   font-weight: 600;
 }
+.slide-meta .route-heat {
+  margin-bottom: 0;
+}
 .slide-cta-btn {
   display: inline-block;
   background: linear-gradient(135deg, var(--clr-primary), var(--clr-primary-dark));
