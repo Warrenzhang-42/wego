@@ -146,6 +146,126 @@ body {
   order: 1;
 }
 
+.ac-rich-blocks {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ac-rich-card {
+  width: 100%;
+  border-radius: 12px;
+  border: 1.2px solid #cde8d1;
+  background: #f3fbf4;
+  padding: 10px 11px;
+  text-align: left;
+}
+
+.ac-knowledge-card {
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.ac-knowledge-card:active {
+  transform: scale(0.98);
+}
+
+.ac-card-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 800;
+  color: #3f9f6f;
+  margin-bottom: 4px;
+}
+
+.ac-card-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--clr-text-h);
+  margin-bottom: 3px;
+}
+
+.ac-card-desc {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--clr-text-b);
+}
+
+.ac-card-link {
+  margin-top: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--clr-primary);
+}
+
+.ac-distance-card {
+  border-color: #b8d6ff;
+  background: #f4f8ff;
+}
+
+.ac-distance-main {
+  font-size: 13px;
+  font-weight: 800;
+  color: #245db3;
+  margin-top: 2px;
+}
+
+.ac-distance-near,
+.ac-distance-ticket,
+.ac-distance-price {
+  margin-top: 3px;
+  font-size: 12px;
+  color: #334155;
+  line-height: 1.45;
+}
+
+.ac-knowledge-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2500;
+  background: rgba(12, 18, 28, 0.42);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 14px;
+}
+
+.ac-knowledge-dialog {
+  width: min(430px, 100%);
+  background: #fff;
+  border-radius: 18px;
+  padding: 16px 14px 14px;
+  box-shadow: 0 12px 38px rgba(0, 0, 0, 0.2);
+}
+
+.ac-knowledge-dialog h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--clr-text-h);
+}
+
+.ac-knowledge-dialog p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--clr-text-b);
+}
+
+.ac-knowledge-close-btn {
+  margin-top: 12px;
+  width: 100%;
+  height: 44px;
+  border-radius: 12px;
+  border: none;
+  background: var(--clr-primary);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+}
+
 /* Input Area */
 .ac-chat-input-area {
   display: flex;
