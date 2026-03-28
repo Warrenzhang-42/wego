@@ -14,8 +14,8 @@
   const KNOWLEDGE_DETAILS = {
     rabbit_history: {
       title: '兔儿爷的历史脉络',
-      cover: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1200&q=80',
-      coverAlt: '传统手工艺展陈',
+      cover: 'assets/knowledge-rabbit-history.png',
+      coverAlt: '传统兔儿爷泥塑形象',
       intro: '兔儿爷是北京中秋民俗中最具辨识度的形象之一，兼具祭月、祈福与玩具功能。',
       sections: [
         {
@@ -34,8 +34,10 @@
     },
     zhang_master: {
       title: '非遗传承人：张忠强老师',
-      cover: 'https://images.unsplash.com/photo-1452860606245-08befc0ff44b?w=1200&q=80',
-      coverAlt: '传统泥塑工艺细节',
+      covers: [
+        { src: 'assets/knowledge-ich-1.png', alt: '非遗传承人张忠强在工作室创作兔儿爷' },
+        { src: 'assets/knowledge-ich-2.png', alt: '非遗传承人在兔儿爷陈列工作间' }
+      ],
       intro: '张忠强老师长期深耕兔儿爷制作，将传统技法与当代审美结合，持续推动非遗活化传播。',
       sections: [
         {
@@ -54,8 +56,8 @@
     },
     mount_symbolism: {
       title: '兔儿爷坐骑寓意图鉴',
-      cover: 'https://images.unsplash.com/photo-1558104126-cc538a1b6b29?w=1200&q=80',
-      coverAlt: '传统吉祥纹样',
+      cover: 'assets/knowledge-mount-symbolism.png',
+      coverAlt: '兔儿爷与坐骑（麒麟等）传统泥塑',
       intro: '不同坐骑对应不同祝愿，反映了民间对平安、吉祥与太平生活的期待。',
       sections: [
         {
@@ -371,6 +373,45 @@
       `).join('')
       : '';
 
+    let coverBlocks = '';
+    if (Array.isArray(data.covers) && data.covers.length > 1) {
+      const slides = data.covers.map((c) => `
+        <div class="ac-kd-carousel-slide">
+          <img src="${escapeHtml(c.src || '')}" alt="${escapeHtml(c.alt || data.title || '知识点配图')}" loading="lazy" decoding="async" />
+        </div>
+      `).join('');
+      const dots = data.covers.map((_, i) => `
+        <button type="button" class="ac-kd-dot${i === 0 ? ' is-active' : ''}" aria-label="第${i + 1}张" data-ac-kd-dot="${i}"></button>
+      `).join('');
+      coverBlocks = `
+        <div class="ac-kd-carousel" data-ac-kd-carousel>
+          <div class="ac-kd-carousel-stage">
+            <div class="ac-kd-carousel-viewport" tabindex="0" aria-roledescription="carousel" aria-label="配图轮播">
+              ${slides}
+            </div>
+            <div class="ac-kd-carousel-nav">
+              <button type="button" class="ac-kd-carousel-btn ac-kd-carousel-prev" aria-label="上一张">‹</button>
+              <button type="button" class="ac-kd-carousel-btn ac-kd-carousel-next" aria-label="下一张">›</button>
+            </div>
+          </div>
+          <div class="ac-kd-carousel-dots" role="tablist" aria-label="选择图片">${dots}</div>
+        </div>
+      `;
+    } else if (Array.isArray(data.covers) && data.covers.length === 1) {
+      const c = data.covers[0];
+      coverBlocks = `
+        <div class="ac-kd-cover-wrap">
+          <img src="${escapeHtml(c.src || '')}" alt="${escapeHtml(c.alt || data.title || '知识点配图')}" loading="lazy" />
+        </div>
+      `;
+    } else {
+      coverBlocks = `
+        <div class="ac-kd-cover-wrap">
+          <img src="${escapeHtml(data.cover || '')}" alt="${escapeHtml(data.coverAlt || data.title || '知识点封面')}" loading="lazy" />
+        </div>
+      `;
+    }
+
     const modal = document.createElement('div');
     modal.className = 'ac-knowledge-modal';
     modal.innerHTML = `
@@ -379,9 +420,7 @@
           <h3 class="ac-kd-header-title">详情</h3>
           <button class="ac-kd-close-btn" type="button" aria-label="关闭">×</button>
         </div>
-        <div class="ac-kd-cover-wrap">
-          <img src="${escapeHtml(data.cover || '')}" alt="${escapeHtml(data.coverAlt || data.title || '知识点封面')}" loading="lazy" />
-        </div>
+        ${coverBlocks}
         <h3>${escapeHtml(data.title)}</h3>
         <p class="ac-kd-intro">${escapeHtml(data.intro || '')}</p>
         <div class="ac-kd-content">${detailSections}</div>
@@ -391,6 +430,74 @@
     const closeBtn = modal.querySelector('.ac-kd-close-btn');
     if (closeBtn) {
       closeBtn.addEventListener('click', () => modal.remove());
+    }
+
+    const kdCarousel = modal.querySelector('[data-ac-kd-carousel]');
+    if (kdCarousel) {
+      const viewport = kdCarousel.querySelector('.ac-kd-carousel-viewport');
+      const dots = kdCarousel.querySelectorAll('[data-ac-kd-dot]');
+      const prevBtn = kdCarousel.querySelector('.ac-kd-carousel-prev');
+      const nextBtn = kdCarousel.querySelector('.ac-kd-carousel-next');
+      let kdActiveIndex = 0;
+
+      function kdSlideWidth() {
+        return viewport ? viewport.clientWidth : 0;
+      }
+
+      function kdCurrentIndex() {
+        const w = kdSlideWidth();
+        if (!w) return 0;
+        return Math.min(dots.length - 1, Math.max(0, Math.round(viewport.scrollLeft / w)));
+      }
+
+      function kdGoTo(index) {
+        const w = kdSlideWidth();
+        if (!w || !viewport) return;
+        const i = Math.min(dots.length - 1, Math.max(0, index));
+        kdActiveIndex = i;
+        viewport.scrollTo({ left: i * w, behavior: 'smooth' });
+        dots.forEach((d, idx) => d.classList.toggle('is-active', idx === i));
+      }
+
+      function kdSyncDots() {
+        kdActiveIndex = kdCurrentIndex();
+        dots.forEach((d, idx) => d.classList.toggle('is-active', idx === kdActiveIndex));
+      }
+
+      let kdScrollEndTimer = null;
+      viewport.addEventListener('scroll', () => {
+        kdSyncDots();
+        window.clearTimeout(kdScrollEndTimer);
+        kdScrollEndTimer = window.setTimeout(kdSyncDots, 80);
+      }, { passive: true });
+
+      dots.forEach((dot) => {
+        dot.addEventListener('click', () => {
+          const idx = Number(dot.getAttribute('data-ac-kd-dot'));
+          if (!Number.isNaN(idx)) kdGoTo(idx);
+        });
+      });
+
+      if (prevBtn) {
+        prevBtn.addEventListener('click', () => kdGoTo(kdActiveIndex - 1));
+      }
+      if (nextBtn) {
+        nextBtn.addEventListener('click', () => kdGoTo(kdActiveIndex + 1));
+      }
+
+      let kdResizeRaf = null;
+      window.addEventListener(
+        'resize',
+        () => {
+          window.cancelAnimationFrame(kdResizeRaf);
+          kdResizeRaf = window.requestAnimationFrame(() => {
+            if (!viewport) return;
+            const w = kdSlideWidth();
+            if (w) viewport.scrollLeft = kdActiveIndex * w;
+          });
+        },
+        { passive: true }
+      );
     }
 
     document.body.appendChild(modal);

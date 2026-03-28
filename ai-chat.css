@@ -537,6 +537,104 @@ body.ac-consult-mode .ac-chat-header {
   object-fit: cover;
 }
 
+/* 知识点详情 · 多图轮播 */
+.ac-kd-carousel {
+  margin-bottom: 10px;
+}
+
+.ac-kd-carousel-stage {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #dbeafe;
+  background: #f8fafc;
+}
+
+.ac-kd-carousel-viewport {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.ac-kd-carousel-viewport::-webkit-scrollbar {
+  display: none;
+}
+
+.ac-kd-carousel-slide {
+  flex: 0 0 100%;
+  min-width: 0;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.ac-kd-carousel-slide img {
+  display: block;
+  width: 100%;
+  max-height: 182px;
+  object-fit: cover;
+  vertical-align: middle;
+}
+
+.ac-kd-carousel-nav {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2px;
+  pointer-events: none;
+}
+
+.ac-kd-carousel-btn {
+  pointer-events: auto;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #1e293b;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 2px;
+}
+
+.ac-kd-carousel-btn:active {
+  transform: scale(0.96);
+}
+
+.ac-kd-carousel-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 0 2px;
+}
+
+.ac-kd-dot {
+  width: 6px;
+  height: 6px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: #cbd5e1;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.ac-kd-dot.is-active {
+  background: #3b82f6;
+  transform: scale(1.15);
+}
+
 .ac-kd-intro {
   margin: 0 0 12px;
   font-size: 13px;
