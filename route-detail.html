@@ -25,6 +25,8 @@
 
       <!-- Map canvas -->
       <div class="rd-map-canvas">
+        <!-- 展开全屏时显示：无路线/景点的实景底图（见 route-detail.css） -->
+        <img class="rd-map-photo-fullscreen" src="assets/maps/dashilan-base-map.png" alt="" aria-hidden="true" />
         <!-- SVG Map with route and spots -->
         <svg id="rd-map-svg" viewBox="0 0 390 280" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
           <!-- Map background (street grid) -->
@@ -247,8 +249,8 @@
 
     </div><!-- /.rd-detail-panel -->
 
-    <!-- Spacer for bottom bar -->
-    <div style="height: 90px;"></div>
+    <!-- Spacer for bottom bar（展开地图时由 CSS 收起，避免占用纵向空间） -->
+    <div class="rd-bottom-spacer" aria-hidden="true"></div>
 
   </div><!-- #app -->
 

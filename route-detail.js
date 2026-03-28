@@ -134,19 +134,15 @@
 
   /* ---- Fullscreen --------------------------------- */
   function openFullscreen() {
-    // Clone the map SVG
     const fsContainer = fsOverlay.querySelector('.rd-fs-map-container');
     fsContainer.innerHTML = '';
-    const clonedSvg = mapSvg.cloneNode(true);
-    clonedSvg.style.cssText = 'width:100%;height:100%;';
-    clonedSvg.setAttribute('preserveAspectRatio', 'xMidYMid slice');
-    fsContainer.appendChild(clonedSvg);
-
-    // Re-attach spot click handlers on cloned svg
-    clonedSvg.querySelectorAll('.map-spot-marker').forEach((marker) => {
-      marker.style.cursor = 'pointer';
-      // spots clickable but no visible effect per spec
-    });
+    const img = document.createElement('img');
+    img.src = 'assets/maps/dashilan-base-map.png';
+    img.alt = '';
+    img.setAttribute('aria-hidden', 'true');
+    img.style.cssText =
+      'width:100%;height:100%;object-fit:cover;object-position:center;background:#eff1f0;display:block;';
+    fsContainer.appendChild(img);
 
     fsOverlay.classList.add('open');
     document.body.style.overflow = 'hidden';
