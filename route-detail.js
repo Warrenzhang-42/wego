@@ -100,7 +100,7 @@
     img.alt = '';
     img.setAttribute('aria-hidden', 'true');
     img.style.cssText =
-      'width:100%;height:100%;object-fit:cover;object-position:center;background:#eff1f0;display:block;';
+      'width:100%;height:100%;object-fit:cover;object-position:center;background:#e4e2e3;display:block;';
     fsContainer.appendChild(img);
 
     fsOverlay.classList.add('open');

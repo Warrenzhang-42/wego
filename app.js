@@ -174,7 +174,7 @@ function showToast(msg) {
     borderRadius: '24px',
     fontSize:     '13px',
     fontWeight:   '700',
-    fontFamily:   "'Nunito', sans-serif",
+    fontFamily:   "'Manrope', sans-serif",
     whiteSpace:   'nowrap',
     zIndex:       '9999',
     boxShadow:    '0 4px 20px rgba(0,0,0,0.25)',
