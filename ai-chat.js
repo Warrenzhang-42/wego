@@ -48,6 +48,53 @@
     fullscreenBtn.addEventListener('click', togglePanelFullscreen);
   }
 
+  /* 结束旅程：长按约 0.8s 后进入收获页（短按无效；问问导游 consult=1 时按钮已隐藏） */
+  const endTourBtn = document.getElementById('ac-end-tour-btn');
+  const END_HOLD_MS = 800;
+  if (endTourBtn && !isConsult) {
+    let holdTimer = null;
+
+    function clearEndHold() {
+      if (holdTimer) {
+        clearTimeout(holdTimer);
+        holdTimer = null;
+      }
+      endTourBtn.classList.remove('is-holding');
+    }
+
+    function startEndHold() {
+      clearEndHold();
+      endTourBtn.classList.add('is-holding');
+      holdTimer = window.setTimeout(() => {
+        holdTimer = null;
+        endTourBtn.classList.remove('is-holding');
+        window.location.href = 'trip-end.html';
+      }, END_HOLD_MS);
+    }
+
+    endTourBtn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      startEndHold();
+    }, { passive: false });
+
+    endTourBtn.addEventListener('touchend', clearEndHold);
+    endTourBtn.addEventListener('touchcancel', clearEndHold);
+
+    endTourBtn.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      startEndHold();
+    });
+    endTourBtn.addEventListener('mouseup', clearEndHold);
+    endTourBtn.addEventListener('mouseleave', clearEndHold);
+
+    endTourBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    });
+
+    endTourBtn.addEventListener('contextmenu', (e) => e.preventDefault());
+  }
+
   // Handle "Change Guide"
   const changeGuideBtn = document.querySelector('.ac-change-guide');
   if (changeGuideBtn) {

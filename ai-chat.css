@@ -29,6 +29,66 @@ body {
   left: 14px;
 }
 
+/* 地图右上：全屏按钮下方 — 与 .rd-back-btn 同尺寸（36×36 圆），长按结束 */
+.ac-map-wrapper .ac-end-tour-btn.rd-back-btn {
+  top: 58px;
+  right: 14px;
+  left: auto;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  font-family: var(--font-head, 'Outfit', sans-serif);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  overflow: visible;
+}
+
+.ac-end-tour-label {
+  position: relative;
+  z-index: 1;
+}
+
+/* ::before 在文字下层，避免盖住「结束」 */
+.ac-end-tour-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(74, 222, 128, 0.42);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.ac-end-tour-btn:not(.is-holding)::before {
+  transition: opacity 0.15s ease;
+}
+
+.ac-end-tour-btn.is-holding::before {
+  animation: ac-end-hold-fill 0.8s linear forwards;
+}
+
+@keyframes ac-end-hold-fill {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 「问问导游」仅咨询线路，不展示结束旅程 */
+body.ac-consult-mode .ac-end-tour-btn {
+  display: none;
+}
+
 /* 全屏展开地图时，底部聊天区收起（与路线详情页 rd-detail-panel.is-collapsed 同理） */
 #app.rd-route-page.rd-map-expanded .ac-chat-panel {
   flex: 0 0 auto;

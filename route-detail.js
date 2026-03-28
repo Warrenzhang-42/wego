@@ -5,64 +5,72 @@
 (function () {
   'use strict';
 
-  const LOCAL_IMAGES = {
-    hutong: '/Users/a111111/.gemini/antigravity/brain/2ae3e13e-4b00-463f-830e-75ee220409db/spot_hutong_houhai_1774578137395.png',
-    museum: '/Users/a111111/.gemini/antigravity/brain/c1ac1afa-9609-4abf-b6c3-bcad842c7764/spot_museum_1774541185996.png',
-    oldTown: '/Users/a111111/.gemini/antigravity/brain/c1ac1afa-9609-4abf-b6c3-bcad842c7764/spot_old_town_1774541150339.png',
-    forbiddenCity: '/Users/a111111/.gemini/antigravity/brain/2ae3e13e-4b00-463f-830e-75ee220409db/spot_forbidden_city_1774578102745.png',
-    summerPalace: '/Users/a111111/.gemini/antigravity/brain/2ae3e13e-4b00-463f-830e-75ee220409db/spot_summer_palace_1774578169000.png',
-    foodMarket: '/Users/a111111/.gemini/antigravity/brain/c1ac1afa-9609-4abf-b6c3-bcad842c7764/spot_food_market_1774541131161.png',
-  };
+  const A = 'assets/routes/yangmeizhu-heritage/';
 
-  /* ---- Spot data ---------------------------------- */
+  /* ---- Spot data · 大栅栏杨梅竹斜街非遗体验 ---------------------------------- */
   const SPOT_DATA = [
     {
-      name: '大栅栏商业街',
-      shortDesc: '北京最具代表性的历史商业街区之一，老字号林立。',
+      name: '张忠强兔儿爷非遗传承店',
+      subtitle: '老北京中秋民俗 · 泥塑「兔儿爷」',
+      shortDesc:
+        '杨梅竹斜街上的非遗工作室，满墙彩塑兔儿爷与媒体报道剪贴，一眼能认出「京味中秋」的符号。',
       detail:
-        '大栅栏形成于明代，至今已有数百年历史，汇集了同仁堂、内联升等传统商号，是观察北京城市商业演进与胡同文化的重要窗口。',
-      tags: ['🏛️ 历史街区', '🛍️ 老字号', '⏱️ 建议40分钟'],
-      thumb: LOCAL_IMAGES.hutong,
-      photos: [LOCAL_IMAGES.hutong, LOCAL_IMAGES.oldTown, LOCAL_IMAGES.forbiddenCity],
+        '兔儿爷是老北京中秋祭月与赏玩里的泥塑角色，身着短甲、手持药杵，寓意吉祥。张忠强传承店门面挂着「老北京兔儿爷」与市级非遗标识，店内从巴掌大到尺高的作品排满架，红蓝绿金对比强烈；墙上常有报刊报道与活动留影。若时间允许，可向店员了解开胎、修坯、彩绘的流程，部分时段会开放「兔儿爷 DIY / 彩绘」体验（以现场公告与预约为准）。建议避开正午人流高峰，便于拍照与细看。',
+      tags: ['🐰 中秋民俗', '🎨 泥塑彩绘', '⏱️ 建议30～45分钟'],
+      thumb: A + 'tuerye-1.png',
+      photos: [A + 'tuerye-1.png', A + 'tuerye-2.png'],
       mapX: 298,
       mapY: 108,
     },
     {
-      name: '梅兰芳故居',
-      shortDesc: '京剧大师梅兰芳晚年居所，保存大量戏曲文献与实物。',
+      name: '青云阁及二层模范咖啡',
+      subtitle: '高停留时间型空间',
+      shortDesc:
+        '清末民初北京「四大商场」之一的青云阁旧址，青砖拱券与石匾仍在；二楼「模范咖啡」适合慢坐、发呆、读胡同。',
       detail:
-        '梅兰芳故居位于北京护国寺街附近，为典型四合院形制。院内陈列戏服、手稿、照片与生活陈设，是了解京剧艺术传承的重要地点。',
-      tags: ['🎭 京剧文化', '🏠 四合院', '⏱️ 建议30分钟'],
-      thumb: LOCAL_IMAGES.museum,
-      photos: [LOCAL_IMAGES.museum, LOCAL_IMAGES.hutong, LOCAL_IMAGES.foodMarket],
+        '青云阁曾是大栅栏一带重要的综合性商场，如今沿街仍可见砖砌立面与「青雲閣」石匾，二层拱窗漆成暖红，是很多人打卡杨梅竹斜街的经典角度。二层的「模范咖啡」把灰瓦木格与玻璃橱窗拼在一起，窗上圆点贴纸又带点当代趣味，室内光线偏暖，适合作为「走累了」的停留点：点一杯手冲或奶咖，看斜街人流与瓦片天际线，阅读成本很低。周末下午座位紧张，可错峰上午或傍晚前来。',
+      tags: ['🏛️ 老商场旧址', '☕ 胡同咖啡', '⏱️ 建议45～60分钟'],
+      thumb: A + 'qingyun-pavilion.png',
+      photos: [A + 'qingyun-pavilion.png', A + 'mofan-coffee.png'],
       mapX: 143,
       mapY: 108,
     },
     {
-      name: '煤市街博物馆',
-      shortDesc: '社区记忆博物馆，展示胡同居民生活史与城市变迁。',
+      name: '乾坤空间文创',
+      subtitle: '可以逛的展览空间',
+      shortDesc:
+        '像小型美术馆的文创店：刺绣、书画、胡同主题插画与帆布袋，动线迂回，适合慢慢淘。',
       detail:
-        '煤市街博物馆以口述史、老照片与日常器物为主线，呈现大栅栏片区从清末到当代的社区记忆，是了解“北京生活方式史”的微型样本。',
-      tags: ['📸 社区记忆', '🏺 民俗展陈', '⏱️ 建议45分钟'],
-      thumb: LOCAL_IMAGES.oldTown,
-      photos: [LOCAL_IMAGES.oldTown, LOCAL_IMAGES.hutong, LOCAL_IMAGES.museum],
+        '乾坤空间把「零售」做成「可逛的展」：木门上贴着「藏」字与胡同长卷式海报，室内有刺绣挂片、戏刀陈设与大量书画气质的周边，帆布包与纸品常把北京城景、字谜与当代设计叠在一起。这里不适合赶时间扫货，更适合放慢脚步，把每一件纹样与胡同叙事对上号；若喜欢独立出版物或东方配色的小物，往往能挑到与景区通货不同的东西。',
+      tags: ['🖼️ 展陈式零售', '🧵 刺绣书画', '⏱️ 建议30～40分钟'],
+      thumb: A + 'qiankun-space.png',
+      photos: [A + 'qiankun-space.png'],
       mapX: 64,
       mapY: 150,
     },
     {
-      name: '纪晓岚故居',
-      shortDesc: '清代文人宅邸遗址，兼具人文典故与古都建筑特色。',
+      name: '将将堂印章',
+      subtitle: '低流量但高转化的深体验型店',
+      shortDesc:
+        '专注篆刻与钤印体验，一方石、一盒印泥，就能把旅行记忆压进纸里带走。',
       detail:
-        '纪晓岚故居与《四库全书》编纂历史密切相关，院落空间保留了京师士大夫住宅格局，适合结合清代学术史与文人生活方式进行导览。',
-      tags: ['📚 清代文史', '🌳 古建院落', '⏱️ 建议35分钟'],
-      thumb: LOCAL_IMAGES.forbiddenCity,
-      photos: [LOCAL_IMAGES.forbiddenCity, LOCAL_IMAGES.summerPalace, LOCAL_IMAGES.oldTown],
+        '将将堂不是走马观花型的「盖章点」，而是偏工作室气质的印文化空间：白卡纸、回纹边框与多枚篆刻印章组合，盖出来像小型金石小品。客流相对克制，愿意坐下来的人往往冲着手作感与「可带走的成品」而来，转化路径短但体验深。可自备手帐或现场选购纸笺；盖印时轻压慢起，避免糊边。具体开放时间与是否需预约，建议行前电话或社交平台确认。',
+      tags: ['🖌️ 篆刻钤印', '📇 手帐纪念', '⏱️ 建议20～35分钟'],
+      thumb: A + 'jiangjiangtang.png',
+      photos: [A + 'jiangjiangtang.png'],
       mapX: 215,
       mapY: 210,
     },
     {
-      name: '陕西巷',
-      shortDesc: '保存完好的老胡同，感受市井烟火气',
+      name: '铃木食堂',
+      subtitle: '高情绪价值型餐厅',
+      shortDesc:
+        '藏在胡同里的日式小食堂，木格大窗与暖黄灯光，适合作为斜街线的「情绪收尾」。',
+      detail:
+        '铃木食堂在杨梅竹斜街一带口碑稳定，外立面灰瓦木梁，入夜灯一亮，巷子里很有「终于坐下来」的安慰感。菜单走日式家常路线，常有手绘水彩菜图与中英日对照，秋季限定、丼饭与锅物类点单率高；饮品里梅子酒等适合小酌一杯。价位在中等偏亲民区间，热门时段需排队，建议提前取号或避开周末正餐高峰。若只吃下午茶，也可点甜品与咖啡，把晚餐留给下一程。',
+      tags: ['🍚 日式食堂', '🌙 适合晚餐', '⏱️ 建议60～90分钟'],
+      thumb: A + 'suzuki-exterior.png',
+      photos: [A + 'suzuki-exterior.png', A + 'suzuki-menu.png'],
       mapX: 298,
       mapY: 175,
     },
@@ -172,7 +180,7 @@
 
   function buildSpotList() {
     if (!spotList) return;
-    const listData = SPOT_DATA.slice(0, 4);
+    const listData = SPOT_DATA.slice(0, 5);
     spotList.innerHTML = listData
       .map((spot, idx) => {
         const tagsHtml = (spot.tags || [])
@@ -187,6 +195,9 @@
             `
           )
           .join('');
+        const subtitleHtml = spot.subtitle
+          ? `<p class="rd-spot-subtitle">${spot.subtitle}</p>`
+          : '';
         return `
           <div class="rd-spot-card" data-spot-idx="${idx}" id="spot-card-${idx}">
             <div class="rd-spot-number">${idx + 1}</div>
@@ -198,6 +209,7 @@
                 <h3 class="rd-spot-name">${spot.name}</h3>
                 <button class="rd-spot-expand-btn" data-spot-idx="${idx}" aria-label="展开或收起">▸</button>
               </div>
+              ${subtitleHtml}
               <p class="rd-spot-desc">景点说明：${spot.shortDesc || ''}</p>
             </div>
           </div>
