@@ -70,10 +70,12 @@
 
 
   /* ---- Elements ----------------------------------- */
+  const app            = document.getElementById('app');
   const mapWrapper     = document.getElementById('rd-map-wrapper');
   const mapSvg         = document.getElementById('rd-map-svg');
   const tooltip        = document.getElementById('map-spot-tooltip');
   const detailPanel    = document.getElementById('rd-detail-panel');
+  const fullscreenBtn  = document.getElementById('rd-fullscreen-btn');
   const spotList       = document.getElementById('rd-spot-list');
   const fsOverlay      = document.getElementById('rd-fullscreen-overlay');
   const fsFsCloseBtn   = document.getElementById('rd-fs-close-btn');
@@ -149,17 +151,20 @@
 
   const togglePanelFullscreen = (e) => {
     e.stopPropagation();
-    const isFull = detailPanel.classList.toggle('is-full');
-    const btn = document.getElementById('rd-fullscreen-text-btn');
-    btn.textContent = isFull ? '收起' : '全屏';
-
-    if (isFull) {
+    const expanded = app.classList.toggle('rd-map-expanded');
+    detailPanel.classList.toggle('is-collapsed', expanded);
+    if (fullscreenBtn) {
+      fullscreenBtn.classList.toggle('is-active', expanded);
+      fullscreenBtn.setAttribute('aria-label', expanded ? '收起路线介绍' : '展开地图');
+    }
+    if (expanded) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
-  document.getElementById('rd-fullscreen-btn').addEventListener('click', togglePanelFullscreen);
-  document.getElementById('rd-fullscreen-text-btn').addEventListener('click', togglePanelFullscreen);
+  if (fullscreenBtn) {
+    fullscreenBtn.addEventListener('click', togglePanelFullscreen);
+  }
 
   fsFsCloseBtn.addEventListener('click', closeFullscreen);
 

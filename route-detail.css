@@ -3,14 +3,29 @@
    Consistent with main style.css design tokens
    ==================================================== */
 
+/* ---- Route page layout (map + sheet) --------------- */
+#app.rd-route-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
 /* ---- Map Section ----------------------------------- */
 .rd-map-wrapper {
   position: relative;
   width: 100%;
+  flex: 0 0 auto;
   height: 280px;
   background: #EFF1F0;
   overflow: hidden;
   flex-shrink: 0;
+}
+
+/* Expanded map: sheet sinks, map fills remaining space above bottom bar */
+#app.rd-route-page.rd-map-expanded .rd-map-wrapper {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 52vh;
 }
 
 .rd-map-canvas {
@@ -60,30 +75,38 @@
 .rd-back-btn:hover { background: rgba(0,0,0,0.5); transform: scale(1.08); }
 .rd-back-btn:active { transform: scale(0.95); }
 
-/* Fullscreen button on map */
+/* Fullscreen / collapse — top right, matches .rd-back-btn */
 .rd-fullscreen-btn {
   position: absolute;
-  bottom: 14px;
+  top: 14px;
   right: 14px;
   z-index: 20;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  padding: 0;
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 7px 12px;
-  border-radius: 20px;
-  background: rgba(0,0,0,0.35);
+  justify-content: center;
+  background: rgba(0,0,0,0.32);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  color: white;
-  font-size: 12.5px;
-  font-weight: 700;
-  font-family: var(--font-body);
   border: 1px solid rgba(255,255,255,0.18);
   transition: background 0.15s, transform 0.12s;
   cursor: pointer;
 }
-.rd-fullscreen-btn:hover { background: rgba(0,0,0,0.55); transform: scale(1.04); }
-.rd-fullscreen-btn:active { transform: scale(0.96); }
+.rd-fullscreen-btn:hover { background: rgba(0,0,0,0.5); transform: scale(1.08); }
+.rd-fullscreen-btn:active { transform: scale(0.95); }
+
+.rd-fullscreen-btn .rd-fs-icon-collapse {
+  display: none;
+}
+.rd-fullscreen-btn.is-active .rd-fs-icon-expand {
+  display: none;
+}
+.rd-fullscreen-btn.is-active .rd-fs-icon-collapse {
+  display: block;
+}
 
 /* Map spot tooltip */
 .map-spot-tooltip {
@@ -131,13 +154,13 @@
   transition: all 0.5s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-/* Fullscreen mode for panel */
-.rd-detail-panel.is-full {
-  margin-top: -282px; /* Pull over map area (280px map + 2px offset) */
-  border-radius: 0;
-  min-height: 100dvh;
-  z-index: 500; /* Above map and icons */
-  padding-bottom: 90px; /* Spacer for bottom bar */
+/* Sheet minimized: only route intro (above 景点列表), list hidden */
+.rd-detail-panel.is-collapsed {
+  padding-bottom: 14px;
+}
+.rd-detail-panel.is-collapsed .rd-section-header,
+.rd-detail-panel.is-collapsed .rd-spot-list {
+  display: none;
 }
 
 .rd-panel-handle {
@@ -167,18 +190,6 @@
   font-family: var(--font-head);
   line-height: 1.2;
 }
-
-.rd-fullscreen-text-btn {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--clr-primary);
-  padding: 4px 0;
-  cursor: pointer;
-  transition: opacity 0.15s;
-  flex-shrink: 0;
-  margin-left: 10px;
-}
-.rd-fullscreen-text-btn:hover { opacity: 0.7; }
 
 .rd-subtitle {
   font-size: 12.5px;
@@ -673,8 +684,12 @@
 
 /* ---- Responsive tweaks ----------------------------- */
 @media (max-height: 700px) {
-  .rd-map-wrapper { height: 220px; }
+  #app.rd-route-page:not(.rd-map-expanded) .rd-map-wrapper {
+    height: 220px;
+  }
 }
 @media (min-height: 900px) {
-  .rd-map-wrapper { height: 320px; }
+  #app.rd-route-page:not(.rd-map-expanded) .rd-map-wrapper {
+    height: 320px;
+  }
 }
