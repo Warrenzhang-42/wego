@@ -200,8 +200,8 @@
           : '';
         return `
           <div class="rd-spot-card" data-spot-idx="${idx}" id="spot-card-${idx}">
-            <div class="rd-spot-number">${idx + 1}</div>
             <div class="rd-spot-thumb">
+              <span class="rd-spot-number">${idx + 1}</span>
               <img src="${spot.thumb || ''}" alt="${spot.name}" class="rd-spot-thumb-img" loading="lazy" />
             </div>
             <div class="rd-spot-info">
@@ -210,7 +210,6 @@
                 <button class="rd-spot-expand-btn" data-spot-idx="${idx}" aria-label="展开或收起">▸</button>
               </div>
               ${subtitleHtml}
-              <p class="rd-spot-desc">景点说明：${spot.shortDesc || ''}</p>
             </div>
           </div>
           <div class="rd-spot-expanded" id="spot-expanded-${idx}">
