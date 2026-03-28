@@ -205,6 +205,10 @@ input { font-family: inherit; }
   transition: transform 6s ease;
 }
 .carousel-slide.active .slide-img { transform: scale(1.06); }
+.carousel-slide.slide-image-only .slide-img {
+  object-fit: cover;
+  object-position: center center;
+}
 .slide-overlay {
   position: absolute;
   inset: 0;

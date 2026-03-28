@@ -69,7 +69,25 @@
   position: relative;
 }
 
-/* 展开地图（全屏区域）：实景底图，隐藏 SVG 路线与景点图层 */
+/* 非全屏：实景截图铺满地图区（无 SVG 路线/标记叠加） */
+.rd-map-photo-inline {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  background: #eff1f0;
+  z-index: 0;
+  opacity: 1;
+  pointer-events: none;
+  transition: opacity 0.28s ease;
+}
+#app.rd-route-page.rd-map-expanded .rd-map-photo-inline {
+  opacity: 0;
+}
+
+/* 展开地图（全屏区域）：实景底图 */
 .rd-map-photo-fullscreen {
   position: absolute;
   inset: 0;
@@ -88,35 +106,6 @@
   object-fit: cover;
   object-position: center;
   background: #eff1f0;
-}
-#app.rd-route-page.rd-map-expanded .rd-map-canvas > svg {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.28s ease;
-}
-#app.rd-route-page.rd-map-expanded .map-spot-tooltip {
-  opacity: 0 !important;
-  visibility: hidden !important;
-  pointer-events: none;
-}
-
-/* Route path animation */
-.route-path-animated {
-  stroke-dashoffset: 0;
-  animation: dashFlow 3s linear infinite;
-}
-@keyframes dashFlow {
-  0%   { stroke-dashoffset: 0; }
-  100% { stroke-dashoffset: -48; }
-}
-
-/* Map spot markers pulse */
-.map-spot-marker circle:first-child {
-  animation: spotPulse 2s ease-in-out infinite;
-}
-@keyframes spotPulse {
-  0%, 100% { r: 18; opacity: 0.55; }
-  50%       { r: 22; opacity: 0.35; }
 }
 
 /* Back button */
@@ -172,40 +161,6 @@
 }
 .rd-fullscreen-btn.is-active .rd-fs-icon-collapse {
   display: block;
-}
-
-/* Map spot tooltip */
-.map-spot-tooltip {
-  position: absolute;
-  bottom: 50px;
-  left: 50%;
-  transform: translateX(-50%) translateY(8px);
-  background: rgba(26, 35, 50, 0.92);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-radius: 10px;
-  padding: 8px 14px;
-  color: white;
-  font-size: 12px;
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.2s, transform 0.2s;
-  z-index: 30;
-  border: 1px solid rgba(255,255,255,0.1);
-}
-.map-spot-tooltip.visible {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-}
-.mst-name {
-  font-weight: 800;
-  font-size: 13px;
-  margin-bottom: 2px;
-}
-.mst-desc {
-  font-size: 11px;
-  opacity: 0.75;
 }
 
 /* ---- Detail Panel ---------------------------------- */

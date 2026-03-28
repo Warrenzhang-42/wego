@@ -79,57 +79,15 @@
 
   /* ---- Elements ----------------------------------- */
   const app            = document.getElementById('app');
-  const mapWrapper     = document.getElementById('rd-map-wrapper');
-  const mapSvg         = document.getElementById('rd-map-svg');
-  const tooltip        = document.getElementById('map-spot-tooltip');
   const detailPanel    = document.getElementById('rd-detail-panel');
   const fullscreenBtn  = document.getElementById('rd-fullscreen-btn');
   const spotList       = document.getElementById('rd-spot-list');
   const fsOverlay      = document.getElementById('rd-fullscreen-overlay');
   const fsFsCloseBtn   = document.getElementById('rd-fs-close-btn');
-  const fsPills        = document.querySelectorAll('.rd-fs-pill');
 
   // Back button
   document.getElementById('rd-back-btn').addEventListener('click', () => {
     window.history.back();
-  });
-
-  /* ---- Map Spot Markers (click = tooltip only) ---- */
-  let tooltipTimeout = null;
-  document.querySelectorAll('.map-spot-marker').forEach((marker) => {
-    marker.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const idx  = parseInt(marker.getAttribute('data-spot'));
-      const spot = SPOT_DATA[idx];
-      if (!spot) return;
-
-      // Position tooltip near the marker
-      const svgRect  = mapSvg.getBoundingClientRect();
-      const svgVW    = mapSvg.viewBox.baseVal.width;
-      const svgVH    = mapSvg.viewBox.baseVal.height;
-      const scaleX   = svgRect.width  / svgVW;
-      const scaleY   = svgRect.height / svgVH;
-      const px       = spot.mapX * scaleX;
-      const py       = spot.mapY * scaleY;
-
-      // Use simple bottom center for all
-      tooltip.querySelector('.mst-name').textContent = spot.name;
-      tooltip.querySelector('.mst-desc').textContent = spot.shortDesc || spot.desc || '';
-      tooltip.style.left   = px + 'px';
-      tooltip.style.bottom = (mapSvg.getBoundingClientRect().height - py + 10) + 'px';
-      tooltip.style.transform = 'translateX(-50%)';
-      tooltip.classList.add('visible');
-
-      clearTimeout(tooltipTimeout);
-      tooltipTimeout = setTimeout(() => {
-        tooltip.classList.remove('visible');
-      }, 3000);
-    });
-  });
-
-  // Hide tooltip on map tap elsewhere
-  mapSvg.addEventListener('click', () => {
-    tooltip.classList.remove('visible');
   });
 
   /* ---- Fullscreen --------------------------------- */
