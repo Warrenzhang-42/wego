@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>大栅栏杨梅竹斜街非遗体验 · WeGO</title>
-  <meta name="description" content="沿杨梅竹斜街探访兔儿爷、青云阁与胡同手作，感受大栅栏片区的非遗与慢游" />
+  <meta name="description" content="沿杨梅竹斜街从青云阁、兔儿爷到铃木食堂与文创钤印，感受大栅栏片区的非遗与慢游" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -93,45 +93,45 @@
 
           <!-- Route Path (dashed blue loop) -->
           <path 
-            d="M 298 35 L 298 55 L 298 100 L 298 108 L 216 108 L 143 108 L 143 155 L 143 150 L 64 150 L 64 205 L 64 210 L 143 210 L 215 210 L 215 155 L 215 150 L 298 150 L 298 100"
+            d="M 143 35 L 143 55 L 143 100 L 143 108 L 298 108 L 298 130 L 298 175 L 200 168 L 64 150 L 64 195 L 140 208 L 215 210"
             stroke="#3B82F6" stroke-width="3.5" stroke-dasharray="10 6" stroke-linecap="round" stroke-linejoin="round" fill="none"
             class="route-path-animated"
           />
 
-          <!-- Start marker (top right, checkmark circle) -->
-          <circle cx="298" cy="35" r="16" fill="#60A5FA" stroke="white" stroke-width="2.5"/>
-          <path d="M292 35 L296 39 L305 30" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <!-- Start marker (first stop area) -->
+          <circle cx="143" cy="35" r="16" fill="#60A5FA" stroke="white" stroke-width="2.5"/>
+          <path d="M137 35 L141 39 L150 30" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
 
-          <!-- End marker B (bottom left) -->
-          <circle cx="64" cy="210" r="12" fill="#1E3A8A" stroke="white" stroke-width="2"/>
-          <text x="64" y="215" text-anchor="middle" font-size="12" font-weight="800" fill="white" font-family="Outfit, sans-serif">B</text>
+          <!-- End marker B (near last stop) -->
+          <circle cx="215" cy="228" r="12" fill="#1E3A8A" stroke="white" stroke-width="2"/>
+          <text x="215" y="233" text-anchor="middle" font-size="12" font-weight="800" fill="white" font-family="Outfit, sans-serif">B</text>
 
           <!-- Current position (triangle/navigation arrow) -->
           <circle cx="143" cy="130" r="14" fill="white" stroke="#3B82F6" stroke-width="2"/>
           <polygon points="143,123 137,138 149,138" fill="#3B82F6"/>
 
-          <!-- Spot markers (clickable) – 5 spots · 杨梅竹斜街非遗线 -->
-          <g class="map-spot-marker" data-spot="0" transform="translate(298, 108)" style="cursor:pointer;">
+          <!-- Spot markers (clickable) · 顺序：青云阁→兔儿爷→铃木→乾坤→将将堂 -->
+          <g class="map-spot-marker" data-spot="0" transform="translate(143, 108)" style="cursor:pointer;">
             <circle r="18" fill="#6EE7B7" fill-opacity="0.3" />
             <circle r="13" fill="#34D399" />
             <text y="4" text-anchor="middle" font-size="13" fill="white" font-weight="800" font-family="Outfit, sans-serif">1</text>
           </g>
-          <g class="map-spot-marker" data-spot="1" transform="translate(143, 108)" style="cursor:pointer;">
+          <g class="map-spot-marker" data-spot="1" transform="translate(298, 108)" style="cursor:pointer;">
             <circle r="18" fill="#6EE7B7" fill-opacity="0.3" />
             <circle r="13" fill="#34D399" />
             <text y="4" text-anchor="middle" font-size="13" fill="white" font-weight="800" font-family="Outfit, sans-serif">2</text>
           </g>
-          <g class="map-spot-marker" data-spot="2" transform="translate(64, 150)" style="cursor:pointer;">
+          <g class="map-spot-marker" data-spot="2" transform="translate(298, 175)" style="cursor:pointer;">
             <circle r="18" fill="#6EE7B7" fill-opacity="0.3" />
             <circle r="13" fill="#34D399" />
             <text y="4" text-anchor="middle" font-size="13" fill="white" font-weight="800" font-family="Outfit, sans-serif">3</text>
           </g>
-          <g class="map-spot-marker" data-spot="3" transform="translate(215, 210)" style="cursor:pointer;">
+          <g class="map-spot-marker" data-spot="3" transform="translate(64, 150)" style="cursor:pointer;">
             <circle r="18" fill="#6EE7B7" fill-opacity="0.3" />
             <circle r="13" fill="#34D399" />
             <text y="4" text-anchor="middle" font-size="13" fill="white" font-weight="800" font-family="Outfit, sans-serif">4</text>
           </g>
-          <g class="map-spot-marker" data-spot="4" transform="translate(298, 175)" style="cursor:pointer;">
+          <g class="map-spot-marker" data-spot="4" transform="translate(215, 210)" style="cursor:pointer;">
             <circle r="18" fill="#6EE7B7" fill-opacity="0.3" />
             <circle r="13" fill="#34D399" />
             <text y="4" text-anchor="middle" font-size="13" fill="white" font-weight="800" font-family="Outfit, sans-serif">5</text>
@@ -174,7 +174,7 @@
         <div class="rd-header-main">
           <h1 class="rd-title">大栅栏杨梅竹斜街非遗体验</h1>
         </div>
-        <p class="rd-subtitle">从兔儿爷泥塑到胡同咖啡与钤印手作，把「看得见的非遗」和「带得走的记忆」放进同一条斜街里；全程步行约 2.5～3.5 小时，可按店休与排队灵活拆成半日或整日。</p>
+        <p class="rd-subtitle">从青云阁胡同咖啡到兔儿爷泥塑、日式小食堂与文创钤印，把「看得见的非遗」和「带得走的记忆」放进同一条斜街里；全程步行约 2.5～3.5 小时，可按店休与排队灵活拆成半日或整日。</p>
 
           <!-- Heat + Tags -->
           <div class="rd-meta-row">
@@ -286,11 +286,11 @@
       <div class="rd-fs-sheet-content">
         <h2 class="rd-fs-route-name">大栅栏杨梅竹斜街非遗体验</h2>
         <div class="rd-fs-spot-pills" id="rd-fs-spot-pills">
-          <button class="rd-fs-pill active" data-spot="0">① 兔儿爷传承店</button>
-          <button class="rd-fs-pill" data-spot="1">② 青云阁·模范咖啡</button>
-          <button class="rd-fs-pill" data-spot="2">③ 乾坤空间文创</button>
-          <button class="rd-fs-pill" data-spot="3">④ 将将堂印章</button>
-          <button class="rd-fs-pill" data-spot="4">⑤ 铃木食堂</button>
+          <button class="rd-fs-pill active" data-spot="0">① 青云阁·模范咖啡</button>
+          <button class="rd-fs-pill" data-spot="1">② 兔儿爷传承店</button>
+          <button class="rd-fs-pill" data-spot="2">③ 铃木食堂</button>
+          <button class="rd-fs-pill" data-spot="3">④ 乾坤空间文创</button>
+          <button class="rd-fs-pill" data-spot="4">⑤ 将将堂印章</button>
         </div>
       </div>
     </div>
