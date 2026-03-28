@@ -64,7 +64,8 @@
   document.querySelectorAll('.slide-cta-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      window.location.href = 'route-detail.html';
+      sessionStorage.setItem('wegoRouteDetailReferrer', 'index.html');
+      window.location.href = 'route-detail.html?from=index';
     });
   });
 
@@ -131,7 +132,8 @@
       // Navigate after a short delay to let the ripple effect be seen
       setTimeout(() => {
         card.style.transform = '';
-        window.location.href = 'route-detail.html';
+        sessionStorage.setItem('wegoRouteDetailReferrer', 'index.html');
+        window.location.href = 'route-detail.html?from=index';
       }, 150);
     });
     card.addEventListener('keydown', e => {

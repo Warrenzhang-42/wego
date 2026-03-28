@@ -22,7 +22,8 @@
   const backBtn = document.getElementById('ac-back-btn');
   if (backBtn) {
     backBtn.addEventListener('click', () => {
-      window.location.href = 'route-detail.html';
+      sessionStorage.setItem('wegoRouteDetailReferrer', 'ai-chat.html');
+      window.location.href = 'route-detail.html?from=chat';
     });
   }
 

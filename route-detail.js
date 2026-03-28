@@ -85,9 +85,10 @@
   const fsOverlay      = document.getElementById('rd-fullscreen-overlay');
   const fsFsCloseBtn   = document.getElementById('rd-fs-close-btn');
 
-  // Back button
-  document.getElementById('rd-back-btn').addEventListener('click', () => {
-    window.history.back();
+  // 返回按钮：需求固定回首页，避免 history/back 栈在 WebView 中不稳定
+  document.getElementById('rd-back-btn').addEventListener('click', (e) => {
+    e.preventDefault();
+    window.location.replace('index.html');
   });
 
   /* ---- Fullscreen --------------------------------- */

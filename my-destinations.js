@@ -62,7 +62,8 @@
       card.style.transform = 'scale(0.97)';
       setTimeout(() => {
         card.style.transform = '';
-        window.location.href = 'route-detail.html';
+        sessionStorage.setItem('wegoRouteDetailReferrer', 'my-destinations.html');
+        window.location.href = 'route-detail.html?from=destinations';
       }, 150);
     });
     card.addEventListener('keydown', (e) => {
