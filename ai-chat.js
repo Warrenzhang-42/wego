@@ -12,9 +12,65 @@
   }
 
   const KNOWLEDGE_DETAILS = {
-    dzl_gate: {
-      title: '大栅栏知识点：门钉与等级礼制',
-      body: '明清时期北京街区建筑中，大门上的门钉数量与排布常带有礼制含义。大栅栏一带商号门面在改造中仍保留了部分传统门饰语言，体现“商号身份+街区秩序”的历史痕迹。'
+    rabbit_history: {
+      title: '兔儿爷的历史脉络',
+      cover: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=1200&q=80',
+      coverAlt: '传统手工艺展陈',
+      intro: '兔儿爷是北京中秋民俗中最具辨识度的形象之一，兼具祭月、祈福与玩具功能。',
+      sections: [
+        {
+          heading: '起源与民俗语境',
+          text: '民间常把兔儿爷与月宫玉兔联系在一起。明代以后，北京地区出现用于祭月的泥塑兔儿爷，体现了中秋节令中的信仰与家庭仪式感。'
+        },
+        {
+          heading: '从祭祀到生活化',
+          text: '随着城市生活演变，兔儿爷逐步从祭祀器物转向儿童玩具和节庆摆件，功能由单一礼仪用途扩展为“观赏 + 祝愿 + 记忆北京”的文化符号。'
+        },
+        {
+          heading: '典型造型特征',
+          text: '传统兔儿爷常见“披甲胄、背护旗、配坐骑”的威武形象，这种拟人化设计让神话角色更贴近日常审美，也强化了护佑与吉庆寓意。'
+        }
+      ]
+    },
+    zhang_master: {
+      title: '非遗传承人：张忠强老师',
+      cover: 'https://images.unsplash.com/photo-1452860606245-08befc0ff44b?w=1200&q=80',
+      coverAlt: '传统泥塑工艺细节',
+      intro: '张忠强老师长期深耕兔儿爷制作，将传统技法与当代审美结合，持续推动非遗活化传播。',
+      sections: [
+        {
+          heading: '师承与经验积累',
+          text: '其制作训练起步早，长期向老一辈手艺人学习，在塑形、开脸、上色等环节形成稳定且成熟的技艺体系。'
+        },
+        {
+          heading: '创作特点',
+          text: '作品强调神态与服饰纹样的精细度，在尊重传统造型语言的同时，适度加入新题材与新配色，让作品更适合当代展示和收藏。'
+        },
+        {
+          heading: '传播价值',
+          text: '通过参与展览、讲座与文化活动，张老师让更多年轻群体接触并理解兔儿爷工艺，提升了北京民俗非遗的社会可见度。'
+        }
+      ]
+    },
+    mount_symbolism: {
+      title: '兔儿爷坐骑寓意图鉴',
+      cover: 'https://images.unsplash.com/photo-1558104126-cc538a1b6b29?w=1200&q=80',
+      coverAlt: '传统吉祥纹样',
+      intro: '不同坐骑对应不同祝愿，反映了民间对平安、吉祥与太平生活的期待。',
+      sections: [
+        {
+          heading: '骑虎：镇煞护平安',
+          text: '虎在传统观念中有辟邪与守护功能，骑虎兔儿爷常被视作“驱邪避灾”的象征。'
+        },
+        {
+          heading: '骑象：吉祥如意',
+          text: '“象”与“祥”在文化联想上紧密相连，骑象形象常表达顺遂、安稳、万事如意。'
+        },
+        {
+          heading: '骑麒麟：太平与好运',
+          text: '麒麟是瑞兽意象，常关联太平、祥瑞与福运，适合节庆、乔迁等祝愿场景。'
+        }
+      ]
     }
   };
 
@@ -105,124 +161,87 @@
     });
   }
 
-  /** 进行中旅程（「开始旅程」进入） */
-  const JOURNEY_MESSAGES = [
+  /** 基于文档更新后的对话（用户与AI导游交替） */
+  const DOC_MESSAGES = [
+    { sender: 'ai', text: '哈喽，我是土著玩家，很高兴认识你。' },
+    { sender: 'user', text: '你好呀~' },
     {
       sender: 'ai',
-      text: '欢迎开启大栅栏胡同探秘之旅！我是你的专属AI导游小go。我们现在正位于大栅栏商业街的入口。准备好出发了吗？',
+      text: '嘿，您来对地儿啦！这兔儿爷店可是咱老北京的一个特色。要说可看的，那满屋子各式各样的兔儿爷，造型神态都不一样，有的憨态可掬，有的威风凛凛，特有意思。您瞧那色彩，那工艺，都是老手艺人们精心做出来的。可买的就多了去了，您可以挑个经典造型的兔儿爷带回去当摆件，放家里特好看。还有一些小巧的兔儿爷钥匙链、冰箱贴啥的，送朋友倍儿有面儿。要是您喜欢，还能买那种可以自己上色的兔儿爷白胚，回家自己动手创作，也挺有乐趣。怎么样，有看上的没？',
       inserts: [
         {
           type: 'knowledge',
-          id: 'dzl_gate',
-          title: '大栅栏知识点',
-          summary: '老字号门头与门饰保留了明清商业街的礼制与审美线索。',
-          cta: '点击查看详情'
+          title: '逛店速览',
+          summary: '可看：造型与彩绘；可买：经典摆件、文创小件、可上色白胚。',
+          cta: '点击进入详情页'
         }
       ]
     },
-    { sender: 'user', text: '准备好啦！' },
-    { sender: 'ai', text: '太棒了！沿着前面的步道往前走，第一站我们将经过百年老字号“同仁堂”。那里的建筑非常有特色，你可以留意一下牌匾。' },
-    { sender: 'user', text: '我看到了，牌匾好气派。' },
-    { sender: 'ai', text: '没错！同仁堂不仅是药店，更是中国传统建筑艺术的展现。接下来我们向南走，前往梅兰芳故居。' },
-    { sender: 'user', text: '距离远吗？' },
+    { sender: 'user', text: '先介绍下兔儿爷的历史呗？' },
     {
       sender: 'ai',
-      text: '不远，大约步行5分钟就能到达。一路上还能看看两旁的老北京四合院风貌呢。',
+      text: '得嘞！兔儿爷的历史可悠久了，咱老北京有个说法，说兔儿爷是月宫玉兔下凡变的。明朝那时候就有兔儿爷了，一开始它是用来祭月的。后来慢慢就变成了孩子们的玩具，还有祈福的寓意呢。您看这兔儿爷的形象，一般都是身披甲胄，插着护背旗，有的还骑着老虎，可威风了。它融合了咱老北京的民俗文化，现在可是咱北京的一个文化符号啦，外地朋友来都喜欢带个兔儿爷回去作纪念。',
       inserts: [
         {
-          type: 'distance',
-          spotName: '梅兰芳故居',
-          distanceText: '距你约 180 米，步行约 3 分钟',
-          nearHint: '已非常接近，请注意右侧岔路口指引牌。',
-          ticketNotice: '需购票入内（建议现场扫码或公众号提前预约）',
-          ticketPrice: '参考票价：10元/人'
+          type: 'knowledge',
+          detailId: 'rabbit_history',
+          title: '兔儿爷历史脉络',
+          summary: '从祭月器物到城市文化符号，完整梳理其演变。',
+          cta: '点击进入详情页'
         }
       ]
     },
-    { sender: 'user', text: '好的，我这就过去。' },
-    { sender: 'ai', text: '到了梅兰芳故居，你可以扫一扫门口的标牌，我会为你详细讲述梅先生在这里创作经典剧目的故事。' },
-    { sender: 'user', text: '迫不及待想听了！' }
+    { sender: 'ai', text: '我给你介绍一下店主非遗传承人张忠强老师的背景知识吧？' },
+    { sender: 'user', text: '太好了。' },
+    {
+      sender: 'ai',
+      text: '张忠强老师啊，那可是咱兔儿爷制作技艺的非遗传承人。他打小就跟老一辈儿手艺人学习制作兔儿爷，这手艺得有几十年了。他的作品那叫一个精致，在传统工艺的基础上还会有创新。他特别注重细节，从兔儿爷的脸部表情到身上的服饰花纹，都处理得一丝不苟。张老师还经常参加各种文化活动，把咱兔儿爷的文化传播到各地，让更多人了解咱老北京这门传统手艺。',
+      inserts: [
+        {
+          type: 'knowledge',
+          detailId: 'zhang_master',
+          title: '非遗传承人背景',
+          summary: '师承脉络、创作特点与文化传播价值。',
+          cta: '点击进入详情页'
+        }
+      ]
+    },
+    { sender: 'user', text: '兔儿爷的那几个坐骑不同，都有啥不同的含义？' },
+    {
+      sender: 'ai',
+      text: '嘿，这兔儿爷的坐骑学问可大了！骑老虎的兔儿爷，寓意着驱邪避灾；骑大象的，象征着吉祥如意；还有骑麒麟的兔儿爷，代表着太平吉祥、带来好运。不同的坐骑都寄托着咱老百姓不同的美好愿望，您喜欢哪种坐骑的兔儿爷呀？',
+      inserts: [
+        {
+          type: 'knowledge',
+          detailId: 'mount_symbolism',
+          title: '坐骑寓意图鉴',
+          summary: '虎、象、麒麟三类坐骑的民俗含义对照。',
+          cta: '点击进入详情页'
+        }
+      ]
+    },
+    { sender: 'user', text: '他们店什么东西买的人最多？' },
+    {
+      sender: 'ai',
+      text: '要说这店里买的人最多的，那肯定是中等大小、经典造型的兔儿爷了。价格适中，摆在家里大小也合适，工艺还特精细。再就是兔儿爷的冰箱贴，小巧玲珑，好多人一买就好几个，送亲戚朋友都不错。对了，那种成套的小型兔儿爷摆件也挺受欢迎，一套几个，摆在一起特好看。',
+      inserts: [
+        {
+          type: 'shop',
+          name: '热销榜（门店常见）',
+          rec: '① 中号经典兔儿爷 ② 冰箱贴/钥匙链 ③ 成套小型摆件。'
+        }
+      ]
+    }
+  ];
+
+  /** 进行中旅程（「开始旅程」进入） */
+  const JOURNEY_MESSAGES = [
+    ...DOC_MESSAGES
   ];
 
   /** 首次咨询线路（「问问导游」进入）— 约 10 轮对话，含图片 / 景点 / 店铺卡片 */
   const CONSULT_MESSAGES = [
-    {
-      sender: 'ai',
-      text: '你好，我是 AI 导游小go。看你是第一次了解「大栅栏胡同探秘」这条线，我们可以从整体节奏、必打卡点，或者吃喝购物里任选一个方向开始聊。'
-    },
-    {
-      sender: 'user',
-      text: '我第一次来，想先知道大概怎么走、全程要多久？'
-    },
-    {
-      sender: 'ai',
-      text: '这条线从大栅栏商业街入口出发，串老字号、胡同与名人故居，正常步行大约 4～5 小时，中途可随停随拍。下面是一张街区氛围示意，方便你先有画面感。',
-      inserts: [
-        {
-          type: 'image',
-          src: 'https://images.unsplash.com/photo-1547988342-8720cd9fbb04?w=720&q=80',
-          alt: '大栅栏胡同风貌',
-          caption: '示意图：青瓦灰墙与步行街交织，适合慢逛。'
-        }
-      ]
-    },
-    {
-      sender: 'user',
-      text: '适合带爸妈一起吗？会不会走得很累？'
-    },
-    {
-      sender: 'ai',
-      text: '路况以平路为主，休息点也多，适合家庭慢游。必经点里「前门大街」一带很热闹，你可以先扫一眼介绍和门票信息，再决定要不要进收费景点。',
-      inserts: [
-        {
-          type: 'attraction',
-          name: '前门大街 · 步行段',
-          desc: '连接大栅栏与正阳门，沿街老字号与文创店集中，适合拍照与短时休息。',
-          ticketPrice: '步行街免费开放；沿街小展馆/戏票以现场为准。',
-          extra: '节假日人流较大，建议错峰或工作日前往。'
-        }
-      ]
-    },
-    {
-      sender: 'user',
-      text: '路上有什么吃的？不想太油腻。'
-    },
-    {
-      sender: 'ai',
-      text: '可以试试「轻食 + 老字号」组合：一碗茶点、一碟小菜，负担不大。下面这家店很多首次来访的朋友反馈不错——',
-      inserts: [
-        {
-          type: 'shop',
-          name: '门框胡同百年卤煮（大栅栏附近）',
-          rec: '卤煮火烧可点小份，搭配凉菜解腻；若不吃内脏，可改选同街包子铺或杏仁茶。'
-        }
-      ]
-    },
-    {
-      sender: 'user',
-      text: '梅兰芳故居要门票吗？大概多少钱？'
-    },
-    {
-      sender: 'ai',
-      text: '故居需购票入内，旺季/淡季可能不同，以现场公示为准。可参考下方卡片提前做预算；线上预约能少排队。',
-      inserts: [
-        {
-          type: 'attraction',
-          name: '梅兰芳故居',
-          desc: '京剧情境与故居展陈结合，参观约 40～60 分钟。',
-          ticketPrice: '参考票价：10 元 / 人（请以景区当日公示为准）',
-          extra: '建议提前在公众号或官方渠道预约时段。'
-        }
-      ]
-    },
-    {
-      sender: 'user',
-      text: '明白了，我打算下周末来实地走一趟。'
-    },
-    {
-      sender: 'ai',
-      text: '太好了！你回到路线页点「开始旅程」，我就会切换到陪走模式，按节点给你讲解。出发前还有想对比的支线或时段，也可以继续问我。'
-    }
+    ...DOC_MESSAGES
   ];
 
   let MOCK_MESSAGES = isConsult ? [...CONSULT_MESSAGES] : [...JOURNEY_MESSAGES];
@@ -241,8 +260,12 @@
   function renderInsertBlock(insert) {
     if (!insert || !insert.type) return '';
     if (insert.type === 'knowledge') {
+      const detailId = insert.detailId || '';
+      const hasDetail = Boolean(detailId && KNOWLEDGE_DETAILS[detailId]);
+      if (!hasDetail) return '';
+      const openAttr = ` data-knowledge-id="${escapeHtml(detailId)}"`;
       return `
-        <button class="ac-rich-card ac-knowledge-card" data-knowledge-id="${escapeHtml(insert.id || '')}">
+        <button class="ac-rich-card ac-knowledge-card"${openAttr}>
           <div class="ac-card-badge">📚 知识点</div>
           <div class="ac-card-title">${escapeHtml(insert.title || '知识点')}</div>
           <div class="ac-card-desc">${escapeHtml(insert.summary || '')}</div>
@@ -312,7 +335,7 @@
     chatContainer.innerHTML = MOCK_MESSAGES.map(msg => {
       const isAI = msg.sender === 'ai';
       const avatarName = isAI ? '小go' : '我';
-      const insertsHtml = isAI && Array.isArray(msg.inserts)
+      const insertsHtml = Array.isArray(msg.inserts)
         ? msg.inserts.map(renderInsertBlock).join('')
         : '';
       return `
@@ -339,21 +362,36 @@
     const existed = document.querySelector('.ac-knowledge-modal');
     if (existed) existed.remove();
 
+    const detailSections = Array.isArray(data.sections)
+      ? data.sections.map(item => `
+        <section class="ac-kd-section">
+          <h4>${escapeHtml(item.heading || '')}</h4>
+          <p>${escapeHtml(item.text || '')}</p>
+        </section>
+      `).join('')
+      : '';
+
     const modal = document.createElement('div');
     modal.className = 'ac-knowledge-modal';
     modal.innerHTML = `
-      <div class="ac-knowledge-dialog">
+      <div class="ac-knowledge-dialog ac-knowledge-page">
+        <div class="ac-kd-header">
+          <h3 class="ac-kd-header-title">详情</h3>
+          <button class="ac-kd-close-btn" type="button" aria-label="关闭">×</button>
+        </div>
+        <div class="ac-kd-cover-wrap">
+          <img src="${escapeHtml(data.cover || '')}" alt="${escapeHtml(data.coverAlt || data.title || '知识点封面')}" loading="lazy" />
+        </div>
         <h3>${escapeHtml(data.title)}</h3>
-        <p>${escapeHtml(data.body)}</p>
-        <button class="ac-knowledge-close-btn">我知道了</button>
+        <p class="ac-kd-intro">${escapeHtml(data.intro || '')}</p>
+        <div class="ac-kd-content">${detailSections}</div>
       </div>
     `;
 
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal || e.target.closest('.ac-knowledge-close-btn')) {
-        modal.remove();
-      }
-    });
+    const closeBtn = modal.querySelector('.ac-kd-close-btn');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => modal.remove());
+    }
 
     document.body.appendChild(modal);
   }
