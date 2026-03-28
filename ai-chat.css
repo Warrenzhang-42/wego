@@ -24,16 +24,19 @@ body {
   border-radius: 0;
 }
 
-.ac-map-wrapper .rd-back-btn {
+/* 仅返回键：勿用 .rd-back-btn 通配，否则会与「结束」共用类名导致 left 被误设 */
+#ac-back-btn.rd-back-btn {
   top: 14px;
   left: 14px;
 }
 
-/* 地图右上：全屏按钮下方 — 与 .rd-back-btn 同尺寸（36×36 圆），长按结束 */
+/* 地图右上：全屏按钮正下方 — 绝对定位，与全屏键同列靠右 */
 .ac-map-wrapper .ac-end-tour-btn.rd-back-btn {
+  position: absolute;
   top: 58px;
   right: 14px;
   left: auto;
+  z-index: 20;
   padding: 0;
   display: flex;
   align-items: center;
@@ -50,38 +53,50 @@ body {
   overflow: visible;
 }
 
+/* r=15 → 周长 2πr ≈ 94.248 */
+.ac-end-hold-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  transform: rotate(-90deg);
+}
+
+.ac-end-ring-track {
+  stroke: rgba(255, 255, 255, 0.38);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+.ac-end-ring-progress {
+  stroke: #ef4444;
+  stroke-width: 2.75;
+  stroke-linecap: round;
+  stroke-dasharray: 94.248;
+  stroke-dashoffset: 94.248;
+}
+
+.ac-end-tour-btn:not(.is-holding) .ac-end-ring-progress {
+  stroke-dashoffset: 94.248;
+  animation: none;
+  transition: stroke-dashoffset 0.12s ease-out;
+}
+
+.ac-end-tour-btn.is-holding .ac-end-ring-progress {
+  animation: ac-end-ring-progress 0.8s linear forwards;
+}
+
+@keyframes ac-end-ring-progress {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
 .ac-end-tour-label {
   position: relative;
   z-index: 1;
-}
-
-/* ::before 在文字下层，避免盖住「结束」 */
-.ac-end-tour-btn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: rgba(74, 222, 128, 0.42);
-  opacity: 0;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.ac-end-tour-btn:not(.is-holding)::before {
-  transition: opacity 0.15s ease;
-}
-
-.ac-end-tour-btn.is-holding::before {
-  animation: ac-end-hold-fill 0.8s linear forwards;
-}
-
-@keyframes ac-end-hold-fill {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
 }
 
 /* 「问问导游」仅咨询线路，不展示结束旅程 */

@@ -31,7 +31,13 @@
         </svg>
       </button>
       <!-- 陪走旅程结束：长按进入收获页（「问问导游」consult=1 不显示） -->
-      <button type="button" class="rd-back-btn ac-end-tour-btn" id="ac-end-tour-btn" aria-label="长按结束旅程"><span class="ac-end-tour-label">结束</span></button>
+      <button type="button" class="rd-back-btn ac-end-tour-btn" id="ac-end-tour-btn" aria-label="长按结束旅程">
+        <svg class="ac-end-hold-ring" viewBox="0 0 36 36" aria-hidden="true">
+          <circle class="ac-end-ring-track" cx="18" cy="18" r="15" fill="none" />
+          <circle class="ac-end-ring-progress" cx="18" cy="18" r="15" fill="none" />
+        </svg>
+        <span class="ac-end-tour-label">结束</span>
+      </button>
 
       <!-- Map canvas -->
       <div class="rd-map-canvas">
