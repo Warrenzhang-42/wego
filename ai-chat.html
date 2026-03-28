@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="ai-chat.css" />
 </head>
 <body>
-  <div id="app" class="ac-app-container">
+  <div id="app" class="ac-app-container rd-route-page">
 
     <!-- ===== MAP SECTION ===== -->
     <div class="rd-map-wrapper ac-map-wrapper" id="ac-map-wrapper">
@@ -22,7 +22,14 @@
           <path d="M13 4L7 10L13 16" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </button>
-      <button class="ac-end-btn" id="ac-end-btn" aria-label="结束">结束</button>
+      <button type="button" class="rd-fullscreen-btn" id="ac-fullscreen-btn" aria-label="展开地图">
+        <svg class="rd-fs-icon-expand" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M2 7V3H6M14 3H18V7M18 13V17H14M6 17H2V13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <svg class="rd-fs-icon-collapse" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M7 3H3V7M13 3H17V7M17 13V17H13M7 17H3V13" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
 
       <!-- Map canvas -->
       <div class="rd-map-canvas">
@@ -107,7 +114,7 @@
     </div>
 
     <!-- ===== CHAT SECTION ===== -->
-    <div class="ac-chat-panel">
+    <div class="ac-chat-panel" id="ac-chat-panel">
       <!-- Drag handle -->
       <div class="rd-panel-handle"></div>
       

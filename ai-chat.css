@@ -18,11 +18,10 @@ body {
   margin: 0 auto;
 }
 
-/* Map specific tweaks for Chat page */
+/* 地图区高度与路线详情页一致（由 route-detail.css 中 #app.rd-route-page .rd-map-wrapper 控制） */
 .ac-map-wrapper {
-  height: 38dvh; /* A bit taller or shorter depending on aspect ratio */
   flex-shrink: 0;
-  border-radius: 0; /* Keep it flat on top, maybe round the bottom? The mock shows standard square up to a border. */
+  border-radius: 0;
 }
 
 .ac-map-wrapper .rd-back-btn {
@@ -30,51 +29,17 @@ body {
   left: 14px;
 }
 
-.ac-map-wrapper .ac-end-btn {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background:
-    conic-gradient(#ff7a59 calc(var(--hold-progress, 0) * 1%), rgba(26, 35, 50, 0.68) 0);
-  color: #fff;
-  font-size: 8px;
-  font-weight: 800;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  letter-spacing: 0;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  z-index: 11;
-  transition: transform 0.12s ease, background 0.12s ease, box-shadow 0.2s ease;
-  user-select: none;
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
+/* 全屏展开地图时，底部聊天区收起（与路线详情页 rd-detail-panel.is-collapsed 同理） */
+#app.rd-route-page.rd-map-expanded .ac-chat-panel {
+  flex: 0 0 auto;
 }
 
-.ac-map-wrapper .ac-end-btn::before {
-  content: '';
-  position: absolute;
-  inset: 4px;
-  border-radius: 50%;
-  background: rgba(26, 35, 50, 0.92);
-  z-index: -1;
+.ac-chat-panel.is-collapsed .ac-chat-messages {
+  display: none;
 }
 
-.ac-map-wrapper .ac-end-btn.is-pressing {
-  transform: scale(0.94);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
-}
-
-.ac-map-wrapper .ac-end-btn.is-complete {
-  background: #ef4444;
+.ac-chat-panel.is-collapsed {
+  padding-bottom: 10px;
 }
 
 /* Chat Panel */
@@ -89,6 +54,7 @@ body {
   z-index: 10;
   min-height: 0; /* Fix flex scrolling */
   box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+  transition: all 0.5s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .ac-chat-header {
@@ -204,6 +170,15 @@ body {
   line-height: 1;
 }
 
+/* 首次咨询线路：隐藏进度条与收获 */
+body.ac-consult-mode .ac-header-right {
+  display: none;
+}
+
+body.ac-consult-mode .ac-chat-header {
+  justify-content: flex-start;
+}
+
 /* Chat Messages */
 .ac-chat-messages {
   flex: 1;
@@ -260,14 +235,14 @@ body {
 .message-row.ai .bubble {
   background: #E8F5E9; /* Light green */
   border: 1.5px solid #A5D6A7;
-  border-radius: 18px 18px 18px 4px;
+  border-radius: 4px 18px 18px 18px;
 }
 
 /* User Bubble - Orangish (like sketch) */
 .message-row.user .bubble {
   background: #FFF3E0; /* Light orange */
   border: 1.5px solid #FFCC80;
-  border-radius: 18px 18px 4px 18px;
+  border-radius: 18px 4px 18px 18px;
   order: 1;
 }
 
@@ -344,6 +319,70 @@ body {
   font-size: 12px;
   color: #334155;
   line-height: 1.45;
+}
+
+/* 图片卡片（示意） */
+.ac-image-card {
+  border-color: #b8d6ff;
+  background: #fff;
+  padding: 8px;
+  overflow: hidden;
+}
+
+.ac-image-card-wrap {
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #dbeafe;
+  background: #f8fafc;
+}
+
+.ac-image-card-wrap img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 160px;
+  object-fit: cover;
+  vertical-align: middle;
+}
+
+.ac-image-caption {
+  margin-top: 8px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--clr-text-b);
+}
+
+/* 景点卡片（白底 + 浅蓝边，与示意图一致） */
+.ac-attraction-card {
+  border-color: #b8d6ff;
+  background: #ffffff;
+  padding: 11px 12px;
+}
+
+.ac-attraction-card .ac-card-badge {
+  color: #2563eb;
+}
+
+.ac-attraction-ticket {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1px solid #dbeafe;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1.45;
+}
+
+/* 店铺 / 美食推荐 */
+.ac-shop-card {
+  border-color: #ffcc80;
+  background: #fff8f0;
+}
+
+.ac-shop-card .ac-card-badge {
+  color: #c2410c;
 }
 
 .ac-knowledge-modal {

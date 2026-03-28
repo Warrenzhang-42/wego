@@ -264,9 +264,9 @@
     });
   }
 
-  /* ---- AI guide button placeholder ---------------- */
+  /* ---- AI guide: first-time route consultation chat ---- */
   document.getElementById('rd-ai-btn').addEventListener('click', () => {
-    alert('AI导游功能即将上线，敬请期待！');
+    window.location.href = 'ai-chat.html?consult=1';
   });
 
 })();

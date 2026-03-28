@@ -5,6 +5,12 @@
 (function () {
   'use strict';
 
+  const params = new URLSearchParams(window.location.search);
+  const isConsult = params.get('consult') === '1';
+  if (isConsult) {
+    document.body.classList.add('ac-consult-mode');
+  }
+
   const KNOWLEDGE_DETAILS = {
     dzl_gate: {
       title: '大栅栏知识点：门钉与等级礼制',
@@ -16,73 +22,30 @@
   const backBtn = document.getElementById('ac-back-btn');
   if (backBtn) {
     backBtn.addEventListener('click', () => {
-      // Navigate back to the route detail page
       window.location.href = 'route-detail.html';
     });
   }
 
-  // Long press end button
-  const endBtn = document.getElementById('ac-end-btn');
-  if (endBtn) {
-    const HOLD_MS = 1200;
-    let holdStartAt = 0;
-    let holdRafId = null;
-    let holdCompleted = false;
+  /* 全屏地图 / 收起底栏 — 与路线详情页 rd-fullscreen-btn 行为一致 */
+  const app = document.getElementById('app');
+  const chatPanel = document.getElementById('ac-chat-panel');
+  const fullscreenBtn = document.getElementById('ac-fullscreen-btn');
 
-    const resetEndBtn = () => {
-      endBtn.style.setProperty('--hold-progress', '0');
-      endBtn.classList.remove('is-pressing');
-      endBtn.classList.remove('is-complete');
-      endBtn.textContent = '结束';
-      holdStartAt = 0;
-      holdCompleted = false;
-      if (holdRafId) {
-        cancelAnimationFrame(holdRafId);
-        holdRafId = null;
-      }
-    };
+  const togglePanelFullscreen = (e) => {
+    e.stopPropagation();
+    const expanded = app.classList.toggle('rd-map-expanded');
+    if (chatPanel) chatPanel.classList.toggle('is-collapsed', expanded);
+    if (fullscreenBtn) {
+      fullscreenBtn.classList.toggle('is-active', expanded);
+      fullscreenBtn.setAttribute('aria-label', expanded ? '收起路线介绍' : '展开地图');
+    }
+    if (expanded) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
-    const completeEndHold = () => {
-      holdCompleted = true;
-      endBtn.classList.remove('is-pressing');
-      endBtn.classList.add('is-complete');
-      endBtn.style.setProperty('--hold-progress', '100');
-      endBtn.textContent = '已结束';
-      setTimeout(() => {
-        window.location.href = 'trip-end.html';
-      }, 180);
-    };
-
-    const tickHoldProgress = () => {
-      if (!holdStartAt || holdCompleted) return;
-      const elapsed = performance.now() - holdStartAt;
-      const progress = Math.min(100, (elapsed / HOLD_MS) * 100);
-      endBtn.style.setProperty('--hold-progress', progress.toFixed(1));
-      if (progress >= 100) {
-        completeEndHold();
-        return;
-      }
-      holdRafId = requestAnimationFrame(tickHoldProgress);
-    };
-
-    const startHold = (e) => {
-      if (e) e.preventDefault();
-      if (holdStartAt || holdCompleted) return;
-      holdStartAt = performance.now();
-      endBtn.classList.add('is-pressing');
-      holdRafId = requestAnimationFrame(tickHoldProgress);
-    };
-
-    const cancelHold = () => {
-      if (holdCompleted || !holdStartAt) return;
-      resetEndBtn();
-    };
-
-    endBtn.addEventListener('pointerdown', startHold);
-    endBtn.addEventListener('pointerup', cancelHold);
-    endBtn.addEventListener('pointerleave', cancelHold);
-    endBtn.addEventListener('pointercancel', cancelHold);
-    endBtn.addEventListener('contextmenu', (e) => e.preventDefault());
+  if (fullscreenBtn) {
+    fullscreenBtn.addEventListener('click', togglePanelFullscreen);
   }
 
   // Handle "Change Guide"
@@ -94,8 +57,8 @@
     });
   }
 
-  // Mock messages for display based on the request
-  const MOCK_MESSAGES = [
+  /** 进行中旅程（「开始旅程」进入） */
+  const JOURNEY_MESSAGES = [
     {
       sender: 'ai',
       text: '欢迎开启大栅栏胡同探秘之旅！我是你的专属AI导游小go。我们现在正位于大栅栏商业街的入口。准备好出发了吗？',
@@ -133,6 +96,89 @@
     { sender: 'user', text: '迫不及待想听了！' }
   ];
 
+  /** 首次咨询线路（「问问导游」进入）— 约 10 轮对话，含图片 / 景点 / 店铺卡片 */
+  const CONSULT_MESSAGES = [
+    {
+      sender: 'ai',
+      text: '你好，我是 AI 导游小go。看你是第一次了解「大栅栏胡同探秘」这条线，我们可以从整体节奏、必打卡点，或者吃喝购物里任选一个方向开始聊。'
+    },
+    {
+      sender: 'user',
+      text: '我第一次来，想先知道大概怎么走、全程要多久？'
+    },
+    {
+      sender: 'ai',
+      text: '这条线从大栅栏商业街入口出发，串老字号、胡同与名人故居，正常步行大约 4～5 小时，中途可随停随拍。下面是一张街区氛围示意，方便你先有画面感。',
+      inserts: [
+        {
+          type: 'image',
+          src: 'https://images.unsplash.com/photo-1547988342-8720cd9fbb04?w=720&q=80',
+          alt: '大栅栏胡同风貌',
+          caption: '示意图：青瓦灰墙与步行街交织，适合慢逛。'
+        }
+      ]
+    },
+    {
+      sender: 'user',
+      text: '适合带爸妈一起吗？会不会走得很累？'
+    },
+    {
+      sender: 'ai',
+      text: '路况以平路为主，休息点也多，适合家庭慢游。必经点里「前门大街」一带很热闹，你可以先扫一眼介绍和门票信息，再决定要不要进收费景点。',
+      inserts: [
+        {
+          type: 'attraction',
+          name: '前门大街 · 步行段',
+          desc: '连接大栅栏与正阳门，沿街老字号与文创店集中，适合拍照与短时休息。',
+          ticketPrice: '步行街免费开放；沿街小展馆/戏票以现场为准。',
+          extra: '节假日人流较大，建议错峰或工作日前往。'
+        }
+      ]
+    },
+    {
+      sender: 'user',
+      text: '路上有什么吃的？不想太油腻。'
+    },
+    {
+      sender: 'ai',
+      text: '可以试试「轻食 + 老字号」组合：一碗茶点、一碟小菜，负担不大。下面这家店很多首次来访的朋友反馈不错——',
+      inserts: [
+        {
+          type: 'shop',
+          name: '门框胡同百年卤煮（大栅栏附近）',
+          rec: '卤煮火烧可点小份，搭配凉菜解腻；若不吃内脏，可改选同街包子铺或杏仁茶。'
+        }
+      ]
+    },
+    {
+      sender: 'user',
+      text: '梅兰芳故居要门票吗？大概多少钱？'
+    },
+    {
+      sender: 'ai',
+      text: '故居需购票入内，旺季/淡季可能不同，以现场公示为准。可参考下方卡片提前做预算；线上预约能少排队。',
+      inserts: [
+        {
+          type: 'attraction',
+          name: '梅兰芳故居',
+          desc: '京剧情境与故居展陈结合，参观约 40～60 分钟。',
+          ticketPrice: '参考票价：10 元 / 人（请以景区当日公示为准）',
+          extra: '建议提前在公众号或官方渠道预约时段。'
+        }
+      ]
+    },
+    {
+      sender: 'user',
+      text: '明白了，我打算下周末来实地走一趟。'
+    },
+    {
+      sender: 'ai',
+      text: '太好了！你回到路线页点「开始旅程」，我就会切换到陪走模式，按节点给你讲解。出发前还有想对比的支线或时段，也可以继续问我。'
+    }
+  ];
+
+  let MOCK_MESSAGES = isConsult ? [...CONSULT_MESSAGES] : [...JOURNEY_MESSAGES];
+
   const chatContainer = document.getElementById('ac-chat-messages');
 
   function escapeHtml(str) {
@@ -166,6 +212,45 @@
           <div class="ac-distance-near">${escapeHtml(insert.nearHint || '')}</div>
           <div class="ac-distance-ticket">${escapeHtml(insert.ticketNotice || '')}</div>
           <div class="ac-distance-price">${escapeHtml(insert.ticketPrice || '')}</div>
+        </div>
+      `;
+    }
+
+    if (insert.type === 'image') {
+      const cap = insert.caption
+        ? `<div class="ac-image-caption">${escapeHtml(insert.caption)}</div>`
+        : '';
+      return `
+        <div class="ac-rich-card ac-image-card">
+          <div class="ac-image-card-wrap">
+            <img src="${escapeHtml(insert.src || '')}" alt="${escapeHtml(insert.alt || '')}" loading="lazy" width="640" height="360" />
+          </div>
+          ${cap}
+        </div>
+      `;
+    }
+
+    if (insert.type === 'attraction') {
+      const extra = insert.extra
+        ? `<div class="ac-distance-ticket">${escapeHtml(insert.extra)}</div>`
+        : '';
+      return `
+        <div class="ac-rich-card ac-attraction-card">
+          <div class="ac-card-badge">🏛️ 景点</div>
+          <div class="ac-card-title">${escapeHtml(insert.name || '景点')}</div>
+          <div class="ac-card-desc">${escapeHtml(insert.desc || '')}</div>
+          <div class="ac-attraction-ticket">${escapeHtml(insert.ticketPrice || '')}</div>
+          ${extra}
+        </div>
+      `;
+    }
+
+    if (insert.type === 'shop') {
+      return `
+        <div class="ac-rich-card ac-shop-card">
+          <div class="ac-card-badge">🍜 美食推荐</div>
+          <div class="ac-card-title">${escapeHtml(insert.name || '')}</div>
+          <div class="ac-card-desc">${escapeHtml(insert.rec || '')}</div>
         </div>
       `;
     }
@@ -243,7 +328,7 @@
       btnVoice.style.transform = 'scale(1)';
       if (isRecording) {
         addMessage('user', '好的（语音转换文本）。');
-        addMessage('ai', '收到！继续前行吧。');
+        addMessage('ai', isConsult ? '收到！还想了解哪一段，随时问我。' : '收到！继续前行吧。');
         isRecording = false;
       }
     });
@@ -255,7 +340,9 @@
     btnVoice.addEventListener('mouseup', () => {
       btnVoice.textContent = '按住说话';
       addMessage('user', '好的（通过麦克风输入）。');
-      setTimeout(() => { addMessage('ai', '收到！有问题随时叫我。'); }, 600);
+      setTimeout(() => {
+        addMessage('ai', isConsult ? '收到！规划上还有疑问也可以继续聊。' : '收到！有问题随时叫我。');
+      }, 600);
     });
     btnVoice.addEventListener('mouseleave', () => {
       if (btnVoice.textContent !== '按住说话') {
@@ -270,7 +357,7 @@
       if (text && text.trim()) {
         addMessage('user', text.trim());
         setTimeout(() => {
-           addMessage('ai', '我已经收到你的消息！');
+          addMessage('ai', isConsult ? '我已经收到你的消息，需要我补充景点或路线细节吗？' : '我已经收到你的消息！');
         }, 800);
       }
     });
