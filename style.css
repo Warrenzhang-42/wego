@@ -422,6 +422,7 @@ input { font-family: inherit; }
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
   transition: transform 0.4s ease;
 }
 .route-card:hover .route-thumb-img { transform: scale(1.08); }
@@ -511,6 +512,9 @@ input { font-family: inherit; }
 .tag-adventure{ background: #FFE8EC; color: #CC2255; }
 .tag-culture  { background: #F0EEFF; color: var(--clr-purple); }
 .tag-art      { background: #FFF0FB; color: #A0228A; }
+.tag-tcm      { background: #E8F4F0; color: #1b6b4a; }
+.tag-ich      { background: #F5F0E6; color: #7a5c1e; }
+.tag-reading  { background: #EEF6FF; color: #2563a8; }
 .tag-ai {
   background: linear-gradient(135deg, #E8F5ED, #dcf0ff);
   color: var(--clr-primary-dark);
@@ -558,13 +562,6 @@ input { font-family: inherit; }
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
 }
-.route-label {
-  font-size: 11px;
-  color: var(--clr-text-muted);
-  font-weight: 600;
-  margin-top: 4px;
-}
-
 /* ---- Modern Bottom Nav ------------------------------------ */
 .bottom-nav {
   position: fixed;
