@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>探索人格 · WeGO</title>
+  <meta name="description" content="选择你的 AI 导览人格：考据型导游、在地玩家或审美策展人" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700&family=Nunito:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="personality.css" />
+</head>
+<body>
+  <div id="app" class="personality-app">
+
+    <header class="personality-top">
+      <button type="button" class="personality-back" id="personality-back" aria-label="返回">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M13 4L7 10L13 16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+    </header>
+
+    <section class="personality-hero">
+      <h1 class="personality-title">你的旅行偏好是什么？</h1>
+    </section>
+
+    <div class="personality-carousel-wrap">
+      <div class="personality-track" id="personality-track" aria-live="polite">
+        <!-- Slide 1: 考据型导游 -->
+        <article class="personality-slide" data-index="0" data-id="scholar">
+          <div class="personality-card personality-card--scholar">
+            <div class="personality-card-inner">
+              <div class="personality-avatar-wrap">
+                <div class="personality-avatar" aria-hidden="true">
+                  <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=wegoScholar&backgroundColor=e8f5ed" alt="" />
+                </div>
+              </div>
+              <h2 class="personality-name">考据型导游</h2>
+              <div class="personality-tags">
+                <span class="personality-tag">历史密度优先</span>
+                <span class="personality-tag">跨区域叙事</span>
+                <span class="personality-tag">关键点深讲</span>
+                <span class="personality-tag">串起时间线</span>
+                <span class="personality-tag">距离可让步</span>
+              </div>
+              <ul class="personality-behaviors">
+                <li>会让你多走一点，只为串起一段历史</li>
+                <li>在关键点强制停留讲解</li>
+              </ul>
+              <button type="button" class="personality-cta" data-chat="scholar">和我聊两句</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Slide 2: 在地玩家 -->
+        <article class="personality-slide" data-index="1" data-id="local">
+          <div class="personality-card personality-card--local">
+            <div class="personality-card-inner">
+              <div class="personality-avatar-wrap">
+                <div class="personality-avatar" aria-hidden="true">
+                  <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=wegoLocal&backgroundColor=b6e3f4" alt="" />
+                </div>
+              </div>
+              <h2 class="personality-name">在地玩家</h2>
+              <div class="personality-tags">
+                <span class="personality-tag">本地人频率优先</span>
+                <span class="personality-tag">小巷穿行</span>
+                <span class="personality-tag">避开网红点</span>
+                <span class="personality-tag">临时彩蛋点</span>
+                <span class="personality-tag">烟火气小店</span>
+              </div>
+              <ul class="personality-behaviors">
+                <li>自动避开网红点</li>
+                <li>插入临时点（比如路边摊）</li>
+              </ul>
+              <button type="button" class="personality-cta" data-chat="local">和我聊两句</button>
+            </div>
+          </div>
+        </article>
+
+        <!-- Slide 3: 审美策展人 -->
+        <article class="personality-slide" data-index="2" data-id="curator">
+          <div class="personality-card personality-card--curator">
+            <div class="personality-card-inner">
+              <div class="personality-avatar-wrap">
+                <div class="personality-avatar" aria-hidden="true">
+                  <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=wegoCurator&backgroundColor=f0eeff" alt="" />
+                </div>
+              </div>
+              <h2 class="personality-name">审美策展人</h2>
+              <div class="personality-tags">
+                <span class="personality-tag">空间连续性</span>
+                <span class="personality-tag">展览式动线</span>
+                <span class="personality-tag">节奏起承转合</span>
+                <span class="personality-tag">设计意图解读</span>
+                <span class="personality-tag">沉浸看展感</span>
+              </div>
+              <ul class="personality-behaviors">
+                <li>控制节奏（开场 → 高潮 → 收束）</li>
+                <li>讲「为什么这样设计」</li>
+              </ul>
+              <button type="button" class="personality-cta" data-chat="curator">和我聊两句</button>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="personality-dots" id="personality-dots" role="tablist" aria-label="人格进度">
+        <button type="button" class="personality-dot active" data-idx="0" aria-label="考据型导游" aria-selected="true"></button>
+        <button type="button" class="personality-dot" data-idx="1" aria-label="在地玩家" aria-selected="false"></button>
+        <button type="button" class="personality-dot" data-idx="2" aria-label="审美策展人" aria-selected="false"></button>
+      </div>
+
+      <div class="personality-pick-wrap">
+        <button type="button" class="personality-pick-me" id="personality-pick-me" data-personality="scholar">选择我吧</button>
+      </div>
+    </div>
+
+    <div class="personality-bottom-spacer"></div>
+  </div>
+
+  <script src="personality.js"></script>
+</body>
+</html>

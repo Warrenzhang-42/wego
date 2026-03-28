@@ -128,6 +128,19 @@ body {
   justify-content: center;
   flex-shrink: 0;
   padding: 0;
+  text-decoration: none;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.ac-avatar-icon-btn:hover {
+  background: rgba(36, 100, 207, 0.08);
+  color: #2464cf;
+}
+
+.ac-avatar-icon-btn:active {
+  transform: scale(0.94);
 }
 
 .ac-header-right {

@@ -1,0 +1,288 @@
+/* ====================================================
+   WeGO · 探索人格页 — 与 style.css 令牌一致
+   ==================================================== */
+
+.personality-app {
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  background-color: #f3f6f4;
+  background-image:
+    radial-gradient(circle, rgba(76, 175, 130, 0.07) 1px, transparent 1px);
+  background-size: 20px 20px;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.personality-top {
+  padding: 12px 16px 0;
+  display: flex;
+  align-items: center;
+}
+
+.personality-back {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--clr-card);
+  color: var(--clr-text-h);
+  border: 1px solid var(--clr-border);
+  box-shadow: var(--shadow-card);
+  transition: transform 0.12s, background 0.15s;
+}
+
+.personality-back:hover {
+  background: var(--clr-primary-light);
+}
+
+.personality-back:active {
+  transform: scale(0.96);
+}
+
+.personality-hero {
+  padding: 8px 24px 22px;
+  text-align: center;
+}
+
+.personality-title {
+  font-family: "Noto Serif SC", "Songti SC", serif;
+  font-size: 21px;
+  font-weight: 700;
+  color: var(--clr-text-h);
+  line-height: 1.4;
+  letter-spacing: 0.03em;
+  margin: 0;
+}
+
+.personality-carousel-wrap {
+  position: relative;
+  padding: 0 18px;
+}
+
+.personality-track {
+  display: flex;
+  transition: transform 0.42s cubic-bezier(0.25, 0.8, 0.25, 1);
+  will-change: transform;
+}
+
+.personality-slide {
+  flex: 0 0 100%;
+  width: 100%;
+  padding: 0 4px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.personality-card {
+  background: var(--clr-card);
+  border-radius: 28px;
+  border: none;
+  box-shadow: none;
+  overflow: hidden;
+}
+
+/* 人格专属卡片底色 */
+.personality-card--scholar {
+  background: linear-gradient(165deg, #e8f4ee 0%, #f4faf7 48%, #ffffff 100%);
+}
+
+.personality-card--local {
+  background: linear-gradient(165deg, #e3f0fb 0%, #f2f8fd 48%, #ffffff 100%);
+}
+
+.personality-card--curator {
+  background: linear-gradient(165deg, #ece8f8 0%, #f6f4fc 48%, #ffffff 100%);
+}
+
+.personality-card--scholar .personality-tag,
+.personality-card--local .personality-tag,
+.personality-card--curator .personality-tag {
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(26, 35, 50, 0.08);
+}
+
+.personality-card--local .personality-avatar {
+  border-color: rgba(36, 100, 207, 0.25);
+}
+
+.personality-card--curator .personality-avatar {
+  border-color: rgba(124, 92, 191, 0.28);
+}
+
+.personality-card-inner {
+  padding: 24px 22px 22px;
+}
+
+.personality-avatar-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.personality-avatar {
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--clr-primary-light);
+  box-shadow: 0 2px 12px rgba(26, 35, 50, 0.06);
+  background: var(--clr-bg);
+}
+
+.personality-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.personality-name {
+  font-family: var(--font-head);
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--clr-text-h);
+  text-align: center;
+  margin-bottom: 12px;
+  letter-spacing: 0.02em;
+}
+
+.personality-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px 8px;
+  justify-content: center;
+  margin-bottom: 18px;
+  max-width: 100%;
+  padding: 0 4px;
+}
+
+.personality-tag {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: var(--clr-bg);
+  color: var(--clr-text-b);
+  border: 1px solid var(--clr-border);
+  line-height: 1.25;
+}
+
+.personality-behaviors {
+  margin: 0 0 20px;
+  padding-left: 17px;
+  padding-right: 2px;
+  color: var(--clr-text-b);
+  font-size: 13px;
+  line-height: 1.6;
+  font-weight: 600;
+}
+
+.personality-behaviors li + li {
+  margin-top: 6px;
+}
+
+/* 「和我聊两句」：原「选择我吧」的轻量文字链样式 */
+.personality-cta {
+  width: fit-content;
+  max-width: 100%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 22px 4px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--clr-text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1.5px;
+  text-decoration-color: rgba(76, 175, 130, 0.4);
+  transition: color 0.15s, text-decoration-color 0.15s, transform 0.12s;
+}
+
+.personality-cta:hover {
+  color: var(--clr-primary-dark);
+  text-decoration-color: rgba(56, 158, 106, 0.75);
+}
+
+.personality-cta:active {
+  transform: scale(0.98);
+}
+
+/* 「选择我吧」：原主按钮渐变样式，位于圆点指示器下方 */
+.personality-pick-wrap {
+  padding: 0 22px;
+  margin-top: 14px;
+}
+
+.personality-pick-me {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 15px 20px;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: white;
+  background: linear-gradient(135deg, var(--clr-primary), var(--clr-primary-dark));
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 3px 14px rgba(56, 158, 106, 0.35);
+  transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+}
+
+.personality-pick-me:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 18px rgba(56, 158, 106, 0.42);
+  filter: brightness(1.02);
+}
+
+.personality-pick-me:active {
+  transform: scale(0.987);
+}
+
+.personality-dots {
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 18px;
+  padding-bottom: 0;
+}
+
+.personality-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--clr-border);
+  transition: all 0.25s;
+  cursor: pointer;
+}
+
+.personality-dot.active {
+  width: 24px;
+  border-radius: 999px;
+  background: var(--clr-primary);
+}
+
+.personality-bottom-spacer {
+  height: 28px;
+}
+
+@media (max-width: 360px) {
+  .personality-title {
+    font-size: 20px;
+  }
+}
