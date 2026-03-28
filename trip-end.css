@@ -449,9 +449,7 @@ body {
 
 /* 按类型区分视觉（对齐聊天知识点 / 路线景点等来源） */
 .te-reward-card[data-type="spot"] {
-  border-left: none;
-  padding-left: 16px;
-  background: linear-gradient(90deg, var(--clr-primary) 0, var(--clr-primary) 3px, var(--clr-surface-container-lowest) 3px);
+  background: var(--clr-surface-container-lowest);
   box-shadow: var(--shadow-card);
 }
 
