@@ -84,17 +84,23 @@ import { apiClient }         from './lib/api-client.js';
         });
       });
 
-      // 2. 绘制路线
+      // 2. 绘制路线（至少 2 个点；单个点只居中）
       const coords = spots.map(s => ({ lat: s.lat, lng: s.lng }));
-      await mapAdapter.drawRoute(coords);
+      if (coords.length >= 2) {
+        await mapAdapter.drawRoute(coords);
+      } else if (coords.length === 1) {
+        mapAdapter.setCenter(coords[0].lng, coords[0].lat, 17);
+      }
 
       // 3. 视野对齐
-      const lats = spots.map(s => s.lat);
-      const lngs = spots.map(s => s.lng);
-      mapAdapter.fitBounds({
-        sw: { lat: Math.min(...lats) - 0.001, lng: Math.min(...lngs) - 0.001 },
-        ne: { lat: Math.max(...lats) + 0.001, lng: Math.max(...lngs) + 0.001 },
-      });
+      if (spots.length >= 1) {
+        const lats = spots.map(s => s.lat);
+        const lngs = spots.map(s => s.lng);
+        mapAdapter.fitBounds({
+          sw: { lat: Math.min(...lats) - 0.001, lng: Math.min(...lngs) - 0.001 },
+          ne: { lat: Math.max(...lats) + 0.001, lng: Math.max(...lngs) + 0.001 },
+        });
+      }
 
       console.log(`[route-detail] ✅ ${provider} 地图初始化完成`);
 
@@ -245,7 +251,11 @@ import { apiClient }         from './lib/api-client.js';
   /* ---- 主入口 —— 加载数据 → 渲染 → 初始化地图 ---------- */
   async function main() {
     const routeData = await loadRouteData();
-    const spots = routeData ? routeData.spots : getFallbackSpots();
+    // Supabase 若未导入 spots，spots 可能为空；页面头部统计为静态文案，需回退到本地数据以免列表空白
+    const spots =
+      routeData && Array.isArray(routeData.spots) && routeData.spots.length > 0
+        ? routeData.spots
+        : getFallbackSpots();
 
     currentSpots = spots; // 保存到全局，供切换引擎使用
     buildSpotList(spots);

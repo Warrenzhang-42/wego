@@ -88,10 +88,11 @@ export class AMapAdapter extends WeGOMap {
      加载高德 SDK → 创建地图实例 → 设置初始视角
      ---------------------------------------------------------- */
   async init() {
-    const { key, securityJsCode, center = DASHILAN_CENTER, zoom = DEFAULT_ZOOM } = this.options;
+    const { securityJsCode, center = DASHILAN_CENTER, zoom = DEFAULT_ZOOM } = this.options;
+    const key = this.options.key ?? this.options.apiKey;
 
     if (!key) {
-      throw new Error('[AMapAdapter] 必须提供 options.key (高德 API Key)');
+      throw new Error('[AMapAdapter] 必须提供 options.key 或 options.apiKey (高德 API Key)');
     }
     if (!securityJsCode) {
       throw new Error('[AMapAdapter] 必须提供 options.securityJsCode (高德安全密钥)');
