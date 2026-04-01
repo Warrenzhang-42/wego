@@ -1,0 +1,17 @@
+{
+  "$id": "knowledge-chunk",
+  "type": "object",
+  "required": ["chunk_text", "chunk_type", "spot_id", "metadata"],
+  "properties": {
+    "chunk_text": { "type": "string" },
+    "chunk_type": { "enum": ["heading", "paragraph", "intro", "section"] },
+    "spot_id": { "type": "string", "format": "uuid" },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "heading": { "type": "string" }
+      }
+    }
+  }
+}
