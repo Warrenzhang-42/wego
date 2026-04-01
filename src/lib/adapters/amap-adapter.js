@@ -285,9 +285,14 @@ export class AMapAdapter extends WeGOMap {
 
     if (allFailed) {
       drawFallbackPolyline();
+      console.warn(
+        '[AMapAdapter] drawRoute：步行规划均未成功，已用直线连接',
+        coords.length - 1,
+        '段（请检查 Key 服务权限与控制台域名白名单）'
+      );
+    } else {
+      console.log('[AMapAdapter] drawRoute ✅ 步行路网共', coords.length - 1, '段');
     }
-
-    console.log('[AMapAdapter] drawRoute ✅ 共', coords.length - 1, '段路线');
   }
 
   /* ----------------------------------------------------------
