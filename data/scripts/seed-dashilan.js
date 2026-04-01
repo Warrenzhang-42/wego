@@ -23,9 +23,10 @@ if (fs.existsSync(envPath)) {
   require('dotenv').config({ path: envPath });
 }
 
-const SUPABASE_URL      = process.env.SUPABASE_URL      || '';
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || '';
-const DRY_RUN           = process.env.DRY_RUN === 'true';
+const SUPABASE_URL          = process.env.SUPABASE_URL              || '';
+// seed 脚本使用 service_role key 以绕过 RLS（anon key 仅有 SELECT 权限）
+const SUPABASE_SERVICE_KEY  = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '';
+const DRY_RUN               = process.env.DRY_RUN === 'true';
 
 // ------ 加载路线数据 ------
 const routeDataPath = path.resolve(__dirname, '../routes/dashilan.json');
@@ -72,16 +73,17 @@ if (DRY_RUN) {
 }
 
 // ------ 真实写入 ------
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
   console.error(
-    'Error: SUPABASE_URL 和 SUPABASE_ANON_KEY 环境变量未配置。\n' +
+    'Error: SUPABASE_URL 和 SUPABASE_SERVICE_ROLE_KEY 环境变量未配置。\n' +
     '请在 .env 文件中填入，或使用 DRY_RUN=true 模式预览数据。'
   );
   process.exit(1);
 }
 
 const { createClient } = require('@supabase/supabase-js');
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// 使用 service_role key（可绕过 RLS）进行数据导入
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
 async function seed() {
   console.log(`Seeding route: "${routeRow.title}" ...`);
