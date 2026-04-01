@@ -45,13 +45,25 @@ import { apiClient }         from './lib/api-client.js';
     }
   }
 
+  /** Supabase NUMERIC 等可能序列化为字符串，统一为 number，避免 fitBounds / 标记异常 */
+  function normalizeSpots(raw) {
+    const list = Array.isArray(raw) ? raw : [];
+    return list
+      .map((s) => ({
+        ...s,
+        lat: typeof s.lat === 'number' && !Number.isNaN(s.lat) ? s.lat : parseFloat(s.lat),
+        lng: typeof s.lng === 'number' && !Number.isNaN(s.lng) ? s.lng : parseFloat(s.lng),
+      }))
+      .filter((s) => Number.isFinite(s.lat) && Number.isFinite(s.lng));
+  }
+
   /* ---- 初始化地图 (多引擎驱动) ------------------------ */
   async function initMap(spots) {
     const config = window.__WEGO_MAP_CONFIG__ || {};
     const provider = config.provider || 'amap';
 
     // 检查是否有足够的配置进行初始化
-    if (!config.apiKey) {
+    if (!config.apiKey && !config.key) {
       console.warn(`[route-detail] 未配置 ${provider} API Key，跳过地图初始化，使用静态图降级`);
       if (mapFallbackImg) mapFallbackImg.style.display = 'block';
       if (mapContainer) mapContainer.style.display = 'none';
@@ -59,9 +71,15 @@ import { apiClient }         from './lib/api-client.js';
     }
 
     try {
+      if (mapContainer) {
+        mapContainer.style.display = '';
+        mapContainer.style.visibility = 'visible';
+      }
+      if (mapFallbackImg) mapFallbackImg.style.display = 'none';
+
       // 使用工厂类创建适配器
       mapAdapter = MapAdapterFactory.create(provider, mapContainer, {
-        apiKey:         config.apiKey,
+        apiKey:         config.apiKey || config.key,
         securityJsCode: config.securityJsCode,
         mapOptions: {
           zoom: 17
@@ -84,28 +102,45 @@ import { apiClient }         from './lib/api-client.js';
         });
       });
 
-      // 2. 绘制路线（至少 2 个点；单个点只居中）
+      // 2. 绘制路线 / 视野：失败时仅打日志，仍保留底图与标记
       const coords = spots.map(s => ({ lat: s.lat, lng: s.lng }));
-      if (coords.length >= 2) {
-        await mapAdapter.drawRoute(coords);
-      } else if (coords.length === 1) {
-        mapAdapter.setCenter(coords[0].lng, coords[0].lat, 17);
+      try {
+        if (coords.length >= 2) {
+          await mapAdapter.drawRoute(coords);
+        } else if (coords.length === 1) {
+          mapAdapter.setCenter(coords[0].lng, coords[0].lat, 17);
+        }
+      } catch (routeErr) {
+        console.warn('[route-detail] 路线绘制跳过（底图仍可用）:', routeErr);
+      }
+      try {
+        if (spots.length >= 1) {
+          const lats = spots.map(s => s.lat);
+          const lngs = spots.map(s => s.lng);
+          mapAdapter.fitBounds({
+            sw: { lat: Math.min(...lats) - 0.001, lng: Math.min(...lngs) - 0.001 },
+            ne: { lat: Math.max(...lats) + 0.001, lng: Math.max(...lngs) + 0.001 },
+          });
+        }
+      } catch (boundsErr) {
+        console.warn('[route-detail] fitBounds 跳过:', boundsErr);
       }
 
-      // 3. 视野对齐
-      if (spots.length >= 1) {
-        const lats = spots.map(s => s.lat);
-        const lngs = spots.map(s => s.lng);
-        mapAdapter.fitBounds({
-          sw: { lat: Math.min(...lats) - 0.001, lng: Math.min(...lngs) - 0.001 },
-          ne: { lat: Math.max(...lats) + 0.001, lng: Math.max(...lngs) + 0.001 },
-        });
+      if (provider === 'amap' && mapAdapter._map && typeof mapAdapter._map.resize === 'function') {
+        setTimeout(() => {
+          try {
+            mapAdapter._map.resize();
+          } catch (e) {
+            /* ignore */
+          }
+        }, 400);
       }
 
       console.log(`[route-detail] ✅ ${provider} 地图初始化完成`);
 
     } catch (err) {
       console.error(`[route-detail] ${provider} 地图初始化失败，使用静态图降级:`, err);
+      mapAdapter = null;
       if (mapFallbackImg) mapFallbackImg.style.display = 'block';
       if (mapContainer) mapContainer.style.display = 'none';
     }
@@ -113,15 +148,20 @@ import { apiClient }         from './lib/api-client.js';
 
   /* ---- 导出切换引擎方法 ---------------------------- */
   window.switchMapEngine = async (provider) => {
-    if (!mapAdapter || !currentSpots) return;
-    
+    if (!currentSpots || !currentSpots.length) return;
+
     console.log(`[route-detail] 正在切换引擎记录为: ${provider}`);
-    
-    // 1. 销毁旧实例
-    mapAdapter.destroy();
-    mapContainer.innerHTML = ''; // 清空容器
-    
-    // 2. 更新配置并重新初始化
+
+    if (mapAdapter) {
+      try {
+        mapAdapter.destroy();
+      } catch (e) {
+        console.warn('[route-detail] 销毁旧地图实例:', e);
+      }
+      mapAdapter = null;
+    }
+    if (mapContainer) mapContainer.innerHTML = '';
+
     window.__WEGO_MAP_CONFIG__.provider = provider;
     await initMap(currentSpots);
   };
@@ -251,11 +291,10 @@ import { apiClient }         from './lib/api-client.js';
   /* ---- 主入口 —— 加载数据 → 渲染 → 初始化地图 ---------- */
   async function main() {
     const routeData = await loadRouteData();
-    // Supabase 若未导入 spots，spots 可能为空；页面头部统计为静态文案，需回退到本地数据以免列表空白
-    const spots =
-      routeData && Array.isArray(routeData.spots) && routeData.spots.length > 0
-        ? routeData.spots
-        : getFallbackSpots();
+    let spots = normalizeSpots(routeData?.spots);
+    if (spots.length === 0) {
+      spots = getFallbackSpots();
+    }
 
     currentSpots = spots; // 保存到全局，供切换引擎使用
     buildSpotList(spots);

@@ -106,15 +106,40 @@ export class AMapAdapter extends WeGOMap {
     // 2. 加载高德 SDK
     await loadAmapSDK(key, securityJsCode);
 
-    // 3. 创建地图实例
-    this._map = new window.AMap.Map(this.container, {
-      center:     [center.lng, center.lat],
-      zoom:       zoom,
-      mapStyle:   'amap://styles/fresh',   // 清新风格，与 WeGO 设计调性一致
-      showLabel:  true,
-      lang:       'zh_cn',
+    // 3. 创建地图实例（默认标准样式；部分 Key 对 amap://styles/fresh 等主题无权限会导致瓦片空白）
+    const mapOpts = {
+      center:       [center.lng, center.lat],
+      zoom:         zoom,
+      showLabel:    true,
+      lang:         'zh_cn',
       resizeEnable: true,
+    };
+    if (this.options.mapStyle) {
+      mapOpts.mapStyle = this.options.mapStyle;
+    }
+    this._map = new window.AMap.Map(this.container, mapOpts);
+
+    this._map.on('complete', () => {
+      try {
+        this._map.resize();
+      } catch (e) {
+        /* ignore */
+      }
     });
+    requestAnimationFrame(() => {
+      try {
+        this._map.resize();
+      } catch (e) {
+        /* ignore */
+      }
+    });
+    setTimeout(() => {
+      try {
+        this._map.resize();
+      } catch (e) {
+        /* ignore */
+      }
+    }, 300);
 
     console.log('[AMapAdapter] ✅ 高德地图初始化完成，中心:', center, '缩放:', zoom);
   }
