@@ -9,7 +9,7 @@
 
 'use strict';
 
-import { WeGOMap } from '../map-adapter.js';
+import { WeGOMap } from '../wego-map-base.js';
 import { haversineDistance } from '../geo-utils.js';
 
 export class BMapAdapter extends WeGOMap {

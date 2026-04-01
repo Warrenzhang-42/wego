@@ -517,7 +517,8 @@
   -webkit-backdrop-filter: blur(12px);
   border-top: none;
   box-shadow: 0 -8px 32px rgba(27, 28, 29, 0.06);
-  z-index: 1000;
+  z-index: 10000;
+  pointer-events: auto;
 }
 
 .rd-start-btn {

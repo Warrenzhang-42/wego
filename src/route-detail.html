@@ -259,16 +259,16 @@
 
   <!-- ===== BOTTOM ACTION BAR ===== -->
   <div class="rd-bottom-bar" id="rd-bottom-bar">
-    <button class="rd-start-btn" id="rd-start-btn">
+    <button type="button" class="rd-start-btn" id="rd-start-btn">
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
         <polygon points="5,3 15,9 5,15" fill="white" />
       </svg>
       开始旅程
     </button>
-    <button class="rd-ai-btn" id="rd-ai-btn">
+    <button type="button" class="rd-ai-btn" id="rd-ai-btn">
       问问导游
     </button>
-    <button class="rd-fav-btn" id="rd-fav-btn" aria-label="收藏">
+    <button type="button" class="rd-fav-btn" id="rd-fav-btn" aria-label="收藏">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
         stroke-linecap="round" stroke-linejoin="round">
         <path
@@ -320,6 +320,47 @@
       apiKey: '4a12d15f179304ca919becb35e7f6b69',          // TODO: 填入对应 Key
       securityJsCode: 'da808ff5520aa962794be908a765bbe1',          // TODO: 填入对应安全密钥
     };
+  </script>
+  <!-- 核心导航：不依赖 ES 模块，避免 import 失败时整页脚本无响应 -->
+  <script>
+    (function () {
+      function routeId() {
+        return new URLSearchParams(window.location.search).get('route') || 'e4e20790-a521-4f0e-947b-1172a1e1b7f1';
+      }
+      function bind() {
+        var back = document.getElementById('rd-back-btn');
+        if (back) {
+          back.addEventListener('click', function (e) {
+            e.preventDefault();
+            window.location.replace(new URL('index.html', window.location.href).href);
+          });
+        }
+        var start = document.getElementById('rd-start-btn');
+        if (start) {
+          start.addEventListener('click', function () {
+            start.textContent = '导航启动中…';
+            start.style.opacity = '0.7';
+            try {
+              localStorage.setItem('wego_active_route_id', routeId());
+            } catch (err) {}
+            window.setTimeout(function () {
+              window.location.href = new URL('ai-chat.html', window.location.href).href;
+            }, 400);
+          });
+        }
+        var ai = document.getElementById('rd-ai-btn');
+        if (ai) {
+          ai.addEventListener('click', function () {
+            window.location.href = new URL('ai-chat.html?consult=1', window.location.href).href;
+          });
+        }
+      }
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bind);
+      } else {
+        bind();
+      }
+    })();
   </script>
   <script type="module" src="route-detail.js"></script>
 </body>

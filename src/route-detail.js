@@ -22,11 +22,7 @@ import { apiClient }         from './lib/api-client.js';
   const mapContainer   = document.getElementById('rd-map-container');
   const mapFallbackImg = document.querySelector('.rd-map-fallback');
 
-  // 返回按钮
-  document.getElementById('rd-back-btn').addEventListener('click', (e) => {
-    e.preventDefault();
-    window.location.replace('index.html');
-  });
+  /* 返回 / 开始旅程 / 问问导游 由 route-detail.html 内联脚本绑定，避免 ES 模块加载失败时整页无响应 */
 
   /* ---- 当前路线 ID（从 URL 参数或默认大栅栏路线）---------- */
   const _urlParams = new URLSearchParams(window.location.search);
@@ -171,6 +167,7 @@ import { apiClient }         from './lib/api-client.js';
 
   /* ---- Fullscreen --------------------------------- */
   function openFullscreen() {
+    if (!fsOverlay) return;
     const fsContainer = fsOverlay.querySelector('.rd-fs-map-container');
     fsContainer.innerHTML = '';
     const img = document.createElement('img');
@@ -186,12 +183,14 @@ import { apiClient }         from './lib/api-client.js';
   }
 
   function closeFullscreen() {
+    if (!fsOverlay) return;
     fsOverlay.classList.remove('open');
     document.body.style.overflow = '';
   }
 
   const togglePanelFullscreen = (e) => {
     e.stopPropagation();
+    if (!app || !detailPanel) return;
     const expanded = app.classList.toggle('rd-map-expanded');
     detailPanel.classList.toggle('is-collapsed', expanded);
     if (fullscreenBtn) {
@@ -210,7 +209,9 @@ import { apiClient }         from './lib/api-client.js';
   if (fullscreenBtn) {
     fullscreenBtn.addEventListener('click', togglePanelFullscreen);
   }
-  fsFsCloseBtn.addEventListener('click', closeFullscreen);
+  if (fsFsCloseBtn) {
+    fsFsCloseBtn.addEventListener('click', closeFullscreen);
+  }
 
   /* ---- 构建景点列表 --------------------------------- */
   function buildSpotList(spots) {
@@ -314,20 +315,6 @@ import { apiClient }         from './lib/api-client.js';
     ];
   }
 
-  /* ---- Start Journey button ----------------------- */
-  document.getElementById('rd-start-btn').addEventListener('click', () => {
-    const btn = document.getElementById('rd-start-btn');
-    btn.textContent = '导航启动中…';
-    btn.style.opacity = '0.7';
-
-    // Sprint 6: 存储当前选中的路线 ID，以便 AI 聊天页读取同步
-    localStorage.setItem('wego_active_route_id', ROUTE_ID);
-
-    setTimeout(() => {
-      window.location.href = 'ai-chat.html';
-    }, 600);
-  });
-
   /* ---- Favorite button logic ---------------------- */
   const favBtn = document.getElementById('rd-fav-btn');
   if (favBtn) {
@@ -335,11 +322,6 @@ import { apiClient }         from './lib/api-client.js';
       favBtn.classList.toggle('is-favorited');
     });
   }
-
-  /* ---- AI guide button ---------------------------- */
-  document.getElementById('rd-ai-btn').addEventListener('click', () => {
-    window.location.href = 'ai-chat.html?consult=1';
-  });
 
   /* ---- 启动 -------------------------------------- */
   main().catch(err => console.error('[route-detail] 初始化异常:', err));
