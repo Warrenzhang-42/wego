@@ -1,0 +1,26 @@
+{
+  "$id": "chat-message",
+  "type": "object",
+  "required": ["id", "role", "content", "created_at"],
+  "properties": {
+    "id": { "type": "string", "format": "uuid" },
+    "role": { "enum": ["user", "ai", "system"] },
+    "content": { "type": "string" },
+    "trigger_type": { "enum": ["user_input", "geofence", "proactive"] },
+    "inserts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type"],
+        "properties": {
+          "type": { "enum": ["knowledge", "shop", "distance", "image", "attraction"] },
+          "title": { "type": "string" },
+          "summary": { "type": "string" },
+          "detail_id": { "type": "string" },
+          "cta": { "type": "string" }
+        }
+      }
+    },
+    "created_at": { "type": "string", "format": "date-time" }
+  }
+}

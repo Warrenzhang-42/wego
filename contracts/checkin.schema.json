@@ -1,0 +1,12 @@
+{
+  "$id": "checkin",
+  "type": "object",
+  "required": ["spot_id", "lat", "lng"],
+  "properties": {
+    "spot_id": { "type": "string", "format": "uuid" },
+    "lat": { "type": "number" },
+    "lng": { "type": "number" },
+    "photos": { "type": "array", "items": { "type": "string" } },
+    "ai_summary": { "type": "string" }
+  }
+}

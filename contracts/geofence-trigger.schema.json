@@ -1,0 +1,18 @@
+{
+  "$id": "geofence-trigger",
+  "type": "object",
+  "required": ["event", "spot_id", "coordinates"],
+  "properties": {
+    "event": { "enum": ["arrived_at", "left_from"] },
+    "spot_id": { "type": "string", "format": "uuid" },
+    "coordinates": {
+      "type": "object",
+      "required": ["lat", "lng"],
+      "properties": {
+        "lat": { "type": "number" },
+        "lng": { "type": "number" }
+      }
+    },
+    "user_status": { "enum": ["walking", "standing", "unknown"] }
+  }
+}

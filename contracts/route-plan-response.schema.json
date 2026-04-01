@@ -1,0 +1,36 @@
+{
+  "$id": "route-plan-response",
+  "type": "object",
+  "required": ["route_name", "total_distance_km", "total_duration_min", "waypoints"],
+  "properties": {
+    "route_name": { "type": "string" },
+    "total_distance_km": { "type": "number" },
+    "total_duration_min": { "type": "integer" },
+    "total_walk_min": { "type": "integer" },
+    "waypoints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "lat", "lng"],
+        "properties": {
+          "name": { "type": "string" },
+          "lat": { "type": "number" },
+          "lng": { "type": "number" },
+          "estimated_stay_min": { "type": "integer" },
+          "description": { "type": "string" }
+        }
+      }
+    },
+    "polyline": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "lat": { "type": "number" },
+          "lng": { "type": "number" }
+        }
+      }
+    },
+    "narration": { "type": "string" }
+  }
+}

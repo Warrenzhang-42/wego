@@ -1,0 +1,23 @@
+{
+  "$id": "route-plan-request",
+  "type": "object",
+  "required": ["user_query"],
+  "properties": {
+    "user_query": { "type": "string" },
+    "current_location": {
+      "type": "object",
+      "properties": {
+        "lat": { "type": "number" },
+        "lng": { "type": "number" }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "properties": {
+        "max_hours": { "type": "number" },
+        "max_walk_km": { "type": "number" },
+        "themes": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  }
+}
