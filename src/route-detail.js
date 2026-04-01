@@ -1,9 +1,10 @@
 /* ====================================================
    WeGO — Route Detail Page · route-detail.js
-   Sprint 1.7：接入高德地图适配器，从 dashilan.json 读取路线数据
+   Sprint 2.8：数据源升级，通过 apiClient 加载路线数据
    ==================================================== */
 
 import { MapAdapterFactory } from './lib/map-adapter.js';
+import { apiClient }         from './lib/api-client.js';
 
 (function () {
   'use strict';
@@ -27,12 +28,17 @@ import { MapAdapterFactory } from './lib/map-adapter.js';
     window.location.replace('index.html');
   });
 
-  /* ---- 从 data/routes/dashilan.json 加载路线数据 ------- */
+  /* ---- 当前路线 ID（从 URL 参数或默认大栅栏路线）---------- */
+  const _urlParams = new URLSearchParams(window.location.search);
+  const ROUTE_ID = _urlParams.get('route') || 'e4e20790-a521-4f0e-947b-1172a1e1b7f1';
+
+  /* ---- 通过 apiClient 加载路线数据 ----------------------- */
   async function loadRouteData() {
     try {
-      const resp = await fetch('../data/routes/dashilan.json');
-      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-      return await resp.json();
+      // getRouteWithSpots 同时返回路线 meta + 排好序的景点列表
+      const route = await apiClient.getRouteWithSpots(ROUTE_ID);
+      console.log(`[route-detail] 数据源: ${apiClient.mode}，路线: ${route.title}`);
+      return route;
     } catch (err) {
       console.error('[route-detail] 路线数据加载失败，使用内嵌备份数据:', err);
       return null;
