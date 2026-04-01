@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wego-agent"
+version = "0.1.0"
+description = "WeGO AI Agent powered by LangGraph"
+requires-python = ">=3.10"
+dependencies = [
+    "langchain",
+    "langchain-openai",
+    "langgraph",
+    "supabase",
+    "fastapi",
+    "uvicorn",
+    "tavily-python",
+    "python-dotenv",
+    "requests",
+    "pydantic"
+]

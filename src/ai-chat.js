@@ -1,9 +1,11 @@
-/* ====================================================
-   WeGO — AI Chat Page · ai-chat.js
-   ==================================================== */
+import { MapAdapterFactory } from './lib/map-adapter.js';
+import { apiClient }         from './lib/api-client.js';
 
-(function () {
-  'use strict';
+'use strict';
+
+let mapAdapter = null;
+let currentSpots = [];
+let userMarker = null;
 
   const params = new URLSearchParams(window.location.search);
   const isConsult = params.get('consult') === '1';
@@ -163,90 +165,12 @@
     });
   }
 
-  /** 基于文档更新后的对话（用户与AI导游交替） */
-  const DOC_MESSAGES = [
-    { sender: 'ai', text: '嗨！您吉祥啊！今儿逛得还开心不？杨梅竹斜街这地儿可有逛头了，你可别错过您左手边这家兔儿爷小店，庙小乾坤大呀！' },
-    { sender: 'user', text: '你好呀~' },
-    {
-      sender: 'ai',
-      text: '嘿，您来对地儿啦！这兔儿爷店可是咱老北京的一个特色。要说可看的，那满屋子各式各样的兔儿爷，造型神态都不一样，有的憨态可掬，有的威风凛凛，特有意思。您瞧那色彩，那工艺，都是老手艺人们精心做出来的。可买的就多了去了，您可以挑个经典造型的兔儿爷带回去当摆件，放家里特好看。还有一些小巧的兔儿爷钥匙链、冰箱贴啥的，送朋友倍儿有面儿。要是您喜欢，还能买那种可以自己上色的兔儿爷白胚，回家自己动手创作，也挺有乐趣。怎么样，有看上的没？',
-      inserts: [
-        {
-          type: 'knowledge',
-          title: '逛店速览',
-          summary: '可看：造型与彩绘；可买：经典摆件、文创小件、可上色白胚。',
-          cta: '点击进入详情页'
-        }
-      ]
-    },
-    { sender: 'user', text: '先介绍下兔儿爷的历史呗？' },
-    {
-      sender: 'ai',
-      text: '得嘞！兔儿爷的历史可悠久了，咱老北京有个说法，说兔儿爷是月宫玉兔下凡变的。明朝那时候就有兔儿爷了，一开始它是用来祭月的。后来慢慢就变成了孩子们的玩具，还有祈福的寓意呢。您看这兔儿爷的形象，一般都是身披甲胄，插着护背旗，有的还骑着老虎，可威风了。它融合了咱老北京的民俗文化，现在可是咱北京的一个文化符号啦，外地朋友来都喜欢带个兔儿爷回去作纪念。',
-      inserts: [
-        {
-          type: 'knowledge',
-          detailId: 'rabbit_history',
-          title: '兔儿爷历史脉络',
-          summary: '从祭月器物到城市文化符号，完整梳理其演变。',
-          cta: '点击进入详情页'
-        }
-      ]
-    },
-    { sender: 'ai', text: '我给你介绍一下店主非遗传承人张忠强老师的背景知识吧？' },
-    { sender: 'user', text: '太好了。' },
-    {
-      sender: 'ai',
-      text: '张忠强老师啊，那可是咱兔儿爷制作技艺的非遗传承人。他打小就跟老一辈儿手艺人学习制作兔儿爷，这手艺得有几十年了。他的作品那叫一个精致，在传统工艺的基础上还会有创新。他特别注重细节，从兔儿爷的脸部表情到身上的服饰花纹，都处理得一丝不苟。张老师还经常参加各种文化活动，把咱兔儿爷的文化传播到各地，让更多人了解咱老北京这门传统手艺。',
-      inserts: [
-        {
-          type: 'knowledge',
-          detailId: 'zhang_master',
-          title: '非遗传承人背景',
-          summary: '师承脉络、创作特点与文化传播价值。',
-          cta: '点击进入详情页'
-        }
-      ]
-    },
-    { sender: 'user', text: '兔儿爷的那几个坐骑不同，都有啥不同的含义？' },
-    {
-      sender: 'ai',
-      text: '嘿，这兔儿爷的坐骑学问可大了！骑老虎的兔儿爷，寓意着驱邪避灾；骑大象的，象征着吉祥如意；还有骑麒麟的兔儿爷，代表着太平吉祥、带来好运。不同的坐骑都寄托着咱老百姓不同的美好愿望，您喜欢哪种坐骑的兔儿爷呀？',
-      inserts: [
-        {
-          type: 'knowledge',
-          detailId: 'mount_symbolism',
-          title: '坐骑寓意图鉴',
-          summary: '虎、象、麒麟三类坐骑的民俗含义对照。',
-          cta: '点击进入详情页'
-        }
-      ]
-    },
-    { sender: 'user', text: '他们店什么东西买的人最多？' },
-    {
-      sender: 'ai',
-      text: '要说这店里买的人最多的，那肯定是中等大小、经典造型的兔儿爷了。价格适中，摆在家里大小也合适，工艺还特精细。再就是兔儿爷的冰箱贴，小巧玲珑，好多人一买就好几个，送亲戚朋友都不错。对了，那种成套的小型兔儿爷摆件也挺受欢迎，一套几个，摆在一起特好看。',
-      inserts: [
-        {
-          type: 'shop',
-          name: '热销榜（门店常见）',
-          rec: '① 中号经典兔儿爷 ② 冰箱贴/钥匙链 ③ 成套小型摆件。'
-        }
-      ]
-    }
-  ];
+  /** REAL AI INTEGRATION */
+  const chatClient = window.WeGOChatClient ? new window.WeGOChatClient() : null;
 
-  /** 进行中旅程（「开始旅程」进入） */
-  const JOURNEY_MESSAGES = [
-    ...DOC_MESSAGES
+  let MOCK_MESSAGES = [
+    { sender: 'ai', text: '嗨！您吉祥啊！我是AI导游小go，今儿想去哪儿玩，或者有什么关于老北京的疑问，随时问我！' }
   ];
-
-  /** 首次咨询线路（「问问导游」进入）— 约 10 轮对话，含图片 / 景点 / 店铺卡片 */
-  const CONSULT_MESSAGES = [
-    ...DOC_MESSAGES
-  ];
-
-  let MOCK_MESSAGES = isConsult ? [...CONSULT_MESSAGES] : [...JOURNEY_MESSAGES];
 
   const chatContainer = document.getElementById('ac-chat-messages');
 
@@ -262,15 +186,17 @@
   function renderInsertBlock(insert) {
     if (!insert || !insert.type) return '';
     if (insert.type === 'knowledge') {
-      const detailId = insert.detailId || '';
-      const hasDetail = Boolean(detailId && KNOWLEDGE_DETAILS[detailId]);
-      if (!hasDetail) return '';
-      const openAttr = ` data-knowledge-id="${escapeHtml(detailId)}"`;
+      const detailId = insert.detail_id || '';
+      const hasDetail = Boolean(detailId && (window.KNOWLEDGE_DETAILS?.[detailId]));
+      
+      const title = insert.title || (hasDetail ? window.KNOWLEDGE_DETAILS[detailId].title : '为您推荐');
+      const summary = insert.summary || (hasDetail ? window.KNOWLEDGE_DETAILS[detailId].summary : '');
+      
       return `
-        <button class="ac-rich-card ac-knowledge-card"${openAttr}>
+        <button class="ac-rich-card ac-knowledge-card" ${detailId ? `data-knowledge-id="${escapeHtml(detailId)}"` : ''}>
           <div class="ac-card-badge">📚 知识点</div>
-          <div class="ac-card-title">${escapeHtml(insert.title || '知识点')}</div>
-          <div class="ac-card-desc">${escapeHtml(insert.summary || '')}</div>
+          <div class="ac-card-title">${escapeHtml(title)}</div>
+          <div class="ac-card-desc">${escapeHtml(summary)}</div>
           <div class="ac-card-link">${escapeHtml(insert.cta || '查看详情')}</div>
         </button>
       `;
@@ -503,6 +429,22 @@
     document.body.appendChild(modal);
   }
 
+  /** --- Audio Narration Simulation (Sprint 7) --- */
+  function playAudioNarration(text) {
+    if (!text) return;
+    console.log(`[Audio] Starting narration: "${text.substring(0, 30)}..."`);
+    
+    const ui = document.getElementById('ac-nav-status');
+    if (ui) {
+      ui.innerHTML = `<span class="audio-wave"></span> 播报中...`;
+      ui.classList.add('is-active');
+      setTimeout(() => {
+        ui.innerHTML = '';
+        ui.classList.remove('is-active');
+      }, 5000);
+    }
+  }
+
   // Input button handlers (just for interactive feel)
   const btnVoice = document.querySelector('.ac-btn-voice');
   const btnKeyboard = document.querySelector('.ac-btn-keyboard');
@@ -545,13 +487,41 @@
   }
 
   if (btnKeyboard) {
-    btnKeyboard.addEventListener('click', () => {
+    btnKeyboard.addEventListener('click', async () => {
       const text = prompt('请输入您要发送的内容：');
       if (text && text.trim()) {
-        addMessage('user', text.trim());
-        setTimeout(() => {
-          addMessage('ai', isConsult ? '我已经收到你的消息，需要我补充景点或路线细节吗？' : '我已经收到你的消息！');
-        }, 800);
+        const msg = text.trim();
+        addMessage('user', msg);
+        
+        if (chatClient) {
+          btnKeyboard.disabled = true;
+          // Add loading state
+          const loadingTempId = MOCK_MESSAGES.length;
+          MOCK_MESSAGES.push({ sender: 'ai', text: '...', loading: true });
+          renderMessages();
+          
+          try {
+            const aiData = await chatClient.sendMessage(msg);
+            // Replace loading state with real message
+            MOCK_MESSAGES[loadingTempId] = {
+              sender: 'ai',
+              text: aiData.content || aiData.text || '',
+              inserts: aiData.inserts || []
+            };
+            if(aiData.polyline && window.mapAdapter) {
+               // Sprint 7 mapping feature stub hook
+               // window.mapAdapter.drawRoute(aiData.polyline);
+            }
+          } catch(e) {
+            MOCK_MESSAGES[loadingTempId] = { sender: 'ai', text: '连接超时，请重试。' };
+          }
+          renderMessages();
+          btnKeyboard.disabled = false;
+        } else {
+          setTimeout(() => {
+            addMessage('ai', '测试环境 MOCK 回复。');
+          }, 800);
+        }
       }
     });
   }
@@ -573,4 +543,116 @@
   // Initialize
   renderMessages();
 
-})();
+  /* ---- 地图动态同步 (Sprint 6) ----------------------- */
+  async function initMapSync() {
+    const mapContainer = document.getElementById('rd-map-container');
+    if (!mapContainer) return;
+
+    const config = window.__WEGO_MAP_CONFIG__ || {};
+    const provider = config.provider || 'amap';
+    const activeRouteId = window.__WEGO_ACTIVE_ROUTE_ID__ || 'e4e20790-a521-4f0e-947b-1172a1e1b7f1';
+
+    try {
+      // 1. 获取最新路线数据
+      const routeData = await apiClient.getRouteWithSpots(activeRouteId);
+      currentSpots = routeData.spots;
+
+      // 2. 初始化地图
+      mapAdapter = MapAdapterFactory.create(provider, mapContainer, {
+        apiKey:         config.apiKey,
+        securityJsCode: config.securityJsCode,
+        mapOptions: {
+          zoom: 17
+        }
+      });
+      window.mapAdapter = mapAdapter; // 导出到全局供调试
+      await mapAdapter.init();
+
+      // 3. 绘制点位与线
+      currentSpots.forEach((spot, idx) => {
+        mapAdapter.addMarker(spot.lng, spot.lat, {
+          index:   idx,
+          label:   (idx + 1).toString(),
+          title:   spot.name
+        });
+      });
+
+      const coords = currentSpots.map(s => ({ lat: s.lat, lng: s.lng }));
+      await mapAdapter.drawRoute(coords);
+
+      // 4. 初次视野调整
+      const lats = currentSpots.map(s => s.lat);
+      const lngs = currentSpots.map(s => s.lng);
+      mapAdapter.fitBounds({
+        sw: { lat: Math.min(...lats) - 0.001, lng: Math.min(...lngs) - 0.001 },
+        ne: { lat: Math.max(...lats) + 0.001, lng: Math.max(...lngs) + 0.001 },
+      });
+
+      console.log(`[ai-chat] ✅ 地图与路线 (${activeRouteId}) 同步完成`);
+
+    } catch (err) {
+      console.error('[ai-chat] 地图同步失败:', err);
+      const fallback = document.querySelector('.rd-map-fallback');
+      if (fallback) fallback.style.display = 'block';
+    }
+  }
+
+  initMapSync();
+
+  // --- Geofence Integration (Sprint 5) ---
+  if (window.eventBus) {
+    // 监听地理位置更新，实现“自动跟随”视野 (Sprint 6.4)
+    window.eventBus.on('location:update', (pos) => {
+      if (mapAdapter) {
+        // 1. 更新或创建用户位置标记
+        if (!userMarker) {
+          userMarker = mapAdapter.addMarker(pos.lng, pos.lat, {
+            label: '我',
+            isUser: true // 适配器内部可据此切换样式
+          });
+        } else {
+          userMarker.setPosition([pos.lng, pos.lat]);
+        }
+
+        // 2. 自动跟随：将地图中心设置为当前位置
+        mapAdapter.setCenter(pos.lng, pos.lat);
+      }
+    });
+
+    window.eventBus.on('geofence:enter', async (spot) => {
+      // Avoid triggering multiple times if already loading or if user is busy with another query
+      if (chatClient) {
+        console.log(`[ai-chat] 监测到进入景点: ${spot.name}, 正在获取主动导游建议...`);
+        
+        const loadingTempId = MOCK_MESSAGES.length;
+        MOCK_MESSAGES.push({ 
+          sender: 'ai', 
+          text: `嘿！发现您离【${spot.name}】很近了，我来给您讲讲这里的道道...`, 
+          loading: true 
+        });
+        renderMessages();
+
+        try {
+          const aiData = await chatClient.sendMessage(`我在${spot.name}附近，介绍一下这里的精彩之处。`, null, null, {
+            trigger_type: 'geofence',
+            spot_id: spot.id
+          });
+
+          // Replace the "thinking" bubble with real content
+          const aiMsg = {
+            sender: 'ai',
+            text: aiData.content || aiData.text || '',
+            inserts: aiData.inserts || []
+          };
+          MOCK_MESSAGES[loadingTempId] = aiMsg;
+          
+          // Sprint 7: 开始语音播报
+          playAudioNarration(aiMsg.text);
+        } catch (e) {
+          console.error('[ai-chat] 主动触发失败:', e);
+          MOCK_MESSAGES[loadingTempId] = { sender: 'ai', text: `哎哟，到了${spot.name}了，可我这会儿突然断网了。` };
+        }
+        renderMessages();
+      }
+    });
+  }

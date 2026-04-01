@@ -41,8 +41,18 @@
 
       <!-- Map canvas -->
       <div class="rd-map-canvas">
-        <img class="rd-map-photo-inline" src="assets/maps/dashilan-street-overlay.png" alt="" aria-hidden="true" />
-        <img class="rd-map-photo-fullscreen" src="assets/maps/dashilan-base-map.png" alt="" aria-hidden="true" />
+        <!-- 通用地图容器 (Sprint 6) -->
+        <div id="rd-map-container" style="width:100%; height:100%;"></div>
+        
+        <!-- 引擎切换器 (可选，保持与详情页一致) -->
+        <div class="rd-engine-switcher" id="rd-engine-switcher" style="display:none;">
+          <button class="rd-engine-btn active" data-provider="amap">高德</button>
+          <button class="rd-engine-btn" data-provider="mapbox">Mapbox</button>
+          <button class="rd-engine-btn" data-provider="bmap">百度</button>
+        </div>
+
+        <!-- 降级显示 -->
+        <img class="rd-map-photo-inline rd-map-fallback" src="assets/maps/dashilan-street-overlay.png" alt="" aria-hidden="true" style="display:none;" />
       </div>
     </div>
 
@@ -55,6 +65,7 @@
       <div class="ac-chat-header">
         <div class="ac-ai-title-wrap">
           <h2 class="ac-ai-name">AI导游-小go</h2>
+          <div id="ac-nav-status" class="ac-nav-status"></div>
           <a href="personality.html" class="ac-avatar-icon-btn" id="ac-avatar-icon-btn" aria-label="探索人格">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <circle cx="12" cy="8.2" r="4.1" stroke="currentColor" stroke-width="1.8"/>
@@ -105,8 +116,45 @@
       </div>
     </div>
 
-  </div>
-
+  <!-- Infrastructure (Sprint 5) -->
+  <script type="module" src="lib/geo-utils.js"></script>
+  <script type="module" src="lib/event-bus.js"></script>
+  <script type="module" src="lib/api-client.js"></script>
+  <script type="module" src="lib/geofence-manager.js"></script>
+  <script type="module" src="lib/debug-gps.js"></script>
+  
+  <!-- App Logic -->
+  <script src="lib/chat-client.js"></script>
   <script src="ai-chat.js"></script>
+
+  <!-- Map Integration (Sprint 6) -->
+  <script>
+    window.__WEGO_MAP_CONFIG__ = {
+      provider: 'amap',
+      apiKey: '4a12d15f179304ca919becb35e7f6b69',
+      securityJsCode: 'da808ff5520aa962794be908a765bbe1',
+    };
+  </script>
+  <script type="module" src="lib/map-adapter.js"></script>
+
+  <script type="module">
+    import { geofenceManager } from './lib/geofence-manager.js';
+    import { apiClient }       from './lib/api-client.js';
+
+    async function initTour() {
+      // Sprint 6: 优先从 localStorage 读取活跃路线 ID
+      const activeRouteId = localStorage.getItem('wego_active_route_id') || 'e4e20790-a521-4f0e-947b-1172a1e1b7f1';
+      
+      console.log(`[ai-chat] 正在初始化旅程，路线 ID: ${activeRouteId}`);
+      
+      // 初始化地理围栏
+      geofenceManager.initWithRoute(activeRouteId);
+      
+      // 地图同步逻辑将在 ai-chat.js 中通过导出接口或 eventBus 同步处理
+      window.__WEGO_ACTIVE_ROUTE_ID__ = activeRouteId;
+    }
+
+    initTour();
+  </script>
 </body>
 </html>

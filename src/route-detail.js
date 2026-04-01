@@ -270,6 +270,10 @@ import { apiClient }         from './lib/api-client.js';
     const btn = document.getElementById('rd-start-btn');
     btn.textContent = '导航启动中…';
     btn.style.opacity = '0.7';
+
+    // Sprint 6: 存储当前选中的路线 ID，以便 AI 聊天页读取同步
+    localStorage.setItem('wego_active_route_id', ROUTE_ID);
+
     setTimeout(() => {
       window.location.href = 'ai-chat.html';
     }, 600);
