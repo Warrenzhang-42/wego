@@ -1,86 +1,94 @@
-import { serve } from 'https://deno.land/std@0.177.0/http/server.ts'
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.101.1'
-
-// Mock getEmbedding locally to bypass OpenAI key requirement if none exists
-async function getEmbedding(text) {
-  const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY')
-  if (!OPENAI_API_KEY || OPENAI_API_KEY === 'YOUR_OPENAI_API_KEY') {
-    return Array.from({ length: 1536 }, () => Math.random() * 0.01 - 0.005)
-  }
-
-  const OPENAI_API_BASE = Deno.env.get('OPENAI_API_BASE') || 'https://api.openai.com/v1'
-  const EMBEDDING_MODEL = Deno.env.get('EMBEDDING_MODEL') || 'text-embedding-3-small'
-
-  try {
-    const baseUrl = OPENAI_API_BASE.endsWith('/') ? OPENAI_API_BASE.slice(0, -1) : OPENAI_API_BASE;
-    const response = await fetch(`${baseUrl}/embeddings`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        input: text,
-        model: EMBEDDING_MODEL
-      })
-    });
-    
-    if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.statusText}`);
-    }
-
-    const data = await response.json();
-    return data.data[0].embedding;
-  } catch (error) {
-    console.warn('Failed to embed, falling back to mock:', error.message);
-    return Array.from({ length: 1536 }, () => Math.random() * 0.01 - 0.005);
-  }
-}
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+import { serve } from "https://deno.land/std@0.177.0/http/server.ts"
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 serve(async (req) => {
+  const corsHeaders = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  }
+
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-      global: {
-        headers: { Authorization: req.headers.get('Authorization')! },
+    const { query, lat, lng, radius_m } = await req.json()
+
+    if (!query) {
+      return new Response(
+        JSON.stringify({ error: 'Missing query parameter' }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
+      )
+    }
+
+    const API_KEY = Deno.env.get('OPENAI_API_KEY')
+    const API_BASE = Deno.env.get('OPENAI_API_BASE') || 'https://api.openai.com/v1'
+    const EMBEDDING_MODEL = Deno.env.get('EMBEDDING_MODEL') || 'text-embedding-3-small'
+
+    if (!API_KEY) {
+      throw new Error("Missing OPENAI_API_KEY environment variable")
+    }
+
+    // 1. Generate local embedding context
+    const embedRes = await fetch(`${API_BASE}/embeddings`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${API_KEY}`
       },
+      body: JSON.stringify({
+        model: EMBEDDING_MODEL,
+        input: query
+      })
     })
 
-    const body = await req.json()
-    const { query, lat = null, lng = null, radius_m = 500 } = body
+    if (!embedRes.ok) {
+      const errText = await embedRes.text()
+      throw new Error(`Embedding API failed: ${embedRes.status} ${errText}`)
+    }
 
-    const query_embedding = query ? await getEmbedding(query) : Array.from({ length: 1536 }, () => Math.random() * 0.01 - 0.005)
+    const embedData = await embedRes.json()
+    const query_embedding = embedData.data[0].embedding
 
-    // Call the RPC function defined in 003_knowledge.sql
-    const { data, error } = await supabase.rpc('search_knowledge', {
+    // 2. Query Supabase
+    // We use service role key if available for system-level search, or anon key if respecting RLS.
+    // Given it's public knowledge, anon key is fine, but edge functions usually have SUPABASE_SERVICE_ROLE_KEY injected too.
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') || '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_ANON_KEY') || ''
+    )
+
+    const rpcArgs = {
       query_embedding,
-      query_text: query || '',
-      query_lat: lat,
-      query_lng: lng,
-      radius_m,
+      query_text: query,
       match_count: 5
-    })
+    }
+    
+    // Add optional params if they are provided
+    if (lat !== undefined && lng !== undefined) {
+      rpcArgs.query_lat = lat
+      rpcArgs.query_lng = lng
+      if (radius_m !== undefined) {
+        rpcArgs.radius_m = radius_m
+      }
+    }
 
-    if (error) throw error
+    // Execute the hybrid search function
+    const { data: results, error } = await supabaseClient.rpc('search_knowledge', rpcArgs)
 
-    return new Response(JSON.stringify(data), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200,
-    })
-  } catch (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 400,
-    })
+    if (error) {
+      throw error
+    }
+
+    return new Response(
+      JSON.stringify({ results }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+    )
+
+  } catch (err) {
+    return new Response(
+      JSON.stringify({ error: err.message }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+    )
   }
 })

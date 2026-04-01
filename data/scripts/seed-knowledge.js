@@ -1,59 +1,53 @@
-require('dotenv').config();
+require('dotenv').config({ path: require('path').resolve(__dirname, '../../.env') });
 const fs = require('fs');
 const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
 
-if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-  console.error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required in .env');
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+  console.error('Missing Supabase credentials in .env');
   process.exit(1);
 }
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-  auth: { persistSession: false }
-});
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const INPUT_FILE = path.join(__dirname, '../knowledge/dashilan-chunks-embedded.json');
+const ROUTE_ID_DASHILAN = 'e4e20790-a521-4f0e-947b-1172a1e1b7f1';
+const DATA_FILE = path.join(__dirname, '../knowledge/dashilan_chunks_embedded.json');
 
 async function main() {
-  if (!fs.existsSync(INPUT_FILE)) {
-    console.error(`Input file not found: ${INPUT_FILE}`);
+  if (!fs.existsSync(DATA_FILE)) {
+    console.error(`Data file not found: ${DATA_FILE}`);
     process.exit(1);
   }
 
-  const chunks = JSON.parse(fs.readFileSync(INPUT_FILE, 'utf-8'));
-  const routeId = 'e4e20790-a521-4f0e-947b-1172a1e1b7f1'; // dashilan route id
-  
-  const records = chunks.map(chunk => ({
+  const chunks = JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
+  console.log(`Loaded ${chunks.length} embedded chunks. Seeding to Supabase...`);
+
+  // Transform chunks to match PostgreSQL table schema (003_knowledge.sql)
+  const rowsToInsert = chunks.map(chunk => ({
+    route_id: ROUTE_ID_DASHILAN,
     spot_id: chunk.spot_id,
-    route_id: routeId,
     chunk_text: chunk.chunk_text,
-    chunk_type: chunk.chunk_type === 'intro' ? 'culture' : 'history', 
+    // Map JSON contract chunk_type to DB constraint chunk_type
+    chunk_type: chunk.chunk_type === 'intro' ? 'history' : 'culture', 
     metadata: chunk.metadata,
     embedding: chunk.embedding,
+    source: 'dashilan.json'
   }));
 
-  if (process.env.DRY_RUN) {
-    console.log(`[DRY RUN] Would insert ${records.length} records into knowledge_embeddings.`);
-    return;
-  }
-
-  console.log(`Deleting existing knowledge for route ${routeId}...`);
-  await supabase.from('knowledge_embeddings').delete().eq('route_id', routeId);
-
-  console.log(`Inserting ${records.length} chunks...`);
   const { data, error } = await supabase
     .from('knowledge_embeddings')
-    .insert(records);
+    .insert(rowsToInsert)
+    .select();
 
   if (error) {
-    console.error('Failed to insert chunks:', error);
+    console.error('Error inserting data:', error);
     process.exit(1);
   }
 
-  console.log('Successfully seeded knowledge embeddings.');
+  console.log(`\nSuccess! Inserted ${rowsToInsert.length} chunks into 'knowledge_embeddings' table.`);
 }
 
-main().catch(console.error);
+main();

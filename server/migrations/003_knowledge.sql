@@ -148,8 +148,8 @@ BEGIN
     END::FLOAT8                                                       AS distance_m
   FROM knowledge_embeddings ke
   WHERE
-    -- 1. 向量相似度阈值（余弦相似度 > 0.60 才纳入候选）
-    (ke.embedding <=> query_embedding) < 0.40
+    -- 1. 向量相似度阈值（余弦相似度 > 0.30 才纳入候选，适配不同模型分布）
+    (ke.embedding <=> query_embedding) < 0.70
     -- 2. 全文检索（plainto_tsquery 容忍中文分词不完整）
     AND (
       query_text IS NULL

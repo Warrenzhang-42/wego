@@ -2,100 +2,71 @@ const fs = require('fs');
 const path = require('path');
 
 const KNOWLEDGE_DIR = path.join(__dirname, '../knowledge/dashilan');
-const OUTPUT_FILE = path.join(__dirname, '../knowledge/dashilan-chunks.json');
+const OUTPUT_FILE = path.join(__dirname, '../knowledge/dashilan_chunks.json');
 
-// Helper to parse simple frontmatter
-function parseFrontmatter(content) {
-  const match = content.match(/^---\n([\s\S]*?)\n---/);
-  if (!match) return { attributes: {}, body: content };
+// All 3 knowledge snippets are related to 兔儿爷 non-heritage craft shop.
+const SPOT_ID_TUERYE = 'a1b2c3d4-e5f6-4a5b-bc6d-7e8f9a0b1c2d';
 
-  const frontmatterStr = match[1];
-  const attributes = {};
-  frontmatterStr.split('\n').forEach(line => {
-    const [key, ...values] = line.split(':');
-    if (key && values.length > 0) {
-      let value = values.join(':').trim();
-      if (value.startsWith('"') && value.endsWith('"')) {
-        value = value.slice(1, -1);
-      }
-      attributes[key.trim()] = value;
-    }
-  });
-
-  return {
-    attributes,
-    body: content.slice(match[0].length).trim()
-  };
-}
-
-function chunkMarkdown(filePath) {
+function chunkMarkdown(filePath, spotId) {
   const content = fs.readFileSync(filePath, 'utf-8');
-  const { attributes, body } = parseFrontmatter(content);
+  const lines = content.split('\n');
   
-  const spotId = attributes.spot_id || '';
-  const title = attributes.title || path.basename(filePath, '.md');
-
   const chunks = [];
-  
-  // Split sections by ##
-  const sections = body.split(/^## /m);
-  
-  // Intro section (before the first ##)
-  const intro = sections[0].trim();
-  if (intro) {
+  let currentTitle = '';
+  let currentHeading = '';
+  let currentText = [];
+  let currentType = 'intro';
+
+  function pushChunk() {
+    const text = currentText.join('\n').trim();
+    if (!text) return;
+
+    // Inject context for better semantic embedding
+    const enrichedText = currentType === 'section' 
+      ? `# ${currentTitle}\n${text}` 
+      : `# ${currentTitle}\n\n${text}`;
+
     chunks.push({
-      chunk_text: intro,
-      chunk_type: 'intro',
+      chunk_text: enrichedText,
+      chunk_type: currentType,
       spot_id: spotId,
       metadata: {
-        title: title
+        title: currentTitle,
+        heading: currentHeading || undefined
       }
     });
+    currentText = [];
   }
 
-  // Parse remaining sections
-  for (let i = 1; i < sections.length; i++) {
-    const sectionText = sections[i];
-    const newlineIndex = sectionText.indexOf('\n');
-    if (newlineIndex !== -1) {
-      const heading = sectionText.slice(0, newlineIndex).trim();
-      const text = sectionText.slice(newlineIndex).trim();
-      
-      if (text) {
-        chunks.push({
-          chunk_text: `## ${heading}\n${text}`,
-          chunk_type: 'section',
-          spot_id: spotId,
-          metadata: {
-            title: title,
-            heading: heading
-          }
-        });
-      }
+  for (const line of lines) {
+    if (line.startsWith('# ')) {
+      currentTitle = line.replace('# ', '').trim();
+    } else if (line.startsWith('## ')) {
+      pushChunk(); // Push previous chunk
+      currentHeading = line.replace('## ', '').trim();
+      currentType = 'section';
+      currentText.push(line);
+    } else {
+      currentText.push(line);
     }
   }
+  pushChunk(); // Push the last chunk
 
   return chunks;
 }
 
 function main() {
-  if (!fs.existsSync(KNOWLEDGE_DIR)) {
-    console.error(`Knowledge directory not found: ${KNOWLEDGE_DIR}`);
-    process.exit(1);
-  }
-
   const files = fs.readdirSync(KNOWLEDGE_DIR).filter(f => f.endsWith('.md'));
-  
   let allChunks = [];
-  
+
   for (const file of files) {
     const filePath = path.join(KNOWLEDGE_DIR, file);
-    const chunks = chunkMarkdown(filePath);
+    const chunks = chunkMarkdown(filePath, SPOT_ID_TUERYE);
     allChunks = allChunks.concat(chunks);
   }
 
   fs.writeFileSync(OUTPUT_FILE, JSON.stringify(allChunks, null, 2), 'utf-8');
-  console.log(`Successfully extracted ${allChunks.length} chunks to ${OUTPUT_FILE}`);
+  console.log(`Successfully generated ${allChunks.length} chunks to ${OUTPUT_FILE}`);
 }
 
 main();

@@ -1,72 +1,73 @@
-require('dotenv').config();
+require('dotenv').config({ path: require('path').resolve(__dirname, '../../.env'), override: true });
 const fs = require('fs');
 const path = require('path');
 
-const INPUT_FILE = path.join(__dirname, '../knowledge/dashilan-chunks.json');
-const OUTPUT_FILE = path.join(__dirname, '../knowledge/dashilan-chunks-embedded.json');
+const INPUT_FILE = path.join(__dirname, '../knowledge/dashilan_chunks.json');
+const OUTPUT_FILE = path.join(__dirname, '../knowledge/dashilan_chunks_embedded.json');
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-const OPENAI_API_BASE = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1';
+const API_KEY = process.env.OPENAI_API_KEY;
+const API_BASE = process.env.OPENAI_API_BASE || 'https://api.openai.com/v1';
+const EMBEDDING_MODEL = process.env.EMBEDDING_MODEL || 'text-embedding-3-small';
 
-async function getEmbedding(text) {
-  if (!OPENAI_API_KEY || OPENAI_API_KEY.includes('YOUR_')) {
-    // Return mock 1536-dimensional embedding if no valid key is found
-    return Array.from({ length: 1536 }, () => Math.random() * 0.01 - 0.005);
+async function generateEmbedding(text) {
+  const response = await fetch(`${API_BASE}/embeddings`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${API_KEY}`
+    },
+    body: JSON.stringify({
+      model: EMBEDDING_MODEL,
+      input: text
+    })
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(`API Error: ${response.status} ${response.statusText} - ${errorBody}`);
   }
 
-  try {
-    const baseUrl = OPENAI_API_BASE.endsWith('/') ? OPENAI_API_BASE.slice(0, -1) : OPENAI_API_BASE;
-    const response = await fetch(`${baseUrl}/embeddings`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${OPENAI_API_KEY}`
-      },
-      body: JSON.stringify({
-        input: text,
-        model: process.env.EMBEDDING_MODEL || 'text-embedding-3-small'
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
-    }
-
-    const json = await response.json();
-    return json.data[0].embedding;
-  } catch (error) {
-    console.error('Failed to get embedding, falling back to mock:', error.message);
-    return Array.from({ length: 1536 }, () => Math.random() * 0.01 - 0.005);
+  const data = await response.json();
+  if (!data.data || !data.data[0] || !data.data[0].embedding) {
+    throw new Error('Unexpected API response format');
   }
+  return data.data[0].embedding;
 }
 
 async function main() {
+  if (!API_KEY) {
+    console.error("Missing OPENAI_API_KEY in .env");
+    process.exit(1);
+  }
+
   if (!fs.existsSync(INPUT_FILE)) {
     console.error(`Input file not found: ${INPUT_FILE}`);
     process.exit(1);
   }
 
   const chunks = JSON.parse(fs.readFileSync(INPUT_FILE, 'utf-8'));
-  console.log(`Loaded ${chunks.length} chunks. Fetching embeddings...`);
+  console.log(`Processing ${chunks.length} chunks with model: ${EMBEDDING_MODEL} @ ${API_BASE}`);
 
-  if (!OPENAI_API_KEY) {
-    console.log('WARNING: OPENAI_API_KEY is not set. Generating mock embeddings.');
-  }
-
+  const embeddedChunks = [];
   for (let i = 0; i < chunks.length; i++) {
     const chunk = chunks[i];
-    console.log(`Processing chunk ${i + 1}/${chunks.length}: ${chunk.metadata?.heading || 'Intro'}`);
-    const textToEmbed = `${chunk.metadata?.title || ''} - ${chunk.metadata?.heading || ''}\n${chunk.chunk_text}`.trim();
-    chunk.embedding = await getEmbedding(textToEmbed);
-    
-    // Add brief delay to avoid rate limits if using real API
-    if (OPENAI_API_KEY) {
-      await new Promise(r => setTimeout(r, 200));
+    try {
+      console.log(`[${i+1}/${chunks.length}] Embedding: ${chunk.metadata.title} - ${chunk.chunk_type}`);
+      const embedding = await generateEmbedding(chunk.chunk_text);
+      embeddedChunks.push({
+        ...chunk,
+        embedding
+      });
+      // Small delay to respect rate limits
+      await new Promise(resolve => setTimeout(resolve, 200));
+    } catch (e) {
+      console.error(`Error embedding chunk ${i}:`, e.message);
+      process.exit(1);
     }
   }
 
-  fs.writeFileSync(OUTPUT_FILE, JSON.stringify(chunks, null, 2), 'utf-8');
-  console.log(`Successfully saved embedded chunks to ${OUTPUT_FILE}`);
+  fs.writeFileSync(OUTPUT_FILE, JSON.stringify(embeddedChunks, null, 2), 'utf-8');
+  console.log(`\nSuccess! Wrote ${embeddedChunks.length} embedded chunks to ${OUTPUT_FILE}`);
 }
 
-main().catch(console.error);
+main();
