@@ -800,3 +800,102 @@ body.ac-consult-mode .ac-chat-header {
   transform: scale(0.98);
   box-shadow: var(--shadow-elevated);
 }
+
+/* ── 路线规划卡片 (Sprint 7.4) ──────────────────────────── */
+.ac-route-card {
+  background: var(--clr-surface-container-lowest);
+  box-shadow: inset 0 0 0 1.5px rgba(178, 35, 20, 0.18);
+  animation: ac-card-fade-in 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.ac-route-card .ac-card-badge {
+  color: var(--clr-primary);
+}
+
+.ac-route-meta {
+  display: flex;
+  gap: 12px;
+  margin: 4px 0 8px;
+}
+
+.ac-route-meta span {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--clr-text-b);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.ac-route-stops {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 6px;
+}
+
+.ac-route-stop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 7px;
+  background: var(--clr-surface-container-low);
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1px var(--clr-ghost-border);
+}
+
+.ac-route-stop-num {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--clr-primary);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-head);
+}
+
+.ac-route-stop-name {
+  flex: 1;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--clr-text-h);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ac-route-stop-time {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--clr-text-b);
+  font-weight: 600;
+}
+
+.ac-route-draw-btn {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 7px 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--clr-primary-light);
+  color: var(--clr-primary);
+  font-size: 12.5px;
+  font-weight: 800;
+  font-family: var(--font-body);
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+  letter-spacing: 0.01em;
+}
+
+.ac-route-draw-btn:active {
+  background: rgba(178, 35, 20, 0.14);
+  transform: scale(0.98);
+}

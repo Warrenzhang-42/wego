@@ -257,6 +257,72 @@ let userMarker = null;
     return '';
   }
 
+  /**
+   * 渲染 AI 返回的路线规划卡片（Sprint 7.4）
+   * @param {object} route - route-plan-response 契约对象
+   */
+  function renderRouteCard(route) {
+    if (!route || !Array.isArray(route.waypoints)) return '';
+    const stopsHtml = route.waypoints.map((wp, i) => `
+      <div class="ac-route-stop">
+        <span class="ac-route-stop-num">${i + 1}</span>
+        <span class="ac-route-stop-name">${escapeHtml(wp.name)}</span>
+        <span class="ac-route-stop-time">${wp.estimated_stay_min}分钟</span>
+      </div>
+    `).join('');
+
+    const distText = route.total_distance_km ? `${route.total_distance_km} km` : '';
+    const durText  = route.total_duration_min ? `约 ${route.total_duration_min} 分钟` : '';
+
+    return `
+      <div class="ac-rich-card ac-route-card" data-has-polyline="${route.polyline ? 'true' : 'false'}">
+        <div class="ac-card-badge">🗺️ 为您规划的路线</div>
+        <div class="ac-card-title">${escapeHtml(route.route_name || '精选路线')}</div>
+        <div class="ac-route-meta">
+          ${distText ? `<span>📍 ${distText}</span>` : ''}
+          ${durText  ? `<span>⏱️ ${durText}</span>`  : ''}
+        </div>
+        <div class="ac-route-stops">${stopsHtml}</div>
+        <button class="ac-route-draw-btn ac-card-link" type="button">在地图上查看路线 →</button>
+      </div>
+    `;
+  }
+
+  /**
+   * 在地图上绘制 AI 规划的路线，并用景点标记替换原有标记。
+   * @param {object} route - route-plan-response 契约对象
+   */
+  function drawRouteOnMap(route) {
+    if (!mapAdapter || !route || !Array.isArray(route.waypoints)) return;
+    try {
+      // 1. 绘制折线
+      if (Array.isArray(route.polyline) && route.polyline.length >= 2) {
+        mapAdapter.drawRoute(route.polyline);
+      }
+
+      // 2. 添加规划景点标记
+      route.waypoints.forEach((wp, idx) => {
+        mapAdapter.addMarker(wp.lng, wp.lat, {
+          index: idx,
+          label: (idx + 1).toString(),
+          title: wp.name,
+          isPlanned: true
+        });
+      });
+
+      // 3. 自动调整视野包含所有景点
+      const lats = route.waypoints.map(w => w.lat);
+      const lngs = route.waypoints.map(w => w.lng);
+      mapAdapter.fitBounds({
+        sw: { lat: Math.min(...lats) - 0.001, lng: Math.min(...lngs) - 0.001 },
+        ne: { lat: Math.max(...lats) + 0.001, lng: Math.max(...lngs) + 0.001 }
+      });
+      console.log('[ai-chat] ✅ 路线已绘制到地图');
+    } catch (err) {
+      console.error('[ai-chat] 地图绘制失败:', err);
+    }
+  }
+
   function renderMessages() {
     if (!chatContainer) return;
 
@@ -266,16 +332,35 @@ let userMarker = null;
       const insertsHtml = Array.isArray(msg.inserts)
         ? msg.inserts.map(renderInsertBlock).join('')
         : '';
+      // Sprint 7.4：如果消息携带路线规划数据，渲染路线卡片
+      const routeHtml = msg.route ? renderRouteCard(msg.route) : '';
       return `
         <div class="message-row ${msg.sender}">
           <div class="avatar">${avatarName}</div>
           <div class="bubble">
             <div>${escapeHtml(msg.text)}</div>
             ${insertsHtml ? `<div class="ac-rich-blocks">${insertsHtml}</div>` : ''}
+            ${routeHtml ? `<div class="ac-rich-blocks">${routeHtml}</div>` : ''}
           </div>
         </div>
       `;
     }).join('');
+
+    // 绑定路线卡片按钮
+    chatContainer.querySelectorAll('.ac-route-draw-btn').forEach((btn, i) => {
+      btn.addEventListener('click', () => {
+        // 找到对应的 route 数据
+        const msgWithRoute = MOCK_MESSAGES.filter(m => m.route)[i];
+        if (msgWithRoute && msgWithRoute.route) {
+          drawRouteOnMap(msgWithRoute.route);
+          // 收起聊天面板以显示地图
+          if (app && !app.classList.contains('rd-map-expanded')) {
+            app.classList.add('rd-map-expanded');
+            if (chatPanel) chatPanel.classList.add('is-collapsed');
+          }
+        }
+      });
+    });
 
     // Scroll to the bottom of the chat
     setTimeout(() => {
@@ -503,14 +588,16 @@ let userMarker = null;
           try {
             const aiData = await chatClient.sendMessage(msg);
             // Replace loading state with real message
-            MOCK_MESSAGES[loadingTempId] = {
+            const aiMsg = {
               sender: 'ai',
               text: aiData.content || aiData.text || '',
-              inserts: aiData.inserts || []
+              inserts: aiData.inserts || [],
+              route: aiData.route || null   // Sprint 7.4：携带路线规划数据
             };
-            if(aiData.polyline && window.mapAdapter) {
-               // Sprint 7 mapping feature stub hook
-               // window.mapAdapter.drawRoute(aiData.polyline);
+            MOCK_MESSAGES[loadingTempId] = aiMsg;
+            // Sprint 7.4：如果 AI 返回了路线，立刻在地图上绘制
+            if (aiData.route && mapAdapter) {
+              drawRouteOnMap(aiData.route);
             }
           } catch(e) {
             MOCK_MESSAGES[loadingTempId] = { sender: 'ai', text: '连接超时，请重试。' };
