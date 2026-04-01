@@ -1,0 +1,122 @@
+/**
+ * WeGO Map Adapter — map-adapter.js
+ *
+ * 抽象层：定义地图引擎的统一接口契约。
+ * 具体引擎（高德 / Mapbox / 百度）继承本类并实现全部方法。
+ *
+ * Sprint 1.1 — 纯接口骨架，所有方法 throw 'Not implemented'
+ */
+
+'use strict';
+import { AMapAdapter }   from './adapters/amap-adapter.js';
+import { MapboxAdapter } from './adapters/mapbox-adapter.js';
+import { BMapAdapter }   from './adapters/bmap-adapter.js';
+
+/* ============================================================
+   WeGOMap —— 抽象基类
+   ============================================================ */
+export class WeGOMap {
+  /**
+   * @param {HTMLElement} container  地图挂载的 DOM 容器
+   * @param {object}      options    引擎专属初始化参数
+   */
+  constructor(container, options = {}) {
+    if (new.target === WeGOMap) {
+      throw new Error('WeGOMap 是抽象类，请使用具体引擎实现（如 AMapAdapter）');
+    }
+    this.container = container;
+    this.options   = options;
+  }
+
+  /**
+   * 初始化地图，加载 SDK，挂载到 container
+   * @returns {Promise<void>}
+   */
+  init() {
+    throw new Error('Not implemented: init()');
+  }
+
+  /**
+   * 设置地图中心点与缩放等级
+   * @param {number} lng   经度
+   * @param {number} lat   纬度
+   * @param {number} zoom  缩放等级（1-20）
+   */
+  setCenter(lng, lat, zoom) {
+    throw new Error('Not implemented: setCenter()');
+  }
+
+  /**
+   * 调整视野以包含指定边界
+   * @param {{ sw: {lat, lng}, ne: {lat, lng} }} bounds  西南 / 东北角坐标
+   */
+  fitBounds(bounds) {
+    throw new Error('Not implemented: fitBounds()');
+  }
+
+  /**
+   * 在地图上添加标记点
+   * @param {number} lng              经度
+   * @param {number} lat              纬度
+   * @param {{ icon?: string, label?: string, onClick?: Function }} opts  标记配置
+   * @returns {*}  标记实例（各引擎原生对象）
+   */
+  addMarker(lng, lat, opts = {}) {
+    throw new Error('Not implemented: addMarker()');
+  }
+
+  /**
+   * 绘制路线（步行 polyline）
+   * @param {Array<{lat: number, lng: number}>} coords  坐标序列
+   * @param {{ color?: string, weight?: number }} style  线条样式
+   * @returns {Promise<void>}
+   */
+  drawRoute(coords, style = {}) {
+    throw new Error('Not implemented: drawRoute()');
+  }
+
+  /**
+   * 添加地理围栏（圆形），结合 watchPosition 触发回调
+   * @param {number}   lng       圆心经度
+   * @param {number}   lat       圆心纬度
+   * @param {number}   radius    围栏半径（米）
+   * @param {Function} onEnter   进入围栏时的回调 (spotData) => void
+   * @returns {{ stop: Function }}  返回对象含 stop() 方法以清除围栏
+   */
+  addGeofence(lng, lat, radius, onEnter) {
+    throw new Error('Not implemented: addGeofence()');
+  }
+
+  /**
+   * 销毁地图实例，释放资源
+   */
+  destroy() {
+    throw new Error('Not implemented: destroy()');
+  }
+}
+
+/* ============================================================
+   MapAdapterFactory —— 工厂（Sprint 1.10 实现）
+   ============================================================ */
+export class MapAdapterFactory {
+  /**
+   * 根据 provider 名称返回对应 Adapter 实例（Sprint 1.10 补全）
+   * @param {string}      provider   'amap' | 'mapbox' | 'bmap'
+   * @param {HTMLElement} container
+   * @param {object}      options
+   * @returns {WeGOMap}
+   */
+  static create(provider, container, options = {}) {
+    switch (provider.toLowerCase()) {
+      case 'amap':
+        return new AMapAdapter(container, options);
+      case 'mapbox':
+        return new MapboxAdapter(container, options);
+      case 'bmap':
+        return new BMapAdapter(container, options);
+      default:
+        console.warn(`Unknown map provider: ${provider}, falling back to AMap`);
+        return new AMapAdapter(container, options);
+    }
+  }
+}

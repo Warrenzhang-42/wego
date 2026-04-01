@@ -1,81 +1,15 @@
 /* ====================================================
    WeGO — Route Detail Page · route-detail.js
+   Sprint 1.7：接入高德地图适配器，从 dashilan.json 读取路线数据
    ==================================================== */
+
+import { MapAdapterFactory } from './lib/map-adapter.js';
 
 (function () {
   'use strict';
 
-  const A = 'assets/routes/yangmeizhu-heritage/';
-
-  /* ---- Spot data · 大栅栏杨梅竹斜街非遗体验 ---------------------------------- */
-  const SPOT_DATA = [
-    {
-      name: '青云阁及二层模范咖啡',
-      subtitle: '高停留时间型空间',
-      shortDesc:
-        '清末民初北京「四大商场」之一的青云阁旧址，青砖拱券与石匾仍在；二楼「模范咖啡」适合慢坐、发呆、读胡同。',
-      detail:
-        '青云阁曾是大栅栏一带重要的综合性商场，如今沿街仍可见砖砌立面与「青雲閣」石匾，二层拱窗漆成暖红，是很多人打卡杨梅竹斜街的经典角度。二层的「模范咖啡」把灰瓦木格与玻璃橱窗拼在一起，窗上圆点贴纸又带点当代趣味，室内光线偏暖，适合作为「走累了」的停留点：点一杯手冲或奶咖，看斜街人流与瓦片天际线，阅读成本很低。周末下午座位紧张，可错峰上午或傍晚前来。',
-      tags: ['🏛️ 老商场旧址', '☕ 胡同咖啡', '⏱️ 建议45～60分钟'],
-      thumb: A + 'qingyun-pavilion.png',
-      photos: [A + 'qingyun-pavilion.png', A + 'mofan-coffee.png'],
-      mapX: 143,
-      mapY: 108,
-    },
-    {
-      name: '张忠强兔儿爷非遗传承店',
-      subtitle: '老北京中秋民俗 · 泥塑「兔儿爷」',
-      shortDesc:
-        '杨梅竹斜街上的非遗工作室，满墙彩塑兔儿爷与媒体报道剪贴，一眼能认出「京味中秋」的符号。',
-      detail:
-        '兔儿爷是老北京中秋祭月与赏玩里的泥塑角色，身着短甲、手持药杵，寓意吉祥。张忠强传承店门面挂着「老北京兔儿爷」与市级非遗标识，店内从巴掌大到尺高的作品排满架，红蓝绿金对比强烈；墙上常有报刊报道与活动留影。若时间允许，可向店员了解开胎、修坯、彩绘的流程，部分时段会开放「兔儿爷 DIY / 彩绘」体验（以现场公告与预约为准）。建议避开正午人流高峰，便于拍照与细看。',
-      tags: ['🐰 中秋民俗', '🎨 泥塑彩绘', '⏱️ 建议30～45分钟'],
-      thumb: A + 'tuerye-1.png',
-      photos: [A + 'tuerye-1.png', A + 'tuerye-2.png'],
-      mapX: 298,
-      mapY: 108,
-    },
-    {
-      name: '铃木食堂',
-      subtitle: '高情绪价值型餐厅',
-      shortDesc:
-        '藏在胡同里的日式小食堂，木格大窗与暖黄灯光，适合作为斜街线的「情绪收尾」。',
-      detail:
-        '铃木食堂在杨梅竹斜街一带口碑稳定，外立面灰瓦木梁，入夜灯一亮，巷子里很有「终于坐下来」的安慰感。菜单走日式家常路线，常有手绘水彩菜图与中英日对照，秋季限定、丼饭与锅物类点单率高；饮品里梅子酒等适合小酌一杯。价位在中等偏亲民区间，热门时段需排队，建议提前取号或避开周末正餐高峰。若只吃下午茶，也可点甜品与咖啡，把晚餐留给下一程。',
-      tags: ['🍚 日式食堂', '🌙 适合晚餐', '⏱️ 建议60～90分钟'],
-      thumb: A + 'suzuki-exterior.png',
-      photos: [A + 'suzuki-exterior.png', A + 'suzuki-menu.png'],
-      mapX: 298,
-      mapY: 175,
-    },
-    {
-      name: '乾坤空间文创',
-      subtitle: '可以逛的展览空间',
-      shortDesc:
-        '像小型美术馆的文创店：刺绣、书画、胡同主题插画与帆布袋，动线迂回，适合慢慢淘。',
-      detail:
-        '乾坤空间把「零售」做成「可逛的展」：木门上贴着「藏」字与胡同长卷式海报，室内有刺绣挂片、戏刀陈设与大量书画气质的周边，帆布包与纸品常把北京城景、字谜与当代设计叠在一起。这里不适合赶时间扫货，更适合放慢脚步，把每一件纹样与胡同叙事对上号；若喜欢独立出版物或东方配色的小物，往往能挑到与景区通货不同的东西。',
-      tags: ['🖼️ 展陈式零售', '🧵 刺绣书画', '⏱️ 建议30～40分钟'],
-      thumb: A + 'qiankun-space.png',
-      photos: [A + 'qiankun-space.png'],
-      mapX: 64,
-      mapY: 150,
-    },
-    {
-      name: '将将堂印章',
-      subtitle: '低流量但高转化的深体验型店',
-      shortDesc:
-        '专注篆刻与钤印体验，一方石、一盒印泥，就能把旅行记忆压进纸里带走。',
-      detail:
-        '将将堂不是走马观花型的「盖章点」，而是偏工作室气质的印文化空间：白卡纸、回纹边框与多枚篆刻印章组合，盖出来像小型金石小品。客流相对克制，愿意坐下来的人往往冲着手作感与「可带走的成品」而来，转化路径短但体验深。可自备手帐或现场选购纸笺；盖印时轻压慢起，避免糊边。具体开放时间与是否需预约，建议行前电话或社交平台确认。',
-      tags: ['🖌️ 篆刻钤印', '📇 手帐纪念', '⏱️ 建议20～35分钟'],
-      thumb: A + 'jiangjiangtang.png',
-      photos: [A + 'jiangjiangtang.png'],
-      mapX: 215,
-      mapY: 210,
-    },
-  ];
-
+  /* ---- 地图适配器实例 --------------------------------- */
+  let mapAdapter = null;
 
   /* ---- Elements ----------------------------------- */
   const app            = document.getElementById('app');
@@ -84,12 +18,104 @@
   const spotList       = document.getElementById('rd-spot-list');
   const fsOverlay      = document.getElementById('rd-fullscreen-overlay');
   const fsFsCloseBtn   = document.getElementById('rd-fs-close-btn');
+  const mapContainer   = document.getElementById('rd-map-container');
+  const mapFallbackImg = document.querySelector('.rd-map-fallback');
 
-  // 返回按钮：需求固定回首页，避免 history/back 栈在 WebView 中不稳定
+  // 返回按钮
   document.getElementById('rd-back-btn').addEventListener('click', (e) => {
     e.preventDefault();
     window.location.replace('index.html');
   });
+
+  /* ---- 从 data/routes/dashilan.json 加载路线数据 ------- */
+  async function loadRouteData() {
+    try {
+      const resp = await fetch('../data/routes/dashilan.json');
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      return await resp.json();
+    } catch (err) {
+      console.error('[route-detail] 路线数据加载失败，使用内嵌备份数据:', err);
+      return null;
+    }
+  }
+
+  /* ---- 初始化地图 (多引擎驱动) ------------------------ */
+  async function initMap(spots) {
+    const config = window.__WEGO_MAP_CONFIG__ || {};
+    const provider = config.provider || 'amap';
+
+    // 检查是否有足够的配置进行初始化
+    if (!config.apiKey) {
+      console.warn(`[route-detail] 未配置 ${provider} API Key，跳过地图初始化，使用静态图降级`);
+      if (mapFallbackImg) mapFallbackImg.style.display = 'block';
+      if (mapContainer) mapContainer.style.display = 'none';
+      return;
+    }
+
+    try {
+      // 使用工厂类创建适配器
+      mapAdapter = MapAdapterFactory.create(provider, mapContainer, {
+        apiKey:         config.apiKey,
+        securityJsCode: config.securityJsCode,
+        mapOptions: {
+          zoom: 17
+        }
+      });
+
+      await mapAdapter.init();
+
+      // 1. 添加各景点标记
+      spots.forEach((spot, idx) => {
+        mapAdapter.addMarker(spot.lng, spot.lat, {
+          index:   idx,
+          label:   (idx + 1).toString(), // 序号数字
+          title:   spot.name,            // 景点名标签
+          onClick: () => {
+            const card = document.getElementById(`spot-card-${idx}`);
+            if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // 如果是在手机端，确保卡片也被高亮等逻辑...
+          },
+        });
+      });
+
+      // 2. 绘制路线
+      const coords = spots.map(s => ({ lat: s.lat, lng: s.lng }));
+      await mapAdapter.drawRoute(coords);
+
+      // 3. 视野对齐
+      const lats = spots.map(s => s.lat);
+      const lngs = spots.map(s => s.lng);
+      mapAdapter.fitBounds({
+        sw: { lat: Math.min(...lats) - 0.001, lng: Math.min(...lngs) - 0.001 },
+        ne: { lat: Math.max(...lats) + 0.001, lng: Math.max(...lngs) + 0.001 },
+      });
+
+      console.log(`[route-detail] ✅ ${provider} 地图初始化完成`);
+
+    } catch (err) {
+      console.error(`[route-detail] ${provider} 地图初始化失败，使用静态图降级:`, err);
+      if (mapFallbackImg) mapFallbackImg.style.display = 'block';
+      if (mapContainer) mapContainer.style.display = 'none';
+    }
+  }
+
+  /* ---- 导出切换引擎方法 ---------------------------- */
+  window.switchMapEngine = async (provider) => {
+    if (!mapAdapter || !currentSpots) return;
+    
+    console.log(`[route-detail] 正在切换引擎记录为: ${provider}`);
+    
+    // 1. 销毁旧实例
+    mapAdapter.destroy();
+    mapContainer.innerHTML = ''; // 清空容器
+    
+    // 2. 更新配置并重新初始化
+    window.__WEGO_MAP_CONFIG__.provider = provider;
+    await initMap(currentSpots);
+  };
+
+  // 全局变量保存当前景点数据以供切换使用
+  let currentSpots = [];
 
   /* ---- Fullscreen --------------------------------- */
   function openFullscreen() {
@@ -120,6 +146,10 @@
       fullscreenBtn.classList.toggle('is-active', expanded);
       fullscreenBtn.setAttribute('aria-label', expanded ? '收起路线介绍' : '展开地图');
     }
+    // 展开地图时触发 resize 让高德重新计算容器尺寸
+    if (expanded && mapAdapter && mapAdapter._map) {
+      setTimeout(() => mapAdapter._map.resize(), 300);
+    }
     if (expanded) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -128,15 +158,12 @@
   if (fullscreenBtn) {
     fullscreenBtn.addEventListener('click', togglePanelFullscreen);
   }
-
   fsFsCloseBtn.addEventListener('click', closeFullscreen);
 
-
-
-  function buildSpotList() {
+  /* ---- 构建景点列表 --------------------------------- */
+  function buildSpotList(spots) {
     if (!spotList) return;
-    const listData = SPOT_DATA.slice(0, 5);
-    spotList.innerHTML = listData
+    spotList.innerHTML = spots
       .map((spot, idx) => {
         const tagsHtml = (spot.tags || [])
           .map((tag) => `<span class="rd-ex-tag">${tag}</span>`)
@@ -169,7 +196,7 @@
           </div>
           <div class="rd-spot-expanded" id="spot-expanded-${idx}">
             <div class="rd-spot-ex-content">
-              <p>${spot.detail || ''}</p>
+              <p>${spot.detail || spot.short_desc || ''}</p>
               <div class="rd-spot-ex-tags">${tagsHtml}</div>
               <div class="rd-spot-gallery">${photosHtml}</div>
             </div>
@@ -209,8 +236,28 @@
     });
   }
 
-  buildSpotList();
-  bindSpotToggleEvents();
+  /* ---- 主入口 —— 加载数据 → 渲染 → 初始化地图 ---------- */
+  async function main() {
+    const routeData = await loadRouteData();
+    const spots = routeData ? routeData.spots : getFallbackSpots();
+
+    currentSpots = spots; // 保存到全局，供切换引擎使用
+    buildSpotList(spots);
+    bindSpotToggleEvents();
+    await initMap(spots);
+  }
+
+  /* ---- 内嵌备份数据（loadRouteData 失败时使用）---------- */
+  function getFallbackSpots() {
+    const A = 'assets/routes/yangmeizhu-heritage/';
+    return [
+      { name: '青云阁及二层模范咖啡', subtitle: '高停留时间型空间', short_desc: '清末民初北京「四大商场」之一旧址，二楼「模范咖啡」适合慢坐。', detail: '', tags: ['🏛️ 老商场旧址', '☕ 胡同咖啡'], thumb: A+'qingyun-pavilion.png', photos: [A+'qingyun-pavilion.png'], lat: 39.896134, lng: 116.393245 },
+      { name: '张忠强兔儿爷非遗传承店', subtitle: '老北京中秋民俗 · 泥塑「兔儿爷」', short_desc: '杨梅竹斜街上的非遗工作室。', detail: '', tags: ['🐰 中秋民俗', '🎨 泥塑彩绘'], thumb: A+'tuerye-1.png', photos: [A+'tuerye-1.png'], lat: 39.895982, lng: 116.394123 },
+      { name: '铃木食堂', subtitle: '高情绪价值型餐厅', short_desc: '藏在胡同里的日式小食堂。', detail: '', tags: ['🍚 日式食堂', '🌙 适合晚餐'], thumb: A+'suzuki-exterior.png', photos: [A+'suzuki-exterior.png'], lat: 39.895321, lng: 116.394123 },
+      { name: '乾坤空间文创', subtitle: '可以逛的展览空间', short_desc: '像小型美术馆的文创店。', detail: '', tags: ['🖼️ 展陈式零售', '🧵 刺绣书画'], thumb: A+'qiankun-space.png', photos: [A+'qiankun-space.png'], lat: 39.895678, lng: 116.392156 },
+      { name: '将将堂印章', subtitle: '低流量但高转化的深体验型店', short_desc: '专注篆刻与钤印体验。', detail: '', tags: ['🖌️ 篆刻钤印', '📇 手帐纪念'], thumb: A+'jiangjiangtang.png', photos: [A+'jiangjiangtang.png'], lat: 39.894987, lng: 116.393567 },
+    ];
+  }
 
   /* ---- Start Journey button ----------------------- */
   document.getElementById('rd-start-btn').addEventListener('click', () => {
@@ -230,9 +277,14 @@
     });
   }
 
-  /* ---- AI guide: first-time route consultation chat ---- */
+  /* ---- AI guide button ---------------------------- */
   document.getElementById('rd-ai-btn').addEventListener('click', () => {
     window.location.href = 'ai-chat.html?consult=1';
   });
 
+  /* ---- 启动 -------------------------------------- */
+  main().catch(err => console.error('[route-detail] 初始化异常:', err));
+
 })();
+
+
