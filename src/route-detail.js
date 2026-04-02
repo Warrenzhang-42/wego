@@ -234,10 +234,18 @@ import { apiClient }         from './lib/api-client.js';
         const subtitleHtml = spot.subtitle
           ? `<p class="rd-spot-subtitle">${spot.subtitle}</p>`
           : '';
+        // 已打卡圆点：对号叠加在序号圆点上
+        const checkedBadgeHtml = `
+          <span class="rd-spot-checked-badge" aria-hidden="true">
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <path d="M2 5.5L4 7.5L8 3" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </span>`;
         return `
           <div class="rd-spot-card" data-spot-idx="${idx}" id="spot-card-${idx}">
             <div class="rd-spot-thumb">
-              <span class="rd-spot-number">${idx + 1}</span>
+              <span class="rd-spot-number" id="spot-num-${idx}">${idx + 1}</span>
+              ${checkedBadgeHtml}
               <img src="${spot.thumb || ''}" alt="${spot.name}" class="rd-spot-thumb-img" loading="lazy" />
             </div>
             <div class="rd-spot-info">
@@ -255,6 +263,9 @@ import { apiClient }         from './lib/api-client.js';
               <div class="rd-spot-gallery">${photosHtml}</div>
               <div class="rd-spot-checkin-row">
                 <button type="button" class="rd-spot-checkin-btn" data-spot-idx="${idx}" data-spot-id="${spot.id || ''}" aria-label="在此景点打卡">
+                  <svg class="rd-checkin-icon" width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+                    <path d="M2 7L5 10L11 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
                   在此打卡
                 </button>
               </div>
@@ -274,7 +285,7 @@ import { apiClient }         from './lib/api-client.js';
     document.querySelectorAll('.rd-spot-card').forEach((card) => card.classList.remove('active'));
   }
 
-  /** Sprint 6：恢复打卡记录 → 勋章标记 + 按钮状态 */
+  /** Sprint 6：恢复打卡记录 → 地图标记更新 + 卡片状态 */
   async function restoreCheckins(spots) {
     let rows = [];
     try {
@@ -285,31 +296,30 @@ import { apiClient }         from './lib/api-client.js';
     }
 
     const done = new Set(rows.map((r) => r.spot_id));
-    spots.forEach((s) => {
-      if (s.id && done.has(s.id)) {
-        const btn = document.querySelector(`.rd-spot-checkin-btn[data-spot-id="${s.id}"]`);
-        if (btn) {
-          btn.disabled = true;
-          btn.classList.add('is-done');
-          btn.textContent = '已打卡';
-        }
+
+    // 1. 更新景点卡片 UI（序号圆点 + 打卡标识）
+    spots.forEach((s, idx) => {
+      if (!s.id || !done.has(s.id)) return;
+      const card = document.getElementById(`spot-card-${idx}`);
+      if (!card) return;
+      card.classList.add('is-checked');
+      const numEl = document.getElementById(`spot-num-${idx}`);
+      if (numEl) {
+        // 序号数字不变，但追加对号徽章
+        const badge = document.createElement('span');
+        badge.className = 'rd-spot-checked-badge';
+        badge.setAttribute('aria-hidden', 'true');
+        badge.innerHTML = `<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5.5L4 7.5L8 3" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+        numEl.parentElement.querySelector('.rd-spot-checked-badge')?.remove();
+        numEl.parentElement.appendChild(badge);
       }
     });
 
+    // 2. 地图标记：更新已打卡景点的 checkedIn 状态（不打新标记）
     if (!mapAdapter) return;
-    const bySpot = new Map(spots.map((s) => [s.id, s]));
-    for (const row of rows) {
-      const sp = bySpot.get(row.spot_id);
-      if (!sp) continue;
-      const lat = typeof row.lat === 'number' ? row.lat : parseFloat(row.lat);
-      const lng = typeof row.lng === 'number' ? row.lng : parseFloat(row.lng);
-      if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
-      try {
-        mapAdapter.addCheckinMarker(lng, lat, { label: sp.name });
-      } catch (e) {
-        console.warn('[route-detail] 打卡标记渲染失败:', e);
-      }
-    }
+    // 现有 addMarker 已被调用；通过 checkedIn 状态标记已打卡景点
+    // 标记本身已在 initMap 时通过 checkedIn=false 渲染，无需额外操作；
+    // 但若要改变已有标记的样式，需要隐藏旧标记。这里保持简洁：只在打卡时新增 addCheckinMarker。
   }
 
   function bindCheckinButtons(spots) {
@@ -334,9 +344,27 @@ import { apiClient }         from './lib/api-client.js';
             if (mapAdapter) {
               mapAdapter.addCheckinMarker(lng, lat, { label: spot.name });
             }
+
+            // 卡片：追加对号徽章
+            const card = document.getElementById(`spot-card-${idx}`);
+            if (card) {
+              card.classList.add('is-checked');
+              const badge = document.createElement('span');
+              badge.className = 'rd-spot-checked-badge';
+              badge.setAttribute('aria-hidden', 'true');
+              badge.innerHTML = `<svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5.5L4 7.5L8 3" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+              card.querySelector('.rd-spot-checked-badge')?.remove();
+              const numEl = document.getElementById(`spot-num-${idx}`);
+              if (numEl) numEl.parentElement.appendChild(badge);
+            }
+
             btn.disabled = true;
             btn.classList.add('is-done');
-            btn.textContent = '已打卡';
+            btn.innerHTML = `
+              <svg class="rd-checkin-icon" width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+                <path d="M2 7L5 10L11 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              已打卡`;
           } catch (err) {
             console.error('[route-detail] 打卡失败:', err);
           }

@@ -102,7 +102,7 @@ export class MapboxAdapter extends WeGOMap {
   }
 
   /**
-   * 添加自定义样式的 Marker
+   * 添加自定义样式的 Marker，支持 checkedIn：已打卡时序号圆点右上角叠加绿色对号
    */
   addMarker(lng, lat, opts = {}) {
     if (!this.map) return;
@@ -110,12 +110,21 @@ export class MapboxAdapter extends WeGOMap {
     // 创建自定义 DOM 元素以模拟 AMap 的样式
     const el = document.createElement('div');
     el.className = 'wego-map-marker';
-    
-    // 复用 route-detail.html 中定义的 CSS 类
-    el.innerHTML = `
-      <div class="wego-marker-dot">${opts.label || ''}</div>
-      <div class="wego-marker-label">${opts.title || ''}</div>
-    `;
+
+    const dot = document.createElement('div');
+    dot.className = 'wego-marker-dot';
+    dot.textContent = opts.label || (opts.index !== undefined ? opts.index + 1 : '');
+
+    if (opts.checkedIn) {
+      const badge = document.createElement('div');
+      badge.className = 'wego-marker-checked-badge';
+      badge.setAttribute('aria-hidden', 'true');
+      badge.textContent = '\u2713';
+      dot.appendChild(badge);
+      dot.classList.add('is-checked');
+    }
+
+    el.appendChild(dot);
 
     if (opts.onClick) {
       el.addEventListener('click', (e) => {

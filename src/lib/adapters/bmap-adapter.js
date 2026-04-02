@@ -1,9 +1,9 @@
 /**
  * WeGO Map Adapter — bmap-adapter.js
- * 
+ *
  * 百度地图 JS API v3.0 适配器实现。
  * 处理 GCJ-02 到 BD-09 的坐标转换。
- * 
+ *
  * Sprint 1.9 — 百度地图接入
  */
 
@@ -47,7 +47,7 @@ export class BMapAdapter extends WeGOMap {
       const script = document.createElement('script');
       // 百度地图 v3.0
       script.src = `https://api.map.baidu.com/api?v=3.0&ak=${this.options.apiKey}&callback=onBMapLibLoad`;
-      
+
       // 百度地图需要全局回调
       window.onBMapLibLoad = () => {
         resolve();
@@ -72,16 +72,16 @@ export class BMapAdapter extends WeGOMap {
 
   setCenter(lng, lat, zoom) {
     if (!this.map) return;
-    const [blng, blat] = this._gcj02ToBd09(lng, lat);
-    const point = new BMap.Point(blng, blat);
+    const [blng,ilat] = this._gcj02ToBd09(lng, lat);
+    const point = new BMap.Point(blng,ilat);
     this.map.centerAndZoom(point, zoom || this.map.getZoom());
   }
 
   fitBounds(bounds) {
     if (!this.map || !bounds) return;
-    const [sw_lng, sw_lat] = this._gcj02ToBd09(bounds.sw.lng, bounds.sw.lat);
-    const [ne_lng, ne_lat] = this._gcj02ToBd09(bounds.ne.lng, bounds.ne.lat);
-    
+    const [sw_lng,sw_lat] = this._gcj02ToBd09(bounds.sw.lng, bounds.sw.lat);
+    const [ne_lng,ne_lat] = this._gcj02ToBd09(bounds.ne.lng, bounds.ne.lat);
+
     const b_bounds = new BMap.Bounds(
       new BMap.Point(sw_lng, sw_lat),
       new BMap.Point(ne_lng, ne_lat)
@@ -89,30 +89,42 @@ export class BMapAdapter extends WeGOMap {
     this.map.setViewport(b_bounds);
   }
 
+  /**
+   * 添加景点标记，支持 checkedIn：已打卡时序号圆点右上角叠加绿色对号
+   */
   addMarker(lng, lat, opts = {}) {
     if (!this.map) return;
 
-    const [blng, blat] = this._gcj02ToBd09(lng, lat);
-    const point = new BMap.Point(blng, blat);
-    
-    // 百度地图自定义 Overlay 较复杂，先用 Label + Marker 组合模拟
+    const [blng,ilat] = this._gcj02ToBd09(lng, lat);
+    const point = new BMap.Point(blng,ilat);
+
+    // 构建自定义 DOM（与高德 adapter 视觉一致）
+    const markerEl = document.createElement('div');
+    markerEl.className = 'wego-map-marker';
+
+    const dot = document.createElement('div');
+    dot.className = 'wego-marker-dot';
+    dot.textContent = opts.index !== undefined ? opts.index + 1 : (opts.label || '');
+
+    if (opts.checkedIn) {
+      const badge = document.createElement('div');
+      badge.className = 'wego-marker-checked-badge';
+      badge.setAttribute('aria-hidden', 'true');
+      badge.textContent = '\u2713'; // ✓
+      dot.appendChild(badge);
+      dot.classList.add('is-checked');
+    }
+    markerEl.appendChild(dot);
+
     const marker = new BMap.Marker(point);
     this.map.addOverlay(marker);
 
-    if (opts.label || opts.title) {
-        const label = new BMap.Label(opts.title || opts.label, {
-            offset: new BMap.Size(20, -10)
-        });
-        label.setStyle({
-            color: "#fff",
-            backgroundColor: "rgba(20, 15, 40, 0.8)",
-            border: "none",
-            borderRadius: "4px",
-            padding: "2px 6px",
-            fontSize: "12px"
-        });
-        marker.setLabel(label);
-    }
+    const bLabel = new BMap.Label(markerEl.outerHTML, {
+      offset: new BMap.Size(-16, -16),
+      position: point
+    });
+    bLabel.setStyle({ border: 'none', background: 'transparent' });
+    marker.setLabel(bLabel);
 
     if (opts.onClick) {
       marker.addEventListener('click', opts.onClick);
@@ -125,12 +137,12 @@ export class BMapAdapter extends WeGOMap {
   addCheckinMarker(lng, lat, opts = {}) {
     if (!this.map) return;
 
-    const [blng, blat] = this._gcj02ToBd09(lng, lat);
-    const point = new BMap.Point(blng, blat);
+    const [blng,ilat] = this._gcj02ToBd09(lng, lat);
+    const point = new BMap.Point(blng,ilat);
     const marker = new BMap.Marker(point);
     this.map.addOverlay(marker);
 
-    const html = `<div class="wego-checkin-marker"><div class="wego-checkin-medal">✓</div>${
+    const html = `<div class="wego-checkin-marker"><div class="wego-checkin-medal">\u2713</div>${
       opts.label ? `<div class="wego-checkin-label">${opts.label}</div>` : ''
     }</div>`;
     const label = new BMap.Label(html, { offset: new BMap.Size(-30, -52) });
@@ -147,8 +159,8 @@ export class BMapAdapter extends WeGOMap {
     if (!this.map || !coords || coords.length < 2) return;
 
     const bPoints = coords.map(c => {
-      const [blng, blat] = this._gcj02ToBd09(c.lng, c.lat);
-      return new BMap.Point(blng, blat);
+      const [blng,ilat] = this._gcj02ToBd09(c.lng, c.lat);
+      return new BMap.Point(blng,ilat);
     });
 
     const polyline = new BMap.Polyline(bPoints, {
@@ -156,12 +168,11 @@ export class BMapAdapter extends WeGOMap {
       strokeWeight: style.weight || 5,
       strokeOpacity: 0.8
     });
-    
+
     this.map.addOverlay(polyline);
   }
 
   addGeofence(lng, lat, radius, onEnter) {
-    // 百度坐标转换不影响地理围栏逻辑（逻辑使用的是经纬度距离计算，底层 watchPosition 给的是 GCJ-02 或 WGS-84）
     const fence = { lng, lat, radius, onEnter, triggered: false };
     this.fences.push(fence);
 

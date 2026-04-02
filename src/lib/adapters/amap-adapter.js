@@ -179,12 +179,13 @@ export class AMapAdapter extends WeGOMap {
 
   /* ----------------------------------------------------------
      addMarker — Sprint 1.4 实现
-     在地图上添加自定义标记，支持 icon / label / onClick
+     在地图上添加自定义标记，支持 icon / label / onClick / checkedIn
+     checkedIn 为 true 时，序号圆点右上角叠加绿色对号徽章
      ---------------------------------------------------------- */
   addMarker(lng, lat, opts = {}) {
     if (!this._map) throw new Error('[AMapAdapter] 地图未初始化，请先调用 init()');
 
-    const { icon, label, onClick, index } = opts;
+    const { icon, label, onClick, index, checkedIn } = opts;
 
     // 构建自定义标记 HTML（与 WeGO 视觉风格保持一致）
     const markerContent = document.createElement('div');
@@ -194,15 +195,18 @@ export class AMapAdapter extends WeGOMap {
     const dot = document.createElement('div');
     dot.className = 'wego-marker-dot';
     dot.textContent = index !== undefined ? index + 1 : '';
-    markerContent.appendChild(dot);
 
-    // 标签（显示景点名称）
-    if (label) {
-      const labelEl = document.createElement('div');
-      labelEl.className = 'wego-marker-label';
-      labelEl.textContent = label;
-      markerContent.appendChild(labelEl);
+    // 已打卡时：序号圆点内叠加对号
+    if (checkedIn) {
+      const badge = document.createElement('div');
+      badge.className = 'wego-marker-checked-badge';
+      badge.setAttribute('aria-hidden', 'true');
+      badge.textContent = '✓';
+      dot.appendChild(badge);
+      dot.classList.add('is-checked');
     }
+
+    markerContent.appendChild(dot);
 
     const marker = new window.AMap.Marker({
       position:  [lng, lat],
@@ -216,7 +220,7 @@ export class AMapAdapter extends WeGOMap {
     }
 
     marker.setMap(this._map);
-    console.log(`[AMapAdapter] addMarker → lng:${lng}, lat:${lat}, label:"${label || ''}"`);
+    console.log(`[AMapAdapter] addMarker → lng:${lng}, lat:${lat}, label:"${label || ''}", checkedIn:${!!checkedIn}`);
     return marker;
   }
 
