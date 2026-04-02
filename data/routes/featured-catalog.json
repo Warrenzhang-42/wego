@@ -1,29 +1,29 @@
 [
   {
-    "id": "featured-bj-citywalk",
-    "title": "大栅栏文艺青年小店 citywalk 游线",
-    "description": "胡同里淘 vintage 与独立小店，慢逛大栅栏里的文艺角落",
-    "tags": ["Citywalk", "文艺小店"],
+    "id": "8c2f4e10-1a2b-4c3d-9e8f-001122330001",
+    "title": "大栅栏文艺青年小店 citywalk",
+    "description": "胡同里淘 vintage 与独立小店，慢逛大栅栏",
+    "tags": ["Citywalk", "文艺小店", "文化"],
     "cover_image": "assets/routes/dashilan-hipster-citywalk.png",
     "duration_minutes": 210,
     "heat_level": 4,
     "heat_count": 24800
   },
   {
-    "id": "featured-bj-bookstore",
+    "id": "8c2f4e10-1a2b-4c3d-9e8f-001122330002",
     "title": "五道口书店漫游文化路线",
-    "description": "从豆瓣书店到周边独立书房，感受五道口学圈与书香氛围",
-    "tags": ["独立书店", "阅读文化"],
+    "description": "从豆瓣书店到周边独立书房，感受五道口书香",
+    "tags": ["独立书店", "阅读文化", "文化"],
     "cover_image": "assets/routes/wudaokou-bookstore-culture.png",
     "duration_minutes": 120,
     "heat_level": 4,
     "heat_count": 21300
   },
   {
-    "id": "featured-bj-tcm",
-    "title": "大栅栏老字号与中医药体验游线",
-    "description": "牌坊老街串联同仁堂与药香故事，读懂京味商业记忆",
-    "tags": ["老字号", "中医药"],
+    "id": "8c2f4e10-1a2b-4c3d-9e8f-001122330003",
+    "title": "大栅栏老字号与中医药体验路线",
+    "description": "牌坊老街串联同仁堂与药香故事，读懂京城医道",
+    "tags": ["老字号", "中医药", "文化"],
     "cover_image": "assets/routes/dashilan-tcm-brands.png",
     "duration_minutes": 120,
     "heat_level": 3,
@@ -32,12 +32,22 @@
   {
     "id": "e4e20790-a521-4f0e-947b-1172a1e1b7f1",
     "title": "大栅栏杨梅竹斜街非遗体验精品游线",
-    "description": "杨梅竹斜街手作与非遗工坊串联，精品小团深度走读",
-    "tags": ["非遗", "胡同文化"],
+    "description": "杨梅竹斜街手作与非遗工坊串联，精妙绝伦",
+    "tags": ["非遗", "胡同文化", "文化"],
     "cover_image": "assets/routes/yangmeizhu-heritage.png",
     "duration_minutes": 240,
     "heat_level": 5,
     "heat_count": 31400
+  },
+  {
+    "id": "8c2f4e10-1a2b-4c3d-9e8f-001122330005",
+    "title": "大栅栏杨梅竹斜街非遗体验",
+    "description": "领略杨梅竹斜街的非遗魅力，体验老北京手艺",
+    "tags": ["历史建筑", "非遗体验", "文化"],
+    "cover_image": "assets/routes/yangmeizhu-heritage.png",
+    "duration_minutes": 180,
+    "heat_level": 3,
+    "heat_count": 10000
   },
   {
     "id": "featured-rec-gothic",

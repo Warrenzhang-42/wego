@@ -511,6 +511,84 @@ Web MVP                Capacitor 打包         Native 增强
 
 ---
 
+## 6.1 路线内容数据清洗与入库流水线（MD -> DB）
+
+### A. 目标与原则
+
+- 输入为运营提供的 Markdown 非结构化资料。
+- 输出为可直接展示的结构化路线数据（`routes` + `spots`）。
+- 采用“契约先行 + 多重质量闸门 + 幂等发布”策略，避免脏数据进入生产库。
+
+### B. 分层流水线
+
+```
+Markdown 原文
+   -> parse (AI 抽取)
+   -> validate (Schema 校验)
+   -> clean (规则清洗)
+   -> review (人工审核)
+   -> upsert (事务入库)
+   -> verify (发布核验)
+```
+
+### C. 输入输出契约
+
+- **输入**：`route-source.md`（非结构化）
+- **中间产物**：`route-candidate.json`（结构化候选）
+- **发布产物**：
+  - `routes` 表 1 条（或更新 1 条）
+  - `spots` 表 N 条（按 `route_id` 关联）
+  - `route_ingestion_jobs` 审计记录 1 条（建议新增）
+
+### D. 清洗规则（最小必选）
+
+1. **结构合法性**：必填字段完整，字段类型正确。
+2. **ID 合法性**：`route.id` 与 `spot.id` 必须是 UUID；无 ID 时系统生成并落日志。
+3. **地理合法性**：`lat/lng` 必须可解析为 number，范围有效（lat -90~90，lng -180~180）。
+4. **业务合法性**：`duration_minutes > 0`，`sort_order` 唯一且连续，`estimated_stay_min` 非负。
+5. **分类标准化**：标签同义词归并（例如“city walk”统一为 `Citywalk`）。
+6. **展示降级默认值**：封面、热度、分类缺失时使用默认值并打标记待补全。
+
+### E. 入库策略
+
+- 使用服务端（Edge Function/后端脚本）持有 `service role key`。
+- 单次写入在事务中完成：
+  - upsert `routes`
+  - upsert `spots`
+- 任一步失败即回滚，避免半写状态。
+- 采用幂等键（`route.id`）防止重复提交造成脏重复。
+
+### F. 推荐新增表（审计与回滚）
+
+```sql
+CREATE TABLE IF NOT EXISTS route_ingestion_jobs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  route_id UUID,
+  source_md_path TEXT,
+  status TEXT NOT NULL, -- parsed | validated | cleaned | approved | published | failed
+  parse_payload JSONB,
+  validation_report JSONB,
+  clean_report JSONB,
+  error_message TEXT,
+  created_by TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+```
+
+该表用于追踪“从哪份 Markdown 来、卡在哪一步、谁审批、何时发布”，是生产可运营化的关键。
+
+### G. 与现有脚本协同方式
+
+- `data/scripts/seed-beijing-catalog.js`：继续作为“结构化 JSON -> DB”的入库器。
+- 新增“前置处理”脚本链路（建议）：
+  - `data/scripts/parse-route-md.js`
+  - `data/scripts/validate-route-json.js`
+  - `data/scripts/clean-route-json.js`
+- 最终由 seed 脚本或后端发布接口执行 upsert。
+
+---
+
 ## 7. 开发阶段规划
 
 ### Phase 1：Web MVP 核心验证（当前 -> 4 周）

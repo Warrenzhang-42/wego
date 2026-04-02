@@ -1,0 +1,192 @@
+{
+  "routes": [
+    {
+      "id": "8c2f4e10-1a2b-4c3d-9e8f-001122330001",
+      "title": "大栅栏文艺青年小店 citywalk",
+      "description": "胡同里淘 vintage 与独立小店，慢逛大栅栏",
+      "duration_minutes": 210,
+      "difficulty": "easy",
+      "tags": ["Citywalk", "文艺小店", "文化"],
+      "cover_image": "assets/routes/dashilan-hipster-citywalk.png",
+      "total_distance_km": 2.1,
+      "heat_level": 4,
+      "heat_count": 24800,
+      "category": "本地",
+      "spots": [
+        {
+          "id": "9d3f5f21-2b3c-5d4e-af9f-112233440001",
+          "name": "大栅栏西街口",
+          "subtitle": "路线起点",
+          "short_desc": "从大栅栏西街进入胡同片区，沿街可见老字号门面与文创小店混排。",
+          "detail": "适合作为 citywalk 起点，先感受商业街人流再转入支巷淘店。",
+          "tags": ["起点", "胡同"],
+          "thumb": "assets/routes/dashilan-hipster-citywalk.png",
+          "photos": ["assets/routes/dashilan-hipster-citywalk.png"],
+          "lat": 39.8952,
+          "lng": 116.3958,
+          "geofence_radius_m": 40,
+          "estimated_stay_min": 20,
+          "sort_order": 1
+        },
+        {
+          "id": "9d3f5f21-2b3c-5d4e-af9f-112233440002",
+          "name": "杨梅竹斜街一带独立小店",
+          "subtitle": "vintage 与手作",
+          "short_desc": "斜街及周边分布古着、独立设计铺，适合慢逛比对风格。",
+          "detail": "下午光线柔和时更适合拍照；部分店铺营业较晚，可错峰。",
+          "tags": ["文艺小店", "Citywalk"],
+          "thumb": "assets/routes/dashilan-hipster-citywalk.png",
+          "photos": ["assets/routes/dashilan-hipster-citywalk.png"],
+          "lat": 39.8959,
+          "lng": 116.3939,
+          "geofence_radius_m": 35,
+          "estimated_stay_min": 90,
+          "sort_order": 2
+        }
+      ]
+    },
+    {
+      "id": "8c2f4e10-1a2b-4c3d-9e8f-001122330002",
+      "title": "五道口书店漫游文化路线",
+      "description": "从豆瓣书店到周边独立书房，感受五道口书香",
+      "duration_minutes": 120,
+      "difficulty": "easy",
+      "tags": ["独立书店", "阅读文化", "文化"],
+      "cover_image": "assets/routes/wudaokou-bookstore-culture.png",
+      "total_distance_km": 1.8,
+      "heat_level": 4,
+      "heat_count": 21300,
+      "category": "文化",
+      "spots": [
+        {
+          "id": "9d3f5f21-2b3c-5d4e-af9f-112233440010",
+          "name": "豆瓣书店（五道口）",
+          "subtitle": "独立选书气质",
+          "short_desc": "社区感强的独立书店，选书偏文艺与社科，适合开场定调。",
+          "detail": "可先浏览当季推荐架，再按兴趣延展到周边书房。",
+          "tags": ["独立书店", "文化"],
+          "thumb": "assets/routes/wudaokou-bookstore-culture.png",
+          "photos": ["assets/routes/wudaokou-bookstore-culture.png"],
+          "lat": 39.9926,
+          "lng": 116.3374,
+          "geofence_radius_m": 35,
+          "estimated_stay_min": 45,
+          "sort_order": 1
+        },
+        {
+          "id": "9d3f5f21-2b3c-5d4e-af9f-112233440011",
+          "name": "成府路周边书房",
+          "subtitle": "阅读延伸",
+          "short_desc": "沿成府路步行可串联多家小型书房与咖啡阅读角。",
+          "detail": "建议预留换乘与找店时间，部分店面座位紧张。",
+          "tags": ["阅读文化", "文化"],
+          "thumb": "assets/routes/wudaokou-bookstore-culture.png",
+          "photos": ["assets/routes/wudaokou-bookstore-culture.png"],
+          "lat": 39.9938,
+          "lng": 116.3391,
+          "geofence_radius_m": 40,
+          "estimated_stay_min": 50,
+          "sort_order": 2
+        }
+      ]
+    },
+    {
+      "id": "8c2f4e10-1a2b-4c3d-9e8f-001122330003",
+      "title": "大栅栏老字号与中医药体验路线",
+      "description": "牌坊老街串联同仁堂与药香故事，读懂京城医道",
+      "duration_minutes": 120,
+      "difficulty": "easy",
+      "tags": ["老字号", "中医药", "文化"],
+      "cover_image": "assets/routes/dashilan-tcm-brands.png",
+      "total_distance_km": 1.5,
+      "heat_level": 3,
+      "heat_count": 18600,
+      "category": "文化",
+      "spots": [
+        {
+          "id": "9d3f5f21-2b3c-5d4e-af9f-112233440020",
+          "name": "大栅栏牌坊老街",
+          "subtitle": "京味商业记忆",
+          "short_desc": "沿街可见多家老字号匾额与招幌，适合了解传统业态分布。",
+          "detail": "上午游客相对较少，便于细看建筑细部。",
+          "tags": ["老字号", "文化"],
+          "thumb": "assets/routes/dashilan-tcm-brands.png",
+          "photos": ["assets/routes/dashilan-tcm-brands.png"],
+          "lat": 39.8961,
+          "lng": 116.3952,
+          "geofence_radius_m": 40,
+          "estimated_stay_min": 35,
+          "sort_order": 1
+        },
+        {
+          "id": "9d3f5f21-2b3c-5d4e-af9f-112233440021",
+          "name": "同仁堂大栅栏店一带",
+          "subtitle": "药香与故事",
+          "short_desc": "中医药文化地标，可结合橱窗与街区导览了解「医道」叙事。",
+          "detail": "店内动线以现场指引为准；外景拍摄注意避让人流。",
+          "tags": ["中医药", "文化"],
+          "thumb": "assets/routes/dashilan-tcm-brands.png",
+          "photos": ["assets/routes/dashilan-tcm-brands.png"],
+          "lat": 39.8964,
+          "lng": 116.3945,
+          "geofence_radius_m": 35,
+          "estimated_stay_min": 40,
+          "sort_order": 2
+        }
+      ]
+    },
+    {
+      "id": "8c2f4e10-1a2b-4c3d-9e8f-001122330005",
+      "title": "大栅栏杨梅竹斜街非遗体验",
+      "description": "领略杨梅竹斜街的非遗魅力，体验老北京手艺",
+      "duration_minutes": 180,
+      "difficulty": "easy",
+      "tags": ["历史建筑", "非遗体验", "文化"],
+      "cover_image": "assets/routes/yangmeizhu-heritage.png",
+      "total_distance_km": 1.0,
+      "heat_level": 3,
+      "heat_count": 10000,
+      "category": "文化",
+      "spots": [
+        {
+          "id": "9d3f5f21-2b3c-5d4e-af9f-112233440030",
+          "name": "杨梅竹斜街东口",
+          "subtitle": "胡同肌理",
+          "short_desc": "灰砖立面与文创店铺交错，适合作为非遗体验线入口。",
+          "detail": "与「精品游线」可分段体验，本条侧重手作氛围轻量打卡。",
+          "tags": ["胡同文化", "文化"],
+          "thumb": "assets/routes/yangmeizhu-heritage.png",
+          "photos": ["assets/routes/yangmeizhu-heritage.png"],
+          "lat": 39.8960,
+          "lng": 116.3935,
+          "geofence_radius_m": 40,
+          "estimated_stay_min": 30,
+          "sort_order": 1
+        },
+        {
+          "id": "9d3f5f21-2b3c-5d4e-af9f-112233440031",
+          "name": "非遗工坊聚集段",
+          "subtitle": "手作体验",
+          "short_desc": "沿街可预约或观摩部分非遗手作，以现场开放为准。",
+          "detail": "建议提前电话确认体验时段，避免跑空。",
+          "tags": ["非遗体验", "文化"],
+          "thumb": "assets/routes/yangmeizhu-heritage.png",
+          "photos": ["assets/routes/yangmeizhu-heritage.png"],
+          "lat": 39.8955,
+          "lng": 116.3940,
+          "geofence_radius_m": 35,
+          "estimated_stay_min": 90,
+          "sort_order": 2
+        }
+      ]
+    }
+  ],
+  "patchRoutes": [
+    {
+      "id": "e4e20790-a521-4f0e-947b-1172a1e1b7f1",
+      "heat_level": 5,
+      "heat_count": 31400,
+      "category": "本地"
+    }
+  ]
+}

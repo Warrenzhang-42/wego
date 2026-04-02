@@ -50,6 +50,8 @@ const TAG_CLASS_MAP = {
   中医药: 'tag-tcm',
   胡同文化: 'tag-culture',
   独立书店: 'tag-reading',
+  历史建筑: 'tag-history',
+  非遗体验: 'tag-ich',
 };
 
 function tagClass(tag) {
@@ -137,14 +139,17 @@ export function appendRouteCards(container, routes, opts = {}) {
   container.appendChild(fragment);
 }
 
-/** 合并精选目录与 API 路线，同 id 以 API 为准 */
+/** 合并精选目录与 API 路线；同 id 时 API 字段覆盖精选，API 未返回的键保留精选（如热度） */
 export function mergeFeaturedAndApiRoutes(featuredList, apiList) {
   const map = new Map();
   (featuredList || []).forEach(r => {
     if (r && r.id) map.set(r.id, r);
   });
   (apiList || []).forEach(r => {
-    if (r && r.id) map.set(r.id, r);
+    if (r && r.id) {
+      const prev = map.get(r.id);
+      map.set(r.id, prev ? { ...prev, ...r } : r);
+    }
   });
   return [...map.values()];
 }

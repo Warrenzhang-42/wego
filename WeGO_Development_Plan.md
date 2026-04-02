@@ -423,6 +423,24 @@ WeGO/
 
 ---
 
+### Sprint 9：生产数据清洗与入库流水线（预计 4 天）
+
+> 目标：建立“Markdown 非结构化内容 -> 结构化校验 -> 清洗 -> 审核 -> 入库”的可复用生产流程。  
+> 原则：先契约后入库；任一步失败即中断；全链路可审计。
+
+| # | Task | 类型 | 涉及文件 | 验收标准 |
+|---|------|------|---------|---------|
+| **9.1** | 新增 `contracts/route-ingestion.schema.json`，定义候选 JSON 入库前契约（含 route + spots） | 契约 | `contracts/route-ingestion.schema.json` | Schema 可用于 AJV 校验且覆盖必填字段 |
+| **9.2** | 编写 `data/scripts/parse-route-md.js`：读取 Markdown，抽取为结构化 JSON（候选） | 解析 | `parse-route-md.js` | 可从示例 md 产出 `route-candidate.json` |
+| **9.3** | 编写 `data/scripts/validate-route-json.js`：对候选 JSON 执行 Schema 校验并输出错误报告 | 校验 | `validate-route-json.js` | 非法输入可输出字段级错误；合法输入 PASS |
+| **9.4** | 编写 `data/scripts/clean-route-json.js`：执行类型修正、标签标准化、坐标范围检查、排序修复 | 清洗 | `clean-route-json.js` | 清洗后 JSON 满足契约且规则报告完整 |
+| **9.5** | 扩展 `data/scripts/seed-beijing-catalog.js` 或新增 `seed-route-candidate.js`，支持单条候选路线幂等 upsert | 入库 | `seed-route-candidate.js` | 重复执行不产生重复行，routes/spots 正确更新 |
+| **9.6** | 新增 `server/migrations/006_route_ingestion_jobs.sql`，记录 ingestion 审计状态与报错 | 数据库 | `006_route_ingestion_jobs.sql` | SQL 执行成功，审计表可写入记录 |
+| **9.7** | 编写 `tests/contracts/route-ingestion.test.mjs`，覆盖“解析后 -> 校验 -> 清洗后”三段契约测试 | 测试 | `tests/contracts/route-ingestion.test.mjs` | 全部测试 PASS |
+| **9.8** | 在 README 或运维文档增加发布 SOP（dry run -> review -> publish -> verify -> rollback） | 文档 | `README` 或运维文档 | 团队可按步骤独立完成一次新路线上线 |
+
+---
+
 ## 4. 每个 Task 的执行规范
 
 ### 给 AI 的 Prompt 模板
