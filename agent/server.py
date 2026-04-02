@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 import json
@@ -29,60 +29,79 @@ class ChatRequest(BaseModel):
     trigger_type: Optional[str] = None  # e.g., 'geofence'
     spot_id: Optional[str] = None
 
+
+async def _sse_event_bytes(req: ChatRequest):
+    """Sprint 4.8：整段 JSON 分片 SSE 输出，末尾 [DONE]。"""
+    loop = asyncio.get_event_loop()
+    try:
+        result = await loop.run_in_executor(
+            None,
+            lambda: chat_with_agent(
+                req.user_query,
+                req.thread_id,
+                req.trigger_type,
+                req.spot_id,
+            ),
+        )
+    except Exception as e:
+        # LLM/网络失败时仍输出合法 SSE，避免客户端半包与 ASGI ExceptionGroup
+        result = {
+            "role": "ai",
+            "content": f"Agent 暂时不可用：{e!s}",
+            "inserts": [],
+        }
+    json_str = json.dumps(result, ensure_ascii=False)
+    chunk_size = 5
+    for i in range(0, len(json_str), chunk_size):
+        chunk = json_str[i : i + chunk_size]
+        yield f"data: {json.dumps({'chunk': chunk}, ensure_ascii=False)}\n\n"
+        await asyncio.sleep(0.01)
+    yield "data: [DONE]\n\n"
+
+
 @app.post("/chat")
 async def chat_endpoint(req: ChatRequest):
     """
     Standard JSON endpoint for chatting.
     """
-    result = chat_with_agent(
-        req.user_query, 
-        req.thread_id, 
-        trigger_type=req.trigger_type, 
-        spot_id=req.spot_id
-    )
-    return result
+    try:
+        return chat_with_agent(
+            req.user_query,
+            req.thread_id,
+            trigger_type=req.trigger_type,
+            spot_id=req.spot_id,
+        )
+    except Exception as e:
+        return {
+            "role": "ai",
+            "content": f"Agent 暂时不可用：{e!s}",
+            "inserts": [],
+        }
+
+
+@app.post("/chat/stream")
+async def chat_stream_post(req: ChatRequest):
+    """POST + JSON body，供 Edge Function 与前端 fetch 流式读取（Sprint 4.8）。"""
+    return StreamingResponse(_sse_event_bytes(req), media_type="text/event-stream")
+
 
 @app.get("/chat/stream")
 async def chat_stream_endpoint(
-    request: Request, 
-    user_query: str, 
+    user_query: str,
     thread_id: str = "default_thread",
     trigger_type: Optional[str] = None,
-    spot_id: Optional[str] = None
+    spot_id: Optional[str] = None,
 ):
     """
-    SSE Endpoint for streaming output.
-    To truly stream JSON from an LLM implies complex partial JSON parsing.
-    For this MVP, we will compute the full answer, then stream it character by character
-    to simulate a typewriter effect, OR we just yield the final JSON as a single SSE event.
-    
-    Here we stream the JSON string artificially to satisfy the "打字机" (typewriter) UX.
+    SSE（GET + query）兼容旧调用；推荐使用 POST /chat/stream。
     """
-    async def event_stream():
-        # Get full result
-        loop = asyncio.get_event_loop()
-        result = await loop.run_in_executor(
-            None, 
-            chat_with_agent, 
-            user_query, 
-            thread_id,
-            trigger_type,
-            spot_id
-        )
-        
-        json_str = json.dumps(result, ensure_ascii=False)
-        
-        # Simulate token stream
-        # E.g. yielding chunks of 5 chars
-        chunk_size = 5
-        for i in range(0, len(json_str), chunk_size):
-            chunk = json_str[i:i+chunk_size]
-            yield f"data: {json.dumps({'chunk': chunk}, ensure_ascii=False)}\n\n"
-            await asyncio.sleep(0.01)
-            
-        yield "data: [DONE]\n\n"
-        
-    return StreamingResponse(event_stream(), media_type="text/event-stream")
+    req = ChatRequest(
+        user_query=user_query,
+        thread_id=thread_id,
+        trigger_type=trigger_type,
+        spot_id=spot_id,
+    )
+    return StreamingResponse(_sse_event_bytes(req), media_type="text/event-stream")
 
 if __name__ == "__main__":
     import uvicorn

@@ -1,5 +1,6 @@
 {
   "$id": "route",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
   "required": ["id", "title", "spots"],
   "properties": {
@@ -13,28 +14,7 @@
     "total_distance_km": { "type": "number" },
     "spots": {
       "type": "array",
-      "items": { "$ref": "#/$defs/spot" }
-    }
-  },
-  "$defs": {
-    "spot": {
-      "type": "object",
-      "required": ["id", "name", "lat", "lng", "sort_order"],
-      "properties": {
-        "id": { "type": "string", "format": "uuid" },
-        "name": { "type": "string" },
-        "subtitle": { "type": "string" },
-        "short_desc": { "type": "string" },
-        "detail": { "type": "string" },
-        "tags": { "type": "array", "items": { "type": "string" } },
-        "thumb": { "type": "string" },
-        "photos": { "type": "array", "items": { "type": "string" } },
-        "lat": { "type": "number" },
-        "lng": { "type": "number" },
-        "geofence_radius_m": { "type": "integer", "default": 30 },
-        "estimated_stay_min": { "type": "integer" },
-        "sort_order": { "type": "integer" }
-      }
+      "items": { "$ref": "spot.schema.json" }
     }
   }
 }

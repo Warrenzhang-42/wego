@@ -17,6 +17,7 @@ export class BMapAdapter extends WeGOMap {
     super(container, options);
     this.map = null;
     this.markers = [];
+    this.checkinOverlays = [];
     this.watchId = null;
     this.fences = [];
   }
@@ -121,6 +122,27 @@ export class BMapAdapter extends WeGOMap {
     return marker;
   }
 
+  addCheckinMarker(lng, lat, opts = {}) {
+    if (!this.map) return;
+
+    const [blng, blat] = this._gcj02ToBd09(lng, lat);
+    const point = new BMap.Point(blng, blat);
+    const marker = new BMap.Marker(point);
+    this.map.addOverlay(marker);
+
+    const html = `<div class="wego-checkin-marker"><div class="wego-checkin-medal">✓</div>${
+      opts.label ? `<div class="wego-checkin-label">${opts.label}</div>` : ''
+    }</div>`;
+    const label = new BMap.Label(html, { offset: new BMap.Size(-30, -52) });
+    label.setStyle({ border: 'none', background: 'transparent' });
+    marker.setLabel(label);
+
+    if (opts.onClick) marker.addEventListener('click', opts.onClick);
+
+    this.checkinOverlays.push(marker);
+    return marker;
+  }
+
   async drawRoute(coords, style = {}) {
     if (!this.map || !coords || coords.length < 2) return;
 
@@ -179,6 +201,7 @@ export class BMapAdapter extends WeGOMap {
 
   destroy() {
     if (this.watchId !== null) navigator.geolocation.clearWatch(this.watchId);
+    this.checkinOverlays = [];
     if (this.map) this.map.clearOverlays();
     this.map = null;
     this.markers = [];

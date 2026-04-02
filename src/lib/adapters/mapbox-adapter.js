@@ -17,6 +17,7 @@ export class MapboxAdapter extends WeGOMap {
     super(container, options);
     this.map = null;
     this.markers = [];
+    this.checkinMarkers = [];
     this.routeLayers = [];
     this.watchId = null;
     this.fences = [];
@@ -131,6 +132,29 @@ export class MapboxAdapter extends WeGOMap {
     return marker;
   }
 
+  addCheckinMarker(lng, lat, opts = {}) {
+    if (!this.map) return;
+
+    const el = document.createElement('div');
+    el.className = 'wego-checkin-marker';
+    el.innerHTML = `
+      <div class="wego-checkin-medal">✓</div>
+      ${opts.label ? `<div class="wego-checkin-label">${opts.label}</div>` : ''}
+    `;
+    if (opts.onClick) {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        opts.onClick();
+      });
+    }
+
+    const marker = new mapboxgl.Marker(el)
+      .setLngLat([lng, lat])
+      .addTo(this.map);
+    this.checkinMarkers.push(marker);
+    return marker;
+  }
+
   /**
    * 绘制路线 (GeoJSON Source + Line Layer)
    */
@@ -222,6 +246,14 @@ export class MapboxAdapter extends WeGOMap {
     if (this.watchId !== null) {
       navigator.geolocation.clearWatch(this.watchId);
     }
+    this.checkinMarkers.forEach((m) => {
+      try {
+        m.remove();
+      } catch (e) {
+        /* ignore */
+      }
+    });
+    this.checkinMarkers = [];
     if (this.map) {
       this.map.remove();
       this.map = null;

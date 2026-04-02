@@ -65,6 +65,17 @@ export class WeGOMap {
   }
 
   /**
+   * 打卡勋章标记（与高亮景点区分，发光样式由各引擎 adapter 实现）
+   * @param {number} lng  经度
+   * @param {number} lat  纬度
+   * @param {{ label?: string, onClick?: Function }} opts
+   * @returns {*}  标记实例
+   */
+  addCheckinMarker(lng, lat, opts = {}) {
+    throw new Error('Not implemented: addCheckinMarker()');
+  }
+
+  /**
    * 添加地理围栏（圆形），结合 watchPosition 触发回调
    * @param {number}   lng       圆心经度
    * @param {number}   lat       圆心纬度

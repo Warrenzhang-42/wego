@@ -81,6 +81,8 @@ export class AMapAdapter extends WeGOMap {
     this._watchId = null;
     /** @type {Array} 已注册的围栏配置列表 */
     this._geofences = [];
+    /** @type {AMap.Marker[]} 打卡勋章标记 */
+    this._checkinMarkers = [];
   }
 
   /* ----------------------------------------------------------
@@ -215,6 +217,41 @@ export class AMapAdapter extends WeGOMap {
 
     marker.setMap(this._map);
     console.log(`[AMapAdapter] addMarker → lng:${lng}, lat:${lat}, label:"${label || ''}"`);
+    return marker;
+  }
+
+  /* ----------------------------------------------------------
+     addCheckinMarker — Sprint 6.3 打卡勋章
+     ---------------------------------------------------------- */
+  addCheckinMarker(lng, lat, opts = {}) {
+    if (!this._map) throw new Error('[AMapAdapter] 地图未初始化，请先调用 init()');
+
+    const { label, onClick } = opts;
+    const wrap = document.createElement('div');
+    wrap.className = 'wego-checkin-marker';
+    const medal = document.createElement('div');
+    medal.className = 'wego-checkin-medal';
+    medal.setAttribute('aria-hidden', 'true');
+    medal.textContent = '✓';
+    wrap.appendChild(medal);
+    if (label) {
+      const lab = document.createElement('div');
+      lab.className = 'wego-checkin-label';
+      lab.textContent = label;
+      wrap.appendChild(lab);
+    }
+
+    const marker = new window.AMap.Marker({
+      position: [lng, lat],
+      content: wrap,
+      offset: new window.AMap.Pixel(-22, -22),
+      anchor: 'bottom-center',
+      zIndex: 120,
+    });
+    if (onClick) marker.on('click', () => onClick({ lng, lat }));
+    marker.setMap(this._map);
+    this._checkinMarkers.push(marker);
+    console.log(`[AMapAdapter] addCheckinMarker → lng:${lng}, lat:${lat}`);
     return marker;
   }
 
@@ -364,6 +401,14 @@ export class AMapAdapter extends WeGOMap {
       navigator.geolocation.clearWatch(this._watchId);
       this._watchId = null;
     }
+    this._checkinMarkers.forEach((m) => {
+      try {
+        m.setMap(null);
+      } catch (e) {
+        /* ignore */
+      }
+    });
+    this._checkinMarkers = [];
     if (this._map) {
       this._map.destroy();
       this._map = null;

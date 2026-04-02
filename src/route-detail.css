@@ -69,6 +69,38 @@
   position: relative;
 }
 
+/* ---- 景点打卡（Sprint 6） -------------------------- */
+.rd-spot-checkin-row {
+  margin-top: 14px;
+}
+
+.rd-spot-checkin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(108, 92, 231, 0.45);
+  background: linear-gradient(135deg, rgba(108, 92, 231, 0.12), rgba(162, 155, 254, 0.15));
+  color: var(--clr-text, #1a1528);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.rd-spot-checkin-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(108, 92, 231, 0.25);
+}
+
+.rd-spot-checkin-btn:disabled,
+.rd-spot-checkin-btn.is-done {
+  opacity: 0.65;
+  cursor: default;
+  pointer-events: none;
+}
+
 /* 非全屏：实景截图铺满地图区（无 SVG 路线/标记叠加） */
 .rd-map-photo-inline {
   position: absolute;

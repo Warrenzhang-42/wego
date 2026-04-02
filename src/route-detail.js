@@ -160,6 +160,7 @@ import { apiClient }         from './lib/api-client.js';
 
     window.__WEGO_MAP_CONFIG__.provider = provider;
     await initMap(currentSpots);
+    await restoreCheckins(currentSpots);
   };
 
   // 全局变量保存当前景点数据以供切换使用
@@ -252,6 +253,11 @@ import { apiClient }         from './lib/api-client.js';
               <p>${spot.detail || spot.short_desc || ''}</p>
               <div class="rd-spot-ex-tags">${tagsHtml}</div>
               <div class="rd-spot-gallery">${photosHtml}</div>
+              <div class="rd-spot-checkin-row">
+                <button type="button" class="rd-spot-checkin-btn" data-spot-idx="${idx}" data-spot-id="${spot.id || ''}" aria-label="在此景点打卡">
+                  在此打卡
+                </button>
+              </div>
             </div>
           </div>
         `;
@@ -266,6 +272,87 @@ import { apiClient }         from './lib/api-client.js';
       btn.textContent = '▸';
     });
     document.querySelectorAll('.rd-spot-card').forEach((card) => card.classList.remove('active'));
+  }
+
+  /** Sprint 6：恢复打卡记录 → 勋章标记 + 按钮状态 */
+  async function restoreCheckins(spots) {
+    let rows = [];
+    try {
+      rows = await apiClient.getCheckins();
+    } catch (e) {
+      console.warn('[route-detail] 读取打卡记录失败:', e);
+      return;
+    }
+
+    const done = new Set(rows.map((r) => r.spot_id));
+    spots.forEach((s) => {
+      if (s.id && done.has(s.id)) {
+        const btn = document.querySelector(`.rd-spot-checkin-btn[data-spot-id="${s.id}"]`);
+        if (btn) {
+          btn.disabled = true;
+          btn.classList.add('is-done');
+          btn.textContent = '已打卡';
+        }
+      }
+    });
+
+    if (!mapAdapter) return;
+    const bySpot = new Map(spots.map((s) => [s.id, s]));
+    for (const row of rows) {
+      const sp = bySpot.get(row.spot_id);
+      if (!sp) continue;
+      const lat = typeof row.lat === 'number' ? row.lat : parseFloat(row.lat);
+      const lng = typeof row.lng === 'number' ? row.lng : parseFloat(row.lng);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+      try {
+        mapAdapter.addCheckinMarker(lng, lat, { label: sp.name });
+      } catch (e) {
+        console.warn('[route-detail] 打卡标记渲染失败:', e);
+      }
+    }
+  }
+
+  function bindCheckinButtons(spots) {
+    document.querySelectorAll('.rd-spot-checkin-btn').forEach((btn) => {
+      btn.addEventListener('click', async (ev) => {
+        ev.stopPropagation();
+        const idx = parseInt(btn.getAttribute('data-spot-idx'), 10);
+        const spot = spots[idx];
+        if (!spot || !spot.id) {
+          console.warn('[route-detail] 景点缺少 id，无法打卡');
+          return;
+        }
+        if (btn.classList.contains('is-done') || btn.disabled) return;
+
+        const run = async (lat, lng) => {
+          try {
+            await apiClient.saveCheckin({
+              spot_id: spot.id,
+              lat,
+              lng,
+            });
+            if (mapAdapter) {
+              mapAdapter.addCheckinMarker(lng, lat, { label: spot.name });
+            }
+            btn.disabled = true;
+            btn.classList.add('is-done');
+            btn.textContent = '已打卡';
+          } catch (err) {
+            console.error('[route-detail] 打卡失败:', err);
+          }
+        };
+
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => run(pos.coords.latitude, pos.coords.longitude),
+            () => run(spot.lat, spot.lng),
+            { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
+          );
+        } else {
+          await run(spot.lat, spot.lng);
+        }
+      });
+    });
   }
 
   function bindSpotToggleEvents() {
@@ -300,18 +387,20 @@ import { apiClient }         from './lib/api-client.js';
     currentSpots = spots; // 保存到全局，供切换引擎使用
     buildSpotList(spots);
     bindSpotToggleEvents();
+    bindCheckinButtons(spots);
     await initMap(spots);
+    await restoreCheckins(spots);
   }
 
   /* ---- 内嵌备份数据（loadRouteData 失败时使用）---------- */
   function getFallbackSpots() {
     const A = 'assets/routes/yangmeizhu-heritage/';
     return [
-      { name: '青云阁及二层模范咖啡', subtitle: '高停留时间型空间', short_desc: '清末民初北京「四大商场」之一旧址，二楼「模范咖啡」适合慢坐。', detail: '', tags: ['🏛️ 老商场旧址', '☕ 胡同咖啡'], thumb: A+'qingyun-pavilion.png', photos: [A+'qingyun-pavilion.png'], lat: 39.896134, lng: 116.393245 },
-      { name: '张忠强兔儿爷非遗传承店', subtitle: '老北京中秋民俗 · 泥塑「兔儿爷」', short_desc: '杨梅竹斜街上的非遗工作室。', detail: '', tags: ['🐰 中秋民俗', '🎨 泥塑彩绘'], thumb: A+'tuerye-1.png', photos: [A+'tuerye-1.png'], lat: 39.895982, lng: 116.394123 },
-      { name: '铃木食堂', subtitle: '高情绪价值型餐厅', short_desc: '藏在胡同里的日式小食堂。', detail: '', tags: ['🍚 日式食堂', '🌙 适合晚餐'], thumb: A+'suzuki-exterior.png', photos: [A+'suzuki-exterior.png'], lat: 39.895321, lng: 116.394123 },
-      { name: '乾坤空间文创', subtitle: '可以逛的展览空间', short_desc: '像小型美术馆的文创店。', detail: '', tags: ['🖼️ 展陈式零售', '🧵 刺绣书画'], thumb: A+'qiankun-space.png', photos: [A+'qiankun-space.png'], lat: 39.895678, lng: 116.392156 },
-      { name: '将将堂印章', subtitle: '低流量但高转化的深体验型店', short_desc: '专注篆刻与钤印体验。', detail: '', tags: ['🖌️ 篆刻钤印', '📇 手帐纪念'], thumb: A+'jiangjiangtang.png', photos: [A+'jiangjiangtang.png'], lat: 39.894987, lng: 116.393567 },
+      { id: '7f8a1b2c-3d4e-4f5a-8b9c-0d1e2f3a4b5c', name: '青云阁及二层模范咖啡', subtitle: '高停留时间型空间', short_desc: '清末民初北京「四大商场」之一旧址，二楼「模范咖啡」适合慢坐。', detail: '', tags: ['🏛️ 老商场旧址', '☕ 胡同咖啡'], thumb: A+'qingyun-pavilion.png', photos: [A+'qingyun-pavilion.png'], lat: 39.896134, lng: 116.393245, sort_order: 1 },
+      { id: 'a1b2c3d4-e5f6-4a5b-bc6d-7e8f9a0b1c2d', name: '张忠强兔儿爷非遗传承店', subtitle: '老北京中秋民俗 · 泥塑「兔儿爷」', short_desc: '杨梅竹斜街上的非遗工作室。', detail: '', tags: ['🐰 中秋民俗', '🎨 泥塑彩绘'], thumb: A+'tuerye-1.png', photos: [A+'tuerye-1.png'], lat: 39.895982, lng: 116.394123, sort_order: 2 },
+      { id: 'b2c3d4e5-f6a7-4b6c-cd7d-8e9f0a1b2c3d', name: '铃木食堂', subtitle: '高情绪价值型餐厅', short_desc: '藏在胡同里的日式小食堂。', detail: '', tags: ['🍚 日式食堂', '🌙 适合晚餐'], thumb: A+'suzuki-exterior.png', photos: [A+'suzuki-exterior.png'], lat: 39.895321, lng: 116.394123, sort_order: 3 },
+      { id: 'c3d4e5f6-a7b8-4c7d-de8e-9f0a1b2c3d4e', name: '乾坤空间文创', subtitle: '可以逛的展览空间', short_desc: '像小型美术馆的文创店。', detail: '', tags: ['🖼️ 展陈式零售', '🧵 刺绣书画'], thumb: A+'qiankun-space.png', photos: [A+'qiankun-space.png'], lat: 39.895678, lng: 116.392156, sort_order: 4 },
+      { id: 'd4e5f6a7-b8c9-4d8e-ef9f-0a1b2c3d4e5f', name: '将将堂印章', subtitle: '低流量但高转化的深体验型店', short_desc: '专注篆刻与钤印体验。', detail: '', tags: ['🖌️ 篆刻钤印', '📇 手帐纪念'], thumb: A+'jiangjiangtang.png', photos: [A+'jiangjiangtang.png'], lat: 39.894987, lng: 116.393567, sort_order: 5 },
     ];
   }
 

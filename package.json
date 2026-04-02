@@ -7,7 +7,7 @@
     "test": "tests"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --test tests/unit/*.mjs tests/contracts/*.mjs",
     "dev": "vite src --port 5173 --host 127.0.0.1",
     "dev:open": "vite src --port 5173 --host 127.0.0.1 --open",
     "seed": "node data/scripts/seed-dashilan.js",

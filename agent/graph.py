@@ -10,6 +10,7 @@ from langgraph.prebuilt import create_react_agent
 from tools.search_knowledge import search_knowledge
 from tools.web_search import web_search
 from tools.plan_route import plan_route
+from tools.geofence_narration import geofence_narration
 
 load_dotenv()
 
@@ -34,7 +35,7 @@ llm = ChatOpenAI(
     temperature=0.7,
 )
 
-tools = [search_knowledge, web_search, plan_route]
+tools = [search_knowledge, web_search, plan_route, geofence_narration]
 
 # Create LangGraph ReAct Agent
 system_message = f"{system_prompt}\n\n{personality_prompt}"
@@ -50,7 +51,10 @@ def chat_with_agent(user_input: str, thread_id: str = "default_thread", trigger_
     config = {"configurable": {"thread_id": thread_id}}
     
     if trigger_type == "geofence" and spot_id:
-        user_input = f"[SYSTEM_TRIGGER: GEOFENCE_ENTER] Spot: {spot_id}. {user_input}"
+        user_input = (
+            f"[SYSTEM_TRIGGER: GEOFENCE_ENTER] spot_id={spot_id}. "
+            f"请先调用 geofence_narration 工具获取该点知识，再生成符合 chat-message 契约的 JSON 回复。{user_input}"
+        )
 
     inputs = {"messages": [("user", user_input)]}
     

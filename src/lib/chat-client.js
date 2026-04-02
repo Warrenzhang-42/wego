@@ -1,14 +1,42 @@
 /**
  * WeGO - Chat Client
- * Connects to the local FastAPI Agent or Supabase Edge Function to get responses.
+ * Sprint 4.8/4.9：优先 SSE（POST /chat/stream），失败则回退 JSON /chat。
  */
 
 window.WeGOChatClient = (function () {
   'use strict';
 
-  // For Sprint 4 local testing, direct to FastAPI
-  const API_URL = 'http://localhost:8000/chat/stream';
+  const STREAM_URL = 'http://localhost:8000/chat/stream';
   const FALLBACK_URL = 'http://localhost:8000/chat';
+
+  function parseSseText(text) {
+    let assembled = '';
+    const lines = text.split(/\n/);
+    for (const line of lines) {
+      if (!line.startsWith('data: ')) continue;
+      const payload = line.slice(6).trim();
+      if (payload === '[DONE]') break;
+      try {
+        const j = JSON.parse(payload);
+        if (j && typeof j.chunk === 'string') assembled += j.chunk;
+      } catch {
+        /* ignore partial lines */
+      }
+    }
+    return assembled;
+  }
+
+  async function readSseResponse(res) {
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+    }
+    return parseSseText(buf);
+  }
 
   class ChatClient {
     constructor(eventBus) {
@@ -17,51 +45,65 @@ window.WeGOChatClient = (function () {
     }
 
     /**
-     * Send a message to the Agent.
+     * Send a message to the Agent（SSE → JSON 解析 → EventBus）
      */
     async sendMessage(query, lat = null, lng = null, extra = {}) {
-      // Announce we started sending
       if (this.eventBus) {
         this.eventBus.emit('chat:sending', { query, ...extra });
       }
 
+      const payload = {
+        user_query: query,
+        lat,
+        lng,
+        thread_id: this.threadId,
+        ...extra,
+      };
+
       try {
-        // We use the regular POST endpoint to fetch the JSON for now.
-        // True SSE streaming of JSON from our backend may require parsing fragments.
-        // For standard WeGO functionality, we'll fetch the JSON first.
+        const res = await fetch(STREAM_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        if (res.ok && res.body) {
+          const assembled = await readSseResponse(res);
+          if (assembled) {
+            try {
+              const data = JSON.parse(assembled);
+              if (this.eventBus) this.eventBus.emit('chat:receive', data);
+              return data;
+            } catch (parseErr) {
+              console.warn('[chat-client] SSE 解析失败，回退 JSON:', parseErr);
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('[chat-client] SSE 失败，回退 JSON:', e);
+      }
+
+      try {
         const res = await fetch(FALLBACK_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            user_query: query,
-            lat,
-            lng,
-            thread_id: this.threadId,
-            ...extra
-          })
+          body: JSON.stringify(payload),
         });
 
-        if (!res.ok) {
-          throw new Error('网络异常');
-        }
+        if (!res.ok) throw new Error('网络异常');
 
         const data = await res.json();
-        
-        // Emitting the received message event
-        if (this.eventBus) {
-          this.eventBus.emit('chat:receive', data);
-        }
+        if (this.eventBus) this.eventBus.emit('chat:receive', data);
         return data;
       } catch (e) {
         console.error('Chat error:', e);
         const errorData = {
           role: 'ai',
-          content: '抱歉，本地 Agent 服务好像没开启 (需执行 uvicorn server:app --host 0.0.0.0)。',
-          inserts: []
+          content:
+            '抱歉，本地 Agent 服务好像没开启 (需执行: cd agent && uvicorn server:app --host 0.0.0.0 --port 8000)。',
+          inserts: [],
         };
-        if (this.eventBus) {
-          this.eventBus.emit('chat:receive', errorData);
-        }
+        if (this.eventBus) this.eventBus.emit('chat:receive', errorData);
         return errorData;
       }
     }
