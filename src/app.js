@@ -89,19 +89,25 @@ import { appendRouteCards } from './lib/route-display.js';
       culture:   '文化',
       nature:    '自然',
     };
-    const routeListEl = document.getElementById('route-list');
-    const categoryEmptyTabId = 'tab-content-category-empty';
-    const ensureCategoryEmptyTab = () => {
-      let emptyTab = document.getElementById(categoryEmptyTabId);
-      if (!emptyTab && routeListEl) {
-        emptyTab = document.createElement('div');
-        emptyTab.id = categoryEmptyTabId;
-        emptyTab.className = 'route-group';
-        emptyTab.style.display = 'none';
-        emptyTab.innerHTML = '<p class="empty-text">暂无匹配路线</p>';
-        routeListEl.appendChild(emptyTab);
-      }
-      return emptyTab;
+    const localTabEl = document.getElementById('tab-content-local');
+    const recommendTabEl = document.getElementById('tab-content-recommend');
+    const localSentinelEl = localTabEl?.querySelector('.route-pagination-sentinel') || null;
+    const allRouteCards = () => Array.from(document.querySelectorAll('#route-list .route-card'));
+    const cardHasTag = (card, wantedTag) => {
+      if (!wantedTag) return true;
+      const tags = Array.from(card.querySelectorAll('.route-tags .tag'))
+        .map(tag => (tag.textContent || '').trim());
+      return tags.some(tag => tag.includes(wantedTag));
+    };
+    const restoreAllCardsVisible = () => {
+      allRouteCards().forEach(card => { card.style.display = ''; });
+    };
+    const filterAllRoutesByTag = (wantedTag) => {
+      if (localTabEl) localTabEl.style.display = 'block';
+      if (recommendTabEl) recommendTabEl.style.display = 'block';
+      allRouteCards().forEach(card => {
+        card.style.display = cardHasTag(card, wantedTag) ? '' : 'none';
+      });
     };
 
     // 注意：此函数覆盖了 initChips() 的 tab 切换行为，因此需在此处统一管理
@@ -122,21 +128,20 @@ import { appendRouteCards } from './lib/route-display.js';
 
         // local tab 必须优先处理，否则会被通用 target 分支吞掉，无法重置筛选状态
         if (tabId === 'local') {
-          const localTabEl = document.getElementById('tab-content-local');
+          restoreAllCardsVisible();
           if (localTabEl) {
             localTabEl.style.display = 'block';
             resetPagination(null);
           }
+          if (localSentinelEl) localSentinelEl.style.display = '';
         } else if (target) {
+          restoreAllCardsVisible();
           target.style.display = 'block';
+          if (localSentinelEl) localSentinelEl.style.display = '';
         } else if (tagFilter) {
-          // 美食/文化/自然不复用 local 数据，显示独立空态
-          const emptyTab = ensureCategoryEmptyTab();
-          if (emptyTab) {
-            const chipLabel = (chip.textContent || '').trim().replace(/\s+/g, ' ');
-            emptyTab.innerHTML = `<p class="empty-text">${chipLabel} 暂无匹配路线</p>`;
-            emptyTab.style.display = 'block';
-          }
+          // 美食/文化/自然：按标签过滤全部路线（本地 + 推荐 + 动态）
+          filterAllRoutesByTag(tagFilter);
+          if (localSentinelEl) localSentinelEl.style.display = 'none';
         }
       });
     });
