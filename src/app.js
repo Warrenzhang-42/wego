@@ -7,25 +7,77 @@ import { appendRouteCards } from './lib/route-display.js';
 // ---- Sprint 8: 数据库驱动路线列表 ----------------------
 (async function initDynamicRoutes() {
   'use strict';
+  const LOCAL_PAGE_SIZE = 10;
 
   // 渲染动态路线（追加到 local tab）
   try {
     const { apiClient } = await import('./lib/api-client.js');
     const routes = await apiClient.getRoutes();
 
-    // 将数据库路线追加到"本地"tab（不替换现有硬编码卡片）
     const localTab = document.getElementById('tab-content-local');
-    if (localTab && routes.length) {
-      // 加一个分割线标题
-      const divider = document.createElement('p');
-      divider.className = 'route-group-hint';
-      divider.textContent = '— 更多路线 —';
-      Object.assign(divider.style, {
-        textAlign: 'center', fontSize: '12px', color: '#999',
-        margin: '4px 0 8px', fontWeight: '600'
+    let currentFilterTag = null;
+    let localCardsForPagination = [];
+    let localCurrentPage = 0;
+
+    // 本地 tab 仅展示数据库路线，避免与静态卡片叠加导致数量异常
+    if (localTab) {
+      localTab.innerHTML = '';
+      if (routes.length) {
+        appendRouteCards(localTab, routes, { listReferrerFile: 'index.html', fromParam: 'index' });
+      }
+
+      const localSentinel = document.createElement('p');
+      localSentinel.className = 'route-pagination-sentinel';
+      Object.assign(localSentinel.style, {
+        textAlign: 'center',
+        fontSize: '12px',
+        color: '#999',
+        margin: '6px 0 12px',
+        fontWeight: '600',
       });
-      localTab.appendChild(divider);
-      appendRouteCards(localTab, routes, { listReferrerFile: 'index.html', fromParam: 'index' });
+      localTab.appendChild(localSentinel);
+
+      const allLocalCards = () => Array.from(localTab.querySelectorAll('.route-card'));
+      const resolveCardsByTag = (tagFilter) => {
+        const cards = allLocalCards();
+        if (!tagFilter) return cards;
+        return cards.filter(card => {
+          const tags = Array.from(card.querySelectorAll('.route-tags .tag'))
+            .map(tag => (tag.textContent || '').trim());
+          return tags.some(tag => tag.includes(tagFilter));
+        });
+      };
+      const renderNextPage = () => {
+        const start = localCurrentPage * LOCAL_PAGE_SIZE;
+        if (start >= localCardsForPagination.length) {
+          localSentinel.textContent = localCardsForPagination.length ? '已展示全部路线' : '暂无匹配路线';
+          return;
+        }
+        const nextCards = localCardsForPagination.slice(start, start + LOCAL_PAGE_SIZE);
+        nextCards.forEach(card => { card.style.display = ''; });
+        localCurrentPage += 1;
+        localSentinel.textContent =
+          localCurrentPage * LOCAL_PAGE_SIZE < localCardsForPagination.length
+            ? '下拉加载更多路线'
+            : '已展示全部路线';
+      };
+      const resetPagination = (tagFilter = null) => {
+        currentFilterTag = tagFilter;
+        localCurrentPage = 0;
+        localCardsForPagination = resolveCardsByTag(tagFilter);
+        allLocalCards().forEach(card => { card.style.display = 'none'; });
+        renderNextPage();
+      };
+
+      const observer = new IntersectionObserver(entries => {
+        const [entry] = entries;
+        const isLocalVisible = localTab.style.display !== 'none';
+        if (!entry?.isIntersecting || !isLocalVisible) return;
+        renderNextPage();
+      }, { root: null, threshold: 0.1 });
+      observer.observe(localSentinel);
+
+      resetPagination(null);
     }
 
     // ── Chip Tag 过滤（Sprint 8.3）──────────────────────
@@ -60,32 +112,43 @@ import { appendRouteCards } from './lib/route-display.js';
           const localTabEl = document.getElementById('tab-content-local');
           if (localTabEl) {
             localTabEl.style.display = 'block';
-
-            // 临时清除: 隐藏"本地"硬编码卡片，只显示过滤结果
-            const staticCards = localTabEl.querySelectorAll('.route-card:not(.route-card--dynamic)');
-            staticCards.forEach(c => { c.style.display = tagFilter ? 'none' : ''; });
-
-            // 过滤动态卡片
-            const dynamicCards = localTabEl.querySelectorAll('.route-card--dynamic');
-            if (tagFilter) {
-              try {
-                const filtered = await apiClient.getRoutes({ tag: tagFilter });
-                const filteredIds = new Set(filtered.map(r => r.id));
-                dynamicCards.forEach(card => {
-                  card.style.display = filteredIds.has(card.dataset.routeId) ? '' : 'none';
-                });
-              } catch {
-                dynamicCards.forEach(c => { c.style.display = ''; });
-              }
-            } else {
-              dynamicCards.forEach(c => { c.style.display = ''; });
+            currentFilterTag = tagFilter || null;
+            localCurrentPage = 0;
+            localCardsForPagination = Array.from(localTabEl.querySelectorAll('.route-card')).filter(card => {
+              if (!currentFilterTag) return true;
+              const tags = Array.from(card.querySelectorAll('.route-tags .tag'))
+                .map(tag => (tag.textContent || '').trim());
+              return tags.some(tag => tag.includes(currentFilterTag));
+            });
+            localTabEl.querySelectorAll('.route-card').forEach(card => { card.style.display = 'none'; });
+            const firstBatch = localCardsForPagination.slice(0, LOCAL_PAGE_SIZE);
+            firstBatch.forEach(card => { card.style.display = ''; });
+            localCurrentPage = firstBatch.length ? 1 : 0;
+            const sentinel = localTabEl.querySelector('.route-pagination-sentinel');
+            if (sentinel) {
+              sentinel.textContent =
+                localCardsForPagination.length > LOCAL_PAGE_SIZE ? '下拉加载更多路线'
+                  : localCardsForPagination.length ? '已展示全部路线'
+                    : '暂无匹配路线';
             }
           }
         } else if (tabId === 'local') {
-          // 恢复本地 tab 显示所有卡片
+          // 本地 tab 展示全部路线，并按分页回到首屏
           const localTabEl = document.getElementById('tab-content-local');
           if (localTabEl) {
-            localTabEl.querySelectorAll('.route-card').forEach(c => { c.style.display = ''; });
+            currentFilterTag = null;
+            localCurrentPage = 0;
+            localCardsForPagination = Array.from(localTabEl.querySelectorAll('.route-card'));
+            localTabEl.querySelectorAll('.route-card').forEach(card => { card.style.display = 'none'; });
+            localCardsForPagination.slice(0, LOCAL_PAGE_SIZE).forEach(card => { card.style.display = ''; });
+            localCurrentPage = localCardsForPagination.length ? 1 : 0;
+            const sentinel = localTabEl.querySelector('.route-pagination-sentinel');
+            if (sentinel) {
+              sentinel.textContent =
+                localCardsForPagination.length > LOCAL_PAGE_SIZE ? '下拉加载更多路线'
+                  : localCardsForPagination.length ? '已展示全部路线'
+                    : '暂无匹配路线';
+            }
           }
         }
       });
@@ -259,14 +322,6 @@ import { appendRouteCards } from './lib/route-display.js';
   }
 
 })();
-
-const btnSeeAll = document.getElementById('btn-see-all');
-if (btnSeeAll) {
-  btnSeeAll.addEventListener('click', () => {
-    window.location.href = 'search.html';
-  });
-}
-
 
 // ---- Toast utility -----------------------------------
 function showToast(msg) {
