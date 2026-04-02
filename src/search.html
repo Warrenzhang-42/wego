@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>搜索路线 · WeGO</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="search.css" />
+</head>
+<body>
+  <div id="app" class="search-page">
+    <header class="search-page-header">
+      <a href="index.html" class="search-back" aria-label="返回首页">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </a>
+      <h1 class="search-page-title">搜索路线</h1>
+      <span class="search-header-spacer" aria-hidden="true"></span>
+    </header>
+
+    <div class="search-area search-page-search-area">
+      <form id="search-page-form" class="home-search-form" role="search" action="search.html" method="get">
+        <div class="search-bar search-page-bar" id="search-page-bar">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="5" stroke="#aaa" stroke-width="1.5"/><path d="M11 11L14 14" stroke="#aaa" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <input type="search" name="q" id="search-page-input" class="search-input" placeholder="输入关键词，如：非遗、美食、书店…" aria-label="搜索关键词" autocomplete="off" enterkeyhint="search" />
+          <button type="submit" class="search-page-submit" aria-label="搜索">搜索</button>
+        </div>
+      </form>
+    </div>
+
+    <p id="search-result-hint" class="search-result-hint" aria-live="polite"></p>
+
+    <div class="route-list search-route-list" id="search-route-list">
+      <div id="search-results" class="search-results-inner"></div>
+    </div>
+
+    <div id="search-empty" class="search-empty" hidden>
+      <p class="search-empty-title">没有找到匹配的路线</p>
+      <p class="search-empty-desc">换个关键词试试，或浏览首页热门路线。</p>
+      <a href="index.html" class="search-empty-link">返回首页</a>
+    </div>
+
+    <div style="height: 48px;"></div>
+  </div>
+
+  <script>
+    window.__WEGO_API_CONFIG__ = {
+      supabaseUrl:     'https://mforzutksmcimmzeodfe.supabase.co',
+      supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb3J6dXRrc21jaW1temVvZGZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMjI1NTEsImV4cCI6MjA5MDU5ODU1MX0.cAhiYPKZsJnHEgZHT5WwiTNdstky2DKCkSdD1uV92W0',
+    };
+  </script>
+  <script type="module" src="search.js"></script>
+</body>
+</html>

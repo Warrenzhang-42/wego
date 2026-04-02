@@ -2,103 +2,11 @@
    WeGO · app.js — Mobile Homepage Interactions
    ==================================================== */
 
+import { appendRouteCards } from './lib/route-display.js';
+
 // ---- Sprint 8: 数据库驱动路线列表 ----------------------
 (async function initDynamicRoutes() {
   'use strict';
-
-  // 简单热度渲染辅助（0-5 颗点）
-  function renderHeatDots(heatLevel) {
-    const level = Math.round(Math.min(5, Math.max(0, heatLevel || 3)));
-    return Array.from({ length: 5 }, (_, i) =>
-      `<span class="heat-dot${i < level ? ' hot' : ''}"></span>`
-    ).join('');
-  }
-
-  // 热度数字格式化
-  function formatHeatNum(num) {
-    if (!num) return `${Math.floor(Math.random() * 20 + 5)}.${Math.floor(Math.random() * 9)}k`;
-    return num >= 1000 ? `${(num / 1000).toFixed(1)}k` : String(num);
-  }
-
-  // Tag 类型映射
-  const TAG_CLASS_MAP = {
-    '非遗': 'tag-ich', '手工艺': 'tag-art', '文化': 'tag-culture', '历史': 'tag-history',
-    '美食': 'tag-food', '老字号': 'tag-history', '徒步': 'tag-walking', 'Citywalk': 'tag-walking',
-    '自然': 'tag-nature', '艺术': 'tag-art', '咖啡': 'tag-reading'
-  };
-  function tagClass(tag) { return TAG_CLASS_MAP[tag] || 'tag-culture'; }
-
-  // 将路线数据渲染为 route-card HTML
-  function buildRouteCard(route) {
-    const tags = (route.tags || []).slice(0, 2);
-    const tagsHtml = tags.map(t => `<span class="tag ${tagClass(t)}">${t}</span>`).join('');
-    const heatLevel = route.heat_level || 3;
-    const durationStr = route.duration_minutes
-      ? `${Math.round(route.duration_minutes / 60 * 10) / 10}h`
-      : '2h';
-    const coverSrc = route.cover_image || 'assets/routes/yangmeizhu-heritage.png';
-    const coverAlt = route.title || '路线封面';
-    const routeId = route.id || '';
-
-    return `
-      <div class="route-card route-card--dynamic" role="button" tabindex="0"
-           aria-label="路线：${route.title || ''}"
-           data-route-id="${routeId}">
-        <div class="route-thumb">
-          <img src="${coverSrc}" alt="${coverAlt}" class="route-thumb-img" loading="lazy" />
-        </div>
-        <div class="route-info">
-          <div class="route-title-row">
-            <h3 class="route-title">${route.title || '精选路线'}</h3>
-          </div>
-          <p class="route-subtitle">${route.description || ''}</p>
-          <div class="route-heat">
-            <span class="heat-label">热度</span>
-            <div class="heat-dots">${renderHeatDots(heatLevel)}</div>
-            <span class="heat-num">${formatHeatNum(route.heat_count)}</span>
-          </div>
-          <div class="route-tags">${tagsHtml}</div>
-        </div>
-        <div class="route-map-thumb">
-          <div class="map-mini" aria-label="${route.title || '路线'}路线示意">
-            <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect width="64" height="64" rx="14" fill="#F4EBE8"/>
-              <path d="M8 52 C 20 40, 44 24, 56 12" stroke="#b22314" stroke-width="4" stroke-linecap="round" fill="none"/>
-              <circle cx="8" cy="52" r="4" fill="white" stroke="#b22314" stroke-width="2"/>
-              <circle cx="56" cy="12" r="5" fill="#FF5757"/><circle cx="56" cy="12" r="2" fill="white"/>
-            </svg>
-            <span class="map-duration">${durationStr}</span>
-          </div>
-        </div>
-      </div>
-    `;
-  }
-
-  // 平滑插入（避免页面跳动）
-  function appendRouteCards(container, routes) {
-    if (!container || !routes.length) return;
-    const fragment = document.createDocumentFragment();
-    routes.forEach(r => {
-      const wrapper = document.createElement('div');
-      wrapper.innerHTML = buildRouteCard(r).trim();
-      const card = wrapper.firstElementChild;
-      if (card) {
-        fragment.appendChild(card);
-        // 绑定点击
-        card.addEventListener('click', () => {
-          card.style.transition = 'transform 0.12s';
-          card.style.transform  = 'scale(0.97)';
-          setTimeout(() => {
-            card.style.transform = '';
-            sessionStorage.setItem('wegoRouteDetailReferrer', 'index.html');
-            sessionStorage.setItem('wegoActiveRouteId', card.dataset.routeId || '');
-            window.location.href = 'route-detail.html?from=index';
-          }, 150);
-        });
-      }
-    });
-    container.appendChild(fragment);
-  }
 
   // 渲染动态路线（追加到 local tab）
   try {
@@ -117,7 +25,7 @@
         margin: '4px 0 8px', fontWeight: '600'
       });
       localTab.appendChild(divider);
-      appendRouteCards(localTab, routes);
+      appendRouteCards(localTab, routes, { listReferrerFile: 'index.html', fromParam: 'index' });
     }
 
     // ── Chip Tag 过滤（Sprint 8.3）──────────────────────
@@ -310,13 +218,41 @@
 
 
 
-// ---- Search bar click --------------------------------
-document.getElementById('search-input').addEventListener('focus', () => {
-  document.getElementById('search-bar').style.borderColor = 'var(--clr-primary)';
-});
-document.getElementById('search-input').addEventListener('blur', () => {
-  document.getElementById('search-bar').style.borderColor = '';
-});
+// ---- Search bar：跳转搜索页 --------------------------------
+(function initHomeSearch() {
+  const searchBar = document.getElementById('search-bar');
+  const searchInput = document.getElementById('search-input');
+  const form = document.getElementById('home-search-form');
+  if (!searchInput || !searchBar) return;
+
+  function goSearch() {
+    const q = searchInput.value.trim();
+    const url = q ? `search.html?q=${encodeURIComponent(q)}` : 'search.html';
+    window.location.href = url;
+  }
+
+  searchInput.addEventListener('focus', () => {
+    searchBar.style.borderColor = 'var(--clr-primary)';
+  });
+  searchInput.addEventListener('blur', () => {
+    searchBar.style.borderColor = '';
+  });
+
+  if (form) {
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+      goSearch();
+    });
+  }
+
+})();
+
+const btnSeeAll = document.getElementById('btn-see-all');
+if (btnSeeAll) {
+  btnSeeAll.addEventListener('click', () => {
+    window.location.href = 'search.html';
+  });
+}
 
 
 // ---- Toast utility -----------------------------------

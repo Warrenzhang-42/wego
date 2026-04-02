@@ -1,0 +1,126 @@
+/* WeGO — 搜索路线页 */
+
+.search-page {
+  min-height: 100vh;
+  background: var(--clr-surface-container-lowest);
+}
+
+.search-page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px 8px;
+  gap: 12px;
+}
+
+.search-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  color: var(--clr-text-h);
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.search-back:hover {
+  background: var(--clr-surface-container-low);
+}
+
+.search-page-title {
+  flex: 1;
+  text-align: center;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 17px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--clr-text-h);
+}
+
+.search-header-spacer {
+  width: 40px;
+  flex-shrink: 0;
+}
+
+.search-page-search-area {
+  padding-top: 4px;
+}
+
+.search-page-bar {
+  flex-wrap: wrap;
+}
+
+.search-page-submit {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--clr-primary);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: 'Manrope', sans-serif;
+  cursor: pointer;
+  transition: filter 0.15s, transform 0.1s;
+}
+
+.search-page-submit:hover {
+  filter: brightness(1.05);
+}
+
+.search-page-submit:active {
+  transform: scale(0.97);
+}
+
+.search-result-hint {
+  margin: 0 18px 8px;
+  font-size: 13px;
+  color: var(--clr-text-muted);
+  font-weight: 600;
+}
+
+.search-route-list {
+  padding-bottom: 24px;
+}
+
+.search-results-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.search-empty {
+  text-align: center;
+  padding: 48px 24px;
+}
+
+.search-empty-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--clr-text-h);
+  margin: 0 0 8px;
+}
+
+.search-empty-desc {
+  font-size: 14px;
+  color: var(--clr-text-muted);
+  margin: 0 0 20px;
+  line-height: 1.5;
+}
+
+.search-empty-link {
+  display: inline-block;
+  padding: 10px 20px;
+  background: var(--clr-primary-light);
+  color: var(--clr-primary);
+  font-weight: 700;
+  font-size: 14px;
+  border-radius: 999px;
+  text-decoration: none;
+}
+
+.search-empty-link:hover {
+  filter: brightness(0.97);
+}

@@ -33,13 +33,15 @@
 
     <!-- ===== SEARCH BAR ===== -->
     <div class="search-area">
-      <div class="search-bar" id="search-bar" role="search">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="#aaa" stroke-width="1.5"/><path d="M11 11L14 14" stroke="#aaa" stroke-width="1.5" stroke-linecap="round"/></svg>
-        <input type="text" placeholder="探索当地文化、美食、路线…" class="search-input" id="search-input" aria-label="搜索目的地" />
-        <button class="search-filter-btn" aria-label="筛选">
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4H14M4 8H12M6 12H10" stroke="#b22314" stroke-width="1.5" stroke-linecap="round"/></svg>
-        </button>
-      </div>
+      <form id="home-search-form" class="home-search-form" action="search.html" method="get" role="search">
+        <div class="search-bar" id="search-bar">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="5" stroke="#aaa" stroke-width="1.5"/><path d="M11 11L14 14" stroke="#aaa" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <input type="search" name="q" placeholder="探索当地文化、美食、路线…" class="search-input" id="search-input" aria-label="搜索路线" autocomplete="off" enterkeyhint="search" />
+          <button type="button" class="search-filter-btn" aria-label="筛选（即将推出）">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M2 4H14M4 8H12M6 12H10" stroke="#b22314" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+        </div>
+      </form>
     </div>
 
     <!-- ===== HERO CAROUSEL ===== -->

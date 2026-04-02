@@ -1,0 +1,82 @@
+[
+  {
+    "id": "featured-bj-citywalk",
+    "title": "大栅栏文艺青年小店 citywalk 游线",
+    "description": "胡同里淘 vintage 与独立小店，慢逛大栅栏里的文艺角落",
+    "tags": ["Citywalk", "文艺小店"],
+    "cover_image": "assets/routes/dashilan-hipster-citywalk.png",
+    "duration_minutes": 210,
+    "heat_level": 4,
+    "heat_count": 24800
+  },
+  {
+    "id": "featured-bj-bookstore",
+    "title": "五道口书店漫游文化路线",
+    "description": "从豆瓣书店到周边独立书房，感受五道口学圈与书香氛围",
+    "tags": ["独立书店", "阅读文化"],
+    "cover_image": "assets/routes/wudaokou-bookstore-culture.png",
+    "duration_minutes": 120,
+    "heat_level": 4,
+    "heat_count": 21300
+  },
+  {
+    "id": "featured-bj-tcm",
+    "title": "大栅栏老字号与中医药体验游线",
+    "description": "牌坊老街串联同仁堂与药香故事，读懂京味商业记忆",
+    "tags": ["老字号", "中医药"],
+    "cover_image": "assets/routes/dashilan-tcm-brands.png",
+    "duration_minutes": 120,
+    "heat_level": 3,
+    "heat_count": 18600
+  },
+  {
+    "id": "e4e20790-a521-4f0e-947b-1172a1e1b7f1",
+    "title": "大栅栏杨梅竹斜街非遗体验精品游线",
+    "description": "杨梅竹斜街手作与非遗工坊串联，精品小团深度走读",
+    "tags": ["非遗", "胡同文化"],
+    "cover_image": "assets/routes/yangmeizhu-heritage.png",
+    "duration_minutes": 240,
+    "heat_level": 5,
+    "heat_count": 31400
+  },
+  {
+    "id": "featured-rec-gothic",
+    "title": "哥特区历史漫步",
+    "description": "探访2000年历史，穿越中世纪迷宫街道",
+    "tags": ["历史", "徒步"],
+    "cover_image": "assets/hero-ai-personalized-routes.png",
+    "duration_minutes": 150,
+    "heat_level": 2,
+    "heat_count": 9200
+  },
+  {
+    "id": "featured-rec-nightmarket",
+    "title": "亚洲夜市美食探秘",
+    "description": "从街头小吃到神秘香料，品尝正宗地道滋味",
+    "tags": ["美食", "夜间"],
+    "cover_image": "assets/hero-ai-personalized-routes.png",
+    "duration_minutes": 180,
+    "heat_level": 1,
+    "heat_count": 21300
+  },
+  {
+    "id": "featured-rec-waterfall",
+    "title": "山野瀑布徒步探险",
+    "description": "穿越云雾山谷，抵达壮观天然瀑布秘境",
+    "tags": ["自然", "探险"],
+    "cover_image": "assets/hero-ai-personalized-routes.png",
+    "duration_minutes": 300,
+    "heat_level": 5,
+    "heat_count": 7400
+  },
+  {
+    "id": "featured-rec-museum",
+    "title": "当代艺术馆文化之旅",
+    "description": "AI讲解大师作品，在艺术与建筑间深度对话",
+    "tags": ["文化", "艺术"],
+    "cover_image": "assets/hero-ai-personalized-routes.png",
+    "duration_minutes": 120,
+    "heat_level": 5,
+    "heat_count": 13700
+  }
+]

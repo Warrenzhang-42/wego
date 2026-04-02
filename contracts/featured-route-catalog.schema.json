@@ -1,0 +1,22 @@
+{
+  "$id": "featured-route-catalog",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "首页精选路线检索目录项（无 spots，用于搜索与列表合并）",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": ["id", "title"],
+    "properties": {
+      "id": { "type": "string", "description": "UUID 时可跳转对应路线详情；非 UUID 时跳转默认详情" },
+      "title": { "type": "string" },
+      "description": { "type": "string" },
+      "tags": { "type": "array", "items": { "type": "string" } },
+      "cover_image": { "type": "string" },
+      "duration_minutes": { "type": "integer" },
+      "difficulty": { "type": "string" },
+      "heat_level": { "type": "integer" },
+      "heat_count": { "type": "number" }
+    },
+    "additionalProperties": false
+  }
+}
