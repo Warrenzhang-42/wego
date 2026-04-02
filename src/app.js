@@ -89,6 +89,20 @@ import { appendRouteCards } from './lib/route-display.js';
       culture:   '文化',
       nature:    '自然',
     };
+    const routeListEl = document.getElementById('route-list');
+    const categoryEmptyTabId = 'tab-content-category-empty';
+    const ensureCategoryEmptyTab = () => {
+      let emptyTab = document.getElementById(categoryEmptyTabId);
+      if (!emptyTab && routeListEl) {
+        emptyTab = document.createElement('div');
+        emptyTab.id = categoryEmptyTabId;
+        emptyTab.className = 'route-group';
+        emptyTab.style.display = 'none';
+        emptyTab.innerHTML = '<p class="empty-text">暂无匹配路线</p>';
+        routeListEl.appendChild(emptyTab);
+      }
+      return emptyTab;
+    };
 
     // 注意：此函数覆盖了 initChips() 的 tab 切换行为，因此需在此处统一管理
     allChips.forEach(chip => {
@@ -105,50 +119,23 @@ import { appendRouteCards } from './lib/route-display.js';
         // 固定 tab 切换
         document.querySelectorAll('.route-group').forEach(g => { g.style.display = 'none'; });
         const target = document.getElementById('tab-content-' + tabId);
-        if (target) {
-          target.style.display = 'block';
-        } else if (tabId !== 'local' && tabId !== 'recommend') {
-          // 动态标签页：展示数据库过滤结果
+
+        // local tab 必须优先处理，否则会被通用 target 分支吞掉，无法重置筛选状态
+        if (tabId === 'local') {
           const localTabEl = document.getElementById('tab-content-local');
           if (localTabEl) {
             localTabEl.style.display = 'block';
-            currentFilterTag = tagFilter || null;
-            localCurrentPage = 0;
-            localCardsForPagination = Array.from(localTabEl.querySelectorAll('.route-card')).filter(card => {
-              if (!currentFilterTag) return true;
-              const tags = Array.from(card.querySelectorAll('.route-tags .tag'))
-                .map(tag => (tag.textContent || '').trim());
-              return tags.some(tag => tag.includes(currentFilterTag));
-            });
-            localTabEl.querySelectorAll('.route-card').forEach(card => { card.style.display = 'none'; });
-            const firstBatch = localCardsForPagination.slice(0, LOCAL_PAGE_SIZE);
-            firstBatch.forEach(card => { card.style.display = ''; });
-            localCurrentPage = firstBatch.length ? 1 : 0;
-            const sentinel = localTabEl.querySelector('.route-pagination-sentinel');
-            if (sentinel) {
-              sentinel.textContent =
-                localCardsForPagination.length > LOCAL_PAGE_SIZE ? '下拉加载更多路线'
-                  : localCardsForPagination.length ? '已展示全部路线'
-                    : '暂无匹配路线';
-            }
+            resetPagination(null);
           }
-        } else if (tabId === 'local') {
-          // 本地 tab 展示全部路线，并按分页回到首屏
-          const localTabEl = document.getElementById('tab-content-local');
-          if (localTabEl) {
-            currentFilterTag = null;
-            localCurrentPage = 0;
-            localCardsForPagination = Array.from(localTabEl.querySelectorAll('.route-card'));
-            localTabEl.querySelectorAll('.route-card').forEach(card => { card.style.display = 'none'; });
-            localCardsForPagination.slice(0, LOCAL_PAGE_SIZE).forEach(card => { card.style.display = ''; });
-            localCurrentPage = localCardsForPagination.length ? 1 : 0;
-            const sentinel = localTabEl.querySelector('.route-pagination-sentinel');
-            if (sentinel) {
-              sentinel.textContent =
-                localCardsForPagination.length > LOCAL_PAGE_SIZE ? '下拉加载更多路线'
-                  : localCardsForPagination.length ? '已展示全部路线'
-                    : '暂无匹配路线';
-            }
+        } else if (target) {
+          target.style.display = 'block';
+        } else if (tagFilter) {
+          // 美食/文化/自然不复用 local 数据，显示独立空态
+          const emptyTab = ensureCategoryEmptyTab();
+          if (emptyTab) {
+            const chipLabel = (chip.textContent || '').trim().replace(/\s+/g, ' ');
+            emptyTab.innerHTML = `<p class="empty-text">${chipLabel} 暂无匹配路线</p>`;
+            emptyTab.style.display = 'block';
           }
         }
       });
