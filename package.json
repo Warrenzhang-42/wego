@@ -10,6 +10,7 @@
     "test": "node --test tests/unit/*.mjs tests/contracts/*.mjs",
     "dev": "vite src --port 5173 --host 127.0.0.1",
     "dev:open": "vite src --port 5173 --host 127.0.0.1 --open",
+    "admin:dev": "node admin-dev-server.js",
     "seed": "node data/scripts/seed-dashilan.js",
     "seed:dry": "DRY_RUN=true node data/scripts/seed-dashilan.js",
     "seed:beijing": "node data/scripts/seed-beijing-catalog.js",

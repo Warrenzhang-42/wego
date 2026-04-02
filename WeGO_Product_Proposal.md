@@ -149,4 +149,37 @@ WeGO 的产品价值锚定在两个核心维度的交汇点上，这也是区别
 *   支持全球多语言路线拓展。
 
 ---
+
+## 4.5 路线内容管理后台
+
+### 4.5.1 产品定位
+
+路线内容管理后台（Admin）是 WeGO 内容运营团队（内容审核人员）专用的内容管理工具，与面向终端用户的前台产品共用同一个 Supabase 实例，但通过独立的页面（`admin-routes.html`）和管理端 API SDK（`src/lib/admin-api.js`）实现权限物理隔离。
+
+**与前台产品的关系**：
+- 共用 Supabase 数据库实例（routes、spots 等核心表）
+- 前台产品使用 Anon Key（公开读取）
+- 管理后台使用 Service Role Key（完整读写权限，专属管理操作）
+- 路由/景点数据变更后，前台产品实时可见（无缓存层）
+
+### 4.5.2 功能范围
+
+| 功能 | 说明 |
+|---|---|
+| **查看路线列表** | 支持按名称模糊搜索、category 过滤、difficulty 过滤、分页 |
+| **查看路线详情** | 点击展开，查看该路线下所有景点卡片 |
+| **编辑路线** | 修改 title、description、tags、category、difficulty、duration_minutes、total_distance_km、cover_image |
+| **删除路线** | 确认后删除（级联删除所有关联景点） |
+| **编辑景点** | 修改 name、subtitle、short_desc、detail、tags、thumb、photos、lat、lng、geofence_radius_m、estimated_stay_min、sort_order |
+| **删除景点** | 确认后删除单条景点 |
+
+### 4.5.3 热度字段策略
+
+`heat_level`（热度点数 0-5）和 `heat_count`（热度累计值）在管理后台中**仅展示，不可编辑**。这两个字段由用户在前台完成打卡后系统自动统计更新（参见 Sprint 6 打卡系统）。管理员如需调整，必须通过前台真实用户行为触发。
+
+### 4.5.4 非结构化数据承载
+
+景点"其他非结构化数据"以 `detail`（长文本字段）和 `tags[]`（结构化标签数组）承载，暂不新增独立 JSONB 字段。后续如需存储景点元数据（来源URL、编辑历史等），可扩展 `spots.metadata` JSONB 列。
+
+---
 *WeGO -- 换个方式，重启你的旅行探索。*

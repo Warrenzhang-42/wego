@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WeGO 管理后台 — 路线管理</title>
+
+  <!-- WeGO Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- WeGO Design Tokens (required for style-admin.css) -->
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Admin Styles -->
+  <link rel="stylesheet" href="style-admin.css">
+
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+  <!-- SVG Icons (inline, no external dependency) -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+    <symbol id="icon-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </symbol>
+    <symbol id="icon-chevron-down" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="6 9 12 15 18 9"/>
+    </symbol>
+    <symbol id="icon-chevron-up" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="18 15 12 9 6 15"/>
+    </symbol>
+    <symbol id="icon-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+    </symbol>
+    <symbol id="icon-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+    </symbol>
+    <symbol id="icon-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+    </symbol>
+    <symbol id="icon-map-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+    </symbol>
+    <symbol id="icon-link-external" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
+    </symbol>
+    <symbol id="icon-loading" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/>
+    </symbol>
+  </svg>
+</head>
+<body>
+
+<!-- ================================================================
+     ADMIN HEADER
+     ================================================================ -->
+<header class="admin-header">
+  <div class="admin-header__brand">WeGO 内容管理后台</div>
+  <nav class="admin-header__nav">
+    <a href="http://127.0.0.1:5173/" target="_blank">返回前台</a>
+    <span class="admin-header__mode">SERVICE ROLE</span>
+  </nav>
+</header>
+
+<!-- ================================================================
+     MAIN CONTENT
+     ================================================================ -->
+<main class="admin-page">
+
+  <!-- Page Title -->
+  <div style="margin-bottom: 20px; display:flex; align-items:baseline; gap:12px;">
+    <h1 style="font-family:var(--font-head); font-size:22px; font-weight:700; color:var(--clr-text-h);">路线管理</h1>
+    <span class="text-muted text-sm" id="total-count"></span>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="admin-toolbar">
+    <div class="admin-toolbar__search">
+      <span class="admin-toolbar__search-icon">
+        <svg width="16" height="16"><use href="#icon-search"/></svg>
+      </span>
+      <input type="text" id="search-input" placeholder="搜索路线名称…" autocomplete="off">
+    </div>
+
+    <select id="filter-category">
+      <option value="">全部分类</option>
+      <option value="本地">本地</option>
+      <option value="推荐">推荐</option>
+      <option value="美食">美食</option>
+      <option value="文化">文化</option>
+      <option value="自然">自然</option>
+    </select>
+
+    <select id="filter-difficulty">
+      <option value="">全部难度</option>
+      <option value="easy">easy</option>
+      <option value="medium">medium</option>
+      <option value="hard">hard</option>
+    </select>
+
+    <button class="btn btn-secondary" id="btn-reset" style="height:38px; padding:0 14px;">重置</button>
+  </div>
+
+  <!-- Table -->
+  <div class="admin-table-wrap">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th style="width:260px;">路线名称</th>
+          <th>标签</th>
+          <th>分类</th>
+          <th>难度</th>
+          <th style="width:90px;">热度</th>
+          <th style="width:90px;">热度值</th>
+          <th style="width:120px;">操作</th>
+        </tr>
+      </thead>
+      <tbody id="routes-tbody">
+        <tr class="loading-row">
+          <td colspan="7">
+            <span style="display:inline-flex;align-items:center;gap:8px;">
+              <svg width="18" height="18" class="spin"><use href="#icon-loading"/></svg>
+              加载中…
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Pagination -->
+    <div class="admin-pagination" id="pagination" style="display:none;">
+      <div class="admin-pagination__info" id="pagination-info"></div>
+      <div class="admin-pagination__controls" id="pagination-controls"></div>
+    </div>
+  </div>
+</main>
+
+<!-- ================================================================
+     MODAL: EDIT ROUTE
+     ================================================================ -->
+<div class="modal-overlay" id="modal-edit-route" role="dialog" aria-modal="true" aria-labelledby="modal-route-title">
+  <div class="modal">
+    <div class="modal__header">
+      <h2 class="modal__title" id="modal-route-title">编辑路线</h2>
+      <button class="modal__close" onclick="closeModal('modal-edit-route')" aria-label="关闭">
+        <svg width="16" height="16"><use href="#icon-x"/></svg>
+      </button>
+    </div>
+    <div class="modal__body">
+      <form id="form-edit-route" novalidate>
+        <input type="hidden" id="route-edit-id">
+
+        <div class="form-grid">
+          <div class="form-field full">
+            <label class="form-label" for="route-title">标题 *</label>
+            <input class="form-input" type="text" id="route-title" required placeholder="路线名称">
+          </div>
+
+          <div class="form-field full">
+            <label class="form-label" for="route-description">描述</label>
+            <textarea class="form-textarea" id="route-description" rows="3" placeholder="路线描述（可选）"></textarea>
+          </div>
+
+          <div class="form-field">
+            <label class="form-label" for="route-category">分类</label>
+            <select class="form-select" id="route-category">
+              <option value="">未分类</option>
+              <option value="本地">本地</option>
+              <option value="推荐">推荐</option>
+              <option value="美食">美食</option>
+              <option value="文化">文化</option>
+              <option value="自然">自然</option>
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label class="form-label" for="route-difficulty">难度</label>
+            <select class="form-select" id="route-difficulty">
+              <option value="">未设置</option>
+              <option value="easy">easy</option>
+              <option value="medium">medium</option>
+              <option value="hard">hard</option>
+            </select>
+          </div>
+
+          <div class="form-field">
+            <label class="form-label" for="route-duration">预计时长（分钟）</label>
+            <input class="form-input" type="number" id="route-duration" min="1" placeholder="例如 120">
+          </div>
+
+          <div class="form-field">
+            <label class="form-label" for="route-distance">总距离（km）</label>
+            <input class="form-input" type="number" id="route-distance" min="0" step="0.1" placeholder="例如 2.5">
+          </div>
+
+          <div class="form-field full">
+            <label class="form-label" for="route-cover">封面图 URL</label>
+            <input class="form-input" type="url" id="route-cover" placeholder="https://…">
+          </div>
+
+          <div class="form-field full">
+            <label class="form-label">标签（英文逗号分隔）</label>
+            <div class="form-tags-input" id="route-tags-container">
+              <input type="text" id="route-tags-input" placeholder="输入后按回车添加标签">
+            </div>
+            <div class="tags-list" id="route-tags-preview" style="margin-top:6px;"></div>
+          </div>
+
+          <!-- Read-only heat fields — NO input控件 -->
+          <div class="form-field">
+            <label class="form-label--readonly">热度点数</label>
+            <input class="form-input" type="text" id="route-heat-level-ro" readonly tabindex="-1">
+          </div>
+          <div class="form-field">
+            <label class="form-label--readonly">热度累计</label>
+            <input class="form-input" type="text" id="route-heat-count-ro" readonly tabindex="-1">
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-route')">取消</button>
+      <button class="btn btn-primary" id="btn-save-route" onclick="saveRoute()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     MODAL: EDIT SPOT
+     ================================================================ -->
+<div class="modal-overlay" id="modal-edit-spot" role="dialog" aria-modal="true" aria-labelledby="modal-spot-title">
+  <div class="modal">
+    <div class="modal__header">
+      <h2 class="modal__title" id="modal-spot-title">编辑景点</h2>
+      <button class="modal__close" onclick="closeModal('modal-edit-spot')" aria-label="关闭">
+        <svg width="16" height="16"><use href="#icon-x"/></svg>
+      </button>
+    </div>
+    <div class="modal__body">
+      <form id="form-edit-spot" novalidate>
+        <input type="hidden" id="spot-edit-id">
+        <input type="hidden" id="spot-edit-route-id">
+
+        <div class="form-grid">
+          <div class="form-field full">
+            <label class="form-label" for="spot-name">景点名称 *</label>
+            <input class="form-input" type="text" id="spot-name" required placeholder="景点名称">
+          </div>
+
+          <div class="form-field full">
+            <label class="form-label" for="spot-subtitle">副标题</label>
+            <input class="form-input" type="text" id="spot-subtitle" placeholder="景点副标题（可选）">
+          </div>
+
+          <div class="form-field full">
+            <label class="form-label" for="spot-short-desc">短描述</label>
+            <textarea class="form-textarea" id="spot-short-desc" rows="2" placeholder="短描述（可选）"></textarea>
+          </div>
+
+          <div class="form-field full">
+            <label class="form-label" for="spot-detail">详细介绍</label>
+            <textarea class="form-textarea" id="spot-detail" rows="4" placeholder="详细介绍（非结构化内容）"></textarea>
+          </div>
+
+          <div class="form-field">
+            <label class="form-label" for="spot-lat">纬度（lat, WGS-84）</label>
+            <input class="form-input" type="number" id="spot-lat" step="0.0000001" min="-90" max="90" placeholder="例如 39.8951">
+          </div>
+
+          <div class="form-field">
+            <label class="form-label" for="spot-lng">经度（lng, WGS-84）</label>
+            <input class="form-input" type="number" id="spot-lng" step="0.0000001" min="-180" max="180" placeholder="例如 116.3942">
+          </div>
+
+          <div class="form-field">
+            <label class="form-label" for="spot-stay">建议停留（分钟）</label>
+            <input class="form-input" type="number" id="spot-stay" min="0" placeholder="例如 30">
+          </div>
+
+          <div class="form-field">
+            <label class="form-label" for="spot-geofence">围栏半径（米）</label>
+            <input class="form-input" type="number" id="spot-geofence" min="1" placeholder="默认 30">
+          </div>
+
+          <div class="form-field">
+            <label class="form-label" for="spot-sort">排序序号</label>
+            <input class="form-input" type="number" id="spot-sort" min="1" placeholder="从 1 开始">
+          </div>
+
+          <div class="form-field full">
+            <label class="form-label" for="spot-thumb">缩略图 URL</label>
+            <input class="form-input" type="url" id="spot-thumb" placeholder="https://…">
+          </div>
+
+          <div class="form-field full">
+            <label class="form-label">标签（英文逗号分隔）</label>
+            <div class="form-tags-input" id="spot-tags-container">
+              <input type="text" id="spot-tags-input" placeholder="输入后按回车添加标签">
+            </div>
+            <div class="tags-list" id="spot-tags-preview" style="margin-top:6px;"></div>
+          </div>
+
+          <div class="form-field full">
+            <label class="form-label">图片 URL（每行一个）</label>
+            <textarea class="form-textarea" id="spot-photos" rows="3" placeholder="https://图片1.jpg&#10;https://图片2.jpg"></textarea>
+            <div class="photos-list" id="spot-photos-preview" style="margin-top:8px;"></div>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-spot')">取消</button>
+      <button class="btn btn-primary" id="btn-save-spot" onclick="saveSpot()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     MODAL: DELETE ROUTE
+     ================================================================ -->
+<div class="modal-overlay" id="modal-delete-route" role="dialog" aria-modal="true">
+  <div class="modal modal--danger" style="max-width:440px;">
+    <div class="modal__header">
+      <h2 class="modal__title">确认删除路线</h2>
+      <button class="modal__close" onclick="closeModal('modal-delete-route')" aria-label="关闭">
+        <svg width="16" height="16"><use href="#icon-x"/></svg>
+      </button>
+    </div>
+    <div class="modal__body">
+      <div class="delete-warning" id="delete-route-warning">
+        <!-- JS fills this in -->
+      </div>
+      <p class="text-sm text-muted" style="margin-top:8px;">此操作不可撤销。</p>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-delete-route')">取消</button>
+      <button class="btn btn-danger" id="btn-confirm-delete-route" onclick="confirmDeleteRoute()">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     MODAL: DELETE SPOT
+     ================================================================ -->
+<div class="modal-overlay" id="modal-delete-spot" role="dialog" aria-modal="true">
+  <div class="modal modal--danger" style="max-width:440px;">
+    <div class="modal__header">
+      <h2 class="modal__title">确认删除景点</h2>
+      <button class="modal__close" onclick="closeModal('modal-delete-spot')" aria-label="关闭">
+        <svg width="16" height="16"><use href="#icon-x"/></svg>
+      </button>
+    </div>
+    <div class="modal__body">
+      <div class="delete-warning" id="delete-spot-warning">
+        <!-- JS fills this in -->
+      </div>
+      <p class="text-sm text-muted" style="margin-top:8px;">此操作不可撤销。</p>
+    </div>
+    <div class="modal__footer">
+      <button class="btn btn-secondary" onclick="closeModal('modal-delete-spot')">取消</button>
+      <button class="btn btn-danger" id="btn-confirm-delete-spot" onclick="confirmDeleteSpot()">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================================================================
+     TOAST CONTAINER
+     ================================================================ -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ================================================================
+     CONFIG INJECTION — 直接使用 .env 中的真实凭证
+     ================================================================ -->
+<script>
+window.__WEGO_API_CONFIG__ = {
+  supabaseUrl: 'https://mforzutksmcimmzeodfe.supabase.co',
+  supabaseServiceKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb3J6dXRrc21jaW1temVvZGZlIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTAyMjU1MSwiZXhwIjoyMDkwNTk4NTUxfQ.2MQfCU6KbIrstRaBCzq1DMc4lU06sg70pnR0T1P3hv0',
+};
+</script>
+
+<!-- ================================================================
+     ADMIN API
+     ================================================================ -->
+<script type="module">
+import { adminApi } from './lib/admin-api.js';
+
+/* ============================================================
+   State
+   ============================================================ */
+let currentPage = 1;
+const PAGE_SIZE = 20;
+let pendingDeleteRouteId = null;
+let pendingDeleteSpotId = null;
+
+/* ============================================================
+   Bootstrap
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', () => {
+  bindToolbarEvents();
+  bindTagInput('route-tags-input', 'route-tags-container', 'route-tags-preview', renderRouteTags);
+  bindTagInput('spot-tags-input', 'spot-tags-container', 'spot-tags-preview', renderSpotTags);
+  loadRoutes();
+});
+
+/* ============================================================
+   Toolbar
+   ============================================================ */
+function bindToolbarEvents() {
+  const searchInput = document.getElementById('search-input');
+  const catSelect = document.getElementById('filter-category');
+  const diffSelect = document.getElementById('filter-difficulty');
+  const btnReset = document.getElementById('btn-reset');
+
+  let debounceTimer;
+  searchInput.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => { currentPage = 1; loadRoutes(); }, 350);
+  });
+
+  catSelect.addEventListener('change', () => { currentPage = 1; loadRoutes(); });
+  diffSelect.addEventListener('change', () => { currentPage = 1; loadRoutes(); });
+  btnReset.addEventListener('click', () => {
+    searchInput.value = '';
+    catSelect.value = '';
+    diffSelect.value = '';
+    currentPage = 1;
+    loadRoutes();
+  });
+}
+
+/* ============================================================
+   Load Routes
+   ============================================================ */
+async function loadRoutes() {
+  const tbody = document.getElementById('routes-tbody');
+  tbody.innerHTML = `<tr class="loading-row"><td colspan="7">
+    <span style="display:inline-flex;align-items:center;gap:8px;">
+      <svg width="18" height="18" class="spin"><use href="#icon-loading"/></svg> 加载中…
+    </span>
+  </td></tr>`;
+
+  try {
+    const search = document.getElementById('search-input').value.trim();
+    const category = document.getElementById('filter-category').value;
+    const difficulty = document.getElementById('filter-difficulty').value;
+
+    const { data, total, page, pageSize } = await adminApi.getRoutesAdmin({
+      search: search || undefined,
+      category: category || undefined,
+      difficulty: difficulty || undefined,
+      page: currentPage,
+      pageSize: PAGE_SIZE,
+    });
+
+    document.getElementById('total-count').textContent =
+      total > 0 ? `共 ${total} 条路线` : '';
+
+    if (!data || data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7">
+        <div class="empty-state">
+          <div class="empty-state__icon">📭</div>
+          <div class="empty-state__title">暂无路线</div>
+          <div class="empty-state__sub">调整搜索条件或筛选器试试</div>
+        </div>
+      </td></tr>`;
+      document.getElementById('pagination').style.display = 'none';
+      return;
+    }
+
+    tbody.innerHTML = data.map(route => renderRouteRow(route)).join('');
+    renderPagination(total, page, pageSize);
+  } catch (err) {
+    console.error(err);
+    tbody.innerHTML = `<tr><td colspan="7" class="text-danger" style="text-align:center;padding:40px;">
+      加载失败：${err.message}
+    </td></tr>`;
+  }
+}
+
+/* ============================================================
+   Render Route Row
+   ============================================================ */
+function renderRouteRow(route) {
+  const tags = (route.tags || []).map(t => `<span class="tag-chip">${escHtml(t)}</span>`).join('');
+  const diffClass = route.difficulty ? `diff-${route.difficulty}` : '';
+  const diffLabel = route.difficulty || '—';
+
+  const heatDots = Array.from({ length: 5 }, (_, i) =>
+    `<span class="heat-dot${i < (route.heat_level || 0) ? ' active' : ''}"></span>`
+  ).join('');
+
+  return `
+  <tr data-route-id="${route.id}" id="route-row-${route.id}">
+    <td>
+      <span style="font-weight:700;font-size:13.5px;color:var(--clr-text-h);">${escHtml(route.title)}</span>
+    </td>
+    <td>
+      <div class="tags-list">${tags || '<span class="text-muted text-sm">—</span>'}</div>
+    </td>
+    <td>
+      ${route.category
+        ? `<span class="cat-badge">${escHtml(route.category)}</span>`
+        : '<span class="text-muted text-sm">—</span>'}
+    </td>
+    <td>
+      ${route.difficulty
+        ? `<span class="diff-badge ${diffClass}">${diffLabel}</span>`
+        : '<span class="text-muted text-sm">—</span>'}
+    </td>
+    <td>
+      <div class="heat-badge">
+        <span class="heat-dots">${heatDots}</span>
+      </div>
+    </td>
+    <td>
+      <span class="text-sm text-muted">${route.heat_count ?? 0}</span>
+    </td>
+    <td>
+      <div class="row-actions">
+        <button class="btn btn-icon-sm" title="查看景点"
+          onclick="toggleSpots('${route.id}')"
+          id="expand-btn-${route.id}">
+          <svg width="14" height="14"><use href="#icon-chevron-down"/></svg>
+        </button>
+        <button class="btn btn-icon-sm" title="编辑路线"
+          onclick="openEditRoute('${route.id}')">
+          <svg width="14" height="14"><use href="#icon-edit"/></svg>
+        </button>
+        <button class="btn btn-icon-sm danger" title="删除路线"
+          onclick="openDeleteRoute('${route.id}', '${escHtml(route.title)}')">
+          <svg width="14" height="14"><use href="#icon-trash"/></svg>
+        </button>
+      </div>
+    </td>
+  </tr>
+  <tr id="spots-row-${route.id}" style="display:none;" class="expanded-row">
+    <td colspan="7">
+      <div id="spots-container-${route.id}">
+        <div style="text-align:center;padding:20px;color:var(--clr-text-muted);font-size:13px;">
+          <svg width="18" height="18" class="spin"><use href="#icon-loading"/></svg> 加载景点…
+        </div>
+      </div>
+    </td>
+  </tr>`;
+}
+
+/* ============================================================
+   Toggle Spots
+   ============================================================ */
+const _spotsCache = {};
+
+async function toggleSpots(routeId) {
+  const spotsRow = document.getElementById(`spots-row-${routeId}`);
+  const container = document.getElementById(`spots-container-${routeId}`);
+  const btn = document.getElementById(`expand-btn-${routeId}`);
+  const isOpen = spotsRow.style.display !== 'none';
+
+  if (isOpen) {
+    spotsRow.style.display = 'none';
+    btn.classList.remove('open');
+    return;
+  }
+
+  spotsRow.style.display = '';
+  btn.classList.add('open');
+
+  if (_spotsCache[routeId]) {
+    container.innerHTML = renderSpotsGrid(_spotsCache[routeId]);
+    return;
+  }
+
+  try {
+    const spots = await adminApi.getSpotsAdmin(routeId);
+    _spotsCache[routeId] = spots;
+    container.innerHTML = renderSpotsGrid(spots);
+  } catch (err) {
+    container.innerHTML = `<div class="text-danger" style="padding:16px;font-size:13px;">加载失败：${err.message}</div>`;
+  }
+}
+
+function renderSpotsGrid(spots) {
+  if (!spots || spots.length === 0) {
+    return `<div class="empty-state" style="padding:30px 0;">
+      <div class="empty-state__title">暂无数点</div>
+    </div>`;
+  }
+
+  const cards = spots.map(spot => `
+  <div class="spot-card" id="spot-card-${spot.id}">
+    <div class="spot-card__header">
+      <span class="spot-card__order">${spot.sort_order || '?'}</span>
+      <span class="spot-card__name">${escHtml(spot.name)}</span>
+    </div>
+    ${spot.subtitle ? `<div class="spot-card__subtitle">${escHtml(spot.subtitle)}</div>` : ''}
+    ${spot.thumb ? `<div class="spot-card__thumb"><img src="${escHtml(spot.thumb)}" alt="${escHtml(spot.name)}" onerror="this.style.display='none'"></div>` : ''}
+    <div class="spot-card__coords">
+      <svg width="10" height="10" style="display:inline;vertical-align:middle;margin-right:3px;"><use href="#icon-map-pin"/></svg>
+      ${spot.lat?.toFixed(5)}, ${spot.lng?.toFixed(5)}
+    </div>
+    ${(spot.tags || []).length > 0
+      ? `<div class="tags-list" style="margin-top:6px;">${spot.tags.map(t => `<span class="tag-chip">${escHtml(t)}</span>`).join('')}</div>`
+      : ''}
+    <div class="spot-card__actions">
+      <button class="btn btn-ghost btn-sm" onclick="openEditSpot('${spot.id}', '${escHtml(spot.route_id)}')">
+        <svg width="12" height="12"><use href="#icon-edit"/></svg> 编辑
+      </button>
+      <button class="btn btn-ghost btn-sm text-danger" onclick="openDeleteSpot('${spot.id}', '${escHtml(spot.name)}')">
+        <svg width="12" height="12"><use href="#icon-trash"/></svg> 删除
+      </button>
+    </div>
+  </div>`).join('');
+
+  return `<div class="spots-grid">${cards}</div>`;
+}
+
+/* ============================================================
+   Pagination
+   ============================================================ */
+function renderPagination(total, page, pageSize) {
+  const pagination = document.getElementById('pagination');
+  const info = document.getElementById('pagination-info');
+  const controls = document.getElementById('pagination-controls');
+
+  const totalPages = Math.ceil(total / pageSize);
+  if (totalPages <= 1) {
+    pagination.style.display = 'none';
+    return;
+  }
+
+  pagination.style.display = 'flex';
+  const from = (page - 1) * pageSize + 1;
+  const to = Math.min(page * pageSize, total);
+  info.textContent = `第 ${from}–${to} 条，共 ${total} 条`;
+
+  const maxVisible = 5;
+  let start = Math.max(1, page - Math.floor(maxVisible / 2));
+  let end = Math.min(totalPages, start + maxVisible - 1);
+  if (end - start + 1 < maxVisible) start = Math.max(1, end - maxVisible + 1);
+
+  let html = `<button class="page-btn" onclick="goPage(${page - 1})" ${page === 1 ? 'disabled' : ''}>‹</button>`;
+
+  for (let i = start; i <= end; i++) {
+    html += `<button class="page-btn${i === page ? ' active' : ''}" onclick="goPage(${i})">${i}</button>`;
+  }
+
+  html += `<button class="page-btn" onclick="goPage(${page + 1})" ${page === totalPages ? 'disabled' : ''}>›</button>`;
+  controls.innerHTML = html;
+}
+
+function goPage(p) {
+  currentPage = p;
+  loadRoutes();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ============================================================
+   Modal: Edit Route
+   ============================================================ */
+async function openEditRoute(id) {
+  try {
+    const route = await adminApi.getRouteAdmin(id);
+    document.getElementById('route-edit-id').value = route.id;
+    document.getElementById('route-title').value = route.title || '';
+    document.getElementById('route-description').value = route.description || '';
+    document.getElementById('route-category').value = route.category || '';
+    document.getElementById('route-difficulty').value = route.difficulty || '';
+    document.getElementById('route-duration').value = route.duration_minutes || '';
+    document.getElementById('route-distance').value = route.total_distance_km || '';
+    document.getElementById('route-cover').value = route.cover_image || '';
+    document.getElementById('route-heat-level-ro').value = route.heat_level ?? '—';
+    document.getElementById('route-heat-count-ro').value = (route.heat_count ?? 0) + ' 次完成';
+
+    _routeTags = route.tags || [];
+    renderRouteTags();
+
+    openModal('modal-edit-route');
+  } catch (err) {
+    toast('error', `加载路线失败：${err.message}`);
+  }
+}
+
+let _routeTags = [];
+
+function renderRouteTags() {
+  const preview = document.getElementById('route-tags-preview');
+  preview.innerHTML = _routeTags.map((t, i) =>
+    `<span class="tag-chip" style="cursor:default;">
+      ${escHtml(t)}
+      <button onclick="removeRouteTag(${i})" style="background:none;border:none;cursor:pointer;color:var(--clr-primary-dark);margin-left:4px;font-size:12px;line-height:1;">×</button>
+    </span>`
+  ).join('');
+}
+
+function removeRouteTag(index) {
+  _routeTags.splice(index, 1);
+  renderRouteTags();
+}
+
+async function saveRoute() {
+  const id = document.getElementById('route-edit-id').value;
+  if (!id) return;
+
+  const title = document.getElementById('route-title').value.trim();
+  if (!title) { toast('error', '路线标题不能为空'); return; }
+
+  const patch = {
+    title,
+    description: document.getElementById('route-description').value.trim() || null,
+    category: document.getElementById('route-category').value || null,
+    difficulty: document.getElementById('route-difficulty').value || null,
+    duration_minutes: parseInt(document.getElementById('route-duration').value) || null,
+    total_distance_km: parseFloat(document.getElementById('route-distance').value) || null,
+    cover_image: document.getElementById('route-cover').value.trim() || null,
+    tags: _routeTags,
+  };
+
+  try {
+    await adminApi.updateRoute(id, patch);
+    toast('success', '路线保存成功');
+    closeModal('modal-edit-route');
+    loadRoutes();
+  } catch (err) {
+    toast('error', `保存失败：${err.message}`);
+  }
+}
+
+/* ============================================================
+   Modal: Edit Spot
+   ============================================================ */
+async function openEditSpot(id, routeId) {
+  try {
+    const route_id = routeId || document.getElementById('spot-edit-route-id')?.value;
+    const spots = await adminApi.getSpotsAdmin(route_id);
+    const spot = spots.find(s => s.id === id);
+    if (!spot) { toast('error', '未找到该景点'); return; }
+
+    document.getElementById('spot-edit-id').value = spot.id;
+    document.getElementById('spot-edit-route-id').value = spot.route_id;
+    document.getElementById('spot-name').value = spot.name || '';
+    document.getElementById('spot-subtitle').value = spot.subtitle || '';
+    document.getElementById('spot-short-desc').value = spot.short_desc || '';
+    document.getElementById('spot-detail').value = spot.detail || '';
+    document.getElementById('spot-lat').value = spot.lat || '';
+    document.getElementById('spot-lng').value = spot.lng || '';
+    document.getElementById('spot-stay').value = spot.estimated_stay_min || '';
+    document.getElementById('spot-geofence').value = spot.geofence_radius_m || '';
+    document.getElementById('spot-sort').value = spot.sort_order || '';
+    document.getElementById('spot-thumb').value = spot.thumb || '';
+    document.getElementById('spot-photos').value = (spot.photos || []).join('\n');
+
+    _spotTags = spot.tags || [];
+    renderSpotTags();
+    renderSpotPhotosPreview();
+
+    openModal('modal-edit-spot');
+  } catch (err) {
+    toast('error', `加载景点失败：${err.message}`);
+  }
+}
+
+let _spotTags = [];
+
+function renderSpotTags() {
+  const preview = document.getElementById('spot-tags-preview');
+  preview.innerHTML = _spotTags.map((t, i) =>
+    `<span class="tag-chip" style="cursor:default;">
+      ${escHtml(t)}
+      <button onclick="removeSpotTag(${i})" style="background:none;border:none;cursor:pointer;color:var(--clr-primary-dark);margin-left:4px;font-size:12px;line-height:1;">×</button>
+    </span>`
+  ).join('');
+}
+
+function removeSpotTag(index) {
+  _spotTags.splice(index, 1);
+  renderSpotTags();
+}
+
+async function saveSpot() {
+  const id = document.getElementById('spot-edit-id').value;
+  if (!id) return;
+
+  const name = document.getElementById('spot-name').value.trim();
+  if (!name) { toast('error', '景点名称不能为空'); return; }
+
+  const photosRaw = document.getElementById('spot-photos').value.trim();
+  const photos = photosRaw ? photosRaw.split('\n').map(s => s.trim()).filter(Boolean) : [];
+
+  const patch = {
+    name,
+    subtitle: document.getElementById('spot-subtitle').value.trim() || null,
+    short_desc: document.getElementById('spot-short-desc').value.trim() || null,
+    detail: document.getElementById('spot-detail').value.trim() || null,
+    lat: parseFloat(document.getElementById('spot-lat').value) || null,
+    lng: parseFloat(document.getElementById('spot-lng').value) || null,
+    estimated_stay_min: parseInt(document.getElementById('spot-stay').value) || null,
+    geofence_radius_m: parseInt(document.getElementById('spot-geofence').value) || null,
+    sort_order: parseInt(document.getElementById('spot-sort').value) || null,
+    thumb: document.getElementById('spot-thumb').value.trim() || null,
+    photos,
+    tags: _spotTags,
+  };
+
+  try {
+    await adminApi.updateSpot(id, patch);
+    toast('success', '景点保存成功');
+    closeModal('modal-edit-spot');
+
+    const routeId = document.getElementById('spot-edit-route-id').value;
+    if (routeId && _spotsCache[routeId]) {
+      delete _spotsCache[routeId];
+      await toggleSpots(routeId);
+      await toggleSpots(routeId);
+    }
+  } catch (err) {
+    toast('error', `保存失败：${err.message}`);
+  }
+}
+
+function renderSpotPhotosPreview() {
+  const photos = document.getElementById('spot-photos').value.trim().split('\n').filter(Boolean);
+  const preview = document.getElementById('spot-photos-preview');
+  preview.innerHTML = photos.slice(0, 5).map(url =>
+    `<div class="photo-thumb"><img src="${escHtml(url)}" onerror="this.parentElement.style.display='none'" alt="photo"></div>`
+  ).join('');
+  if (photos.length > 5) preview.innerHTML += `<span class="text-muted text-sm">+${photos.length - 5} 张</span>`;
+}
+
+document.getElementById('spot-photos').addEventListener('input', renderSpotPhotosPreview);
+
+/* ============================================================
+   Modal: Delete Route
+   ============================================================ */
+function openDeleteRoute(id, title) {
+  pendingDeleteRouteId = id;
+  document.getElementById('delete-route-warning').innerHTML =
+    `将同时删除该路线下所有关联景点，确认删除 <strong>${escHtml(title)}</strong>？`;
+  openModal('modal-delete-route');
+}
+
+async function confirmDeleteRoute() {
+  if (!pendingDeleteRouteId) return;
+  try {
+    await adminApi.deleteRoute(pendingDeleteRouteId);
+    toast('success', '路线已删除');
+    closeModal('modal-delete-route');
+    loadRoutes();
+  } catch (err) {
+    toast('error', `删除失败：${err.message}`);
+  } finally {
+    pendingDeleteRouteId = null;
+  }
+}
+
+/* ============================================================
+   Modal: Delete Spot
+   ============================================================ */
+function openDeleteSpot(id, name) {
+  pendingDeleteSpotId = id;
+  document.getElementById('delete-spot-warning').innerHTML =
+    `确认删除景点 <strong>${escHtml(name)}</strong>？`;
+  openModal('modal-delete-spot');
+}
+
+async function confirmDeleteSpot() {
+  if (!pendingDeleteSpotId) return;
+  try {
+    await adminApi.deleteSpot(pendingDeleteSpotId);
+    toast('success', '景点已删除');
+    closeModal('modal-delete-spot');
+
+    for (const routeId of Object.keys(_spotsCache)) {
+      delete _spotsCache[routeId];
+    }
+    loadRoutes();
+  } catch (err) {
+    toast('error', `删除失败：${err.message}`);
+  } finally {
+    pendingDeleteSpotId = null;
+  }
+}
+
+/* ============================================================
+   Tag Input (shared)
+   ============================================================ */
+function bindTagInput(inputId, containerId, previewId, renderFn) {
+  const input = document.getElementById(inputId);
+  const container = document.getElementById(containerId);
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      const val = input.value.trim().replace(/,$/, '');
+      if (val && !_routeTags?.includes(val) && !_spotTags?.includes(val)) {
+        if (inputId === 'route-tags-input') {
+          _routeTags.push(val);
+          renderRouteTags();
+        } else {
+          _spotTags.push(val);
+          renderSpotTags();
+        }
+      }
+      input.value = '';
+    } else if (e.key === 'Backspace' && !input.value) {
+      if (inputId === 'route-tags-input' && _routeTags.length > 0) {
+        _routeTags.pop();
+        renderRouteTags();
+      } else if (_spotTags.length > 0) {
+        _spotTags.pop();
+        renderSpotTags();
+      }
+    }
+  });
+
+  container.addEventListener('click', () => input.focus());
+}
+
+/* ============================================================
+   Modal Helpers
+   ============================================================ */
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+/* ============================================================
+   Toast
+   ============================================================ */
+function toast(type, message) {
+  const container = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = `toast toast--${type}`;
+  el.textContent = message;
+  container.appendChild(el);
+  setTimeout(() => {
+    el.classList.add('removing');
+    el.addEventListener('animationend', () => el.remove());
+  }, 3000);
+}
+
+/* ============================================================
+   Escape HTML
+   ============================================================ */
+function escHtml(str) {
+  if (str == null) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/* ============================================================
+   Expose to window for inline onclick handlers
+   ============================================================ */
+window.toggleSpots = toggleSpots;
+window.openEditRoute = openEditRoute;
+window.openDeleteRoute = openDeleteRoute;
+window.confirmDeleteRoute = confirmDeleteRoute;
+window.openEditSpot = openEditSpot;
+window.openDeleteSpot = openDeleteSpot;
+window.confirmDeleteSpot = confirmDeleteSpot;
+window.closeModal = closeModal;
+window.goPage = goPage;
+window.removeRouteTag = removeRouteTag;
+window.removeSpotTag = removeSpotTag;
+window.saveRoute = saveRoute;
+window.saveSpot = saveSpot;
+</script>
+
+<!-- ================================================================
+     SPIN ANIMATION
+     ================================================================ -->
+<style>
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+</body>
+</html>

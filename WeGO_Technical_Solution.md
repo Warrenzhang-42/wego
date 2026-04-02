@@ -587,9 +587,56 @@ CREATE TABLE IF NOT EXISTS route_ingestion_jobs (
   - `data/scripts/clean-route-json.js`
 - 最终由 seed 脚本或后端发布接口执行 upsert。
 
+
+
+---
+
+## 6.2 Admin 模块（路线内容管理后台）
+
+### 定位
+
+Admin 模块是 WeGO 内容运营团队（内容审核人员）专用的内容管理工具，面向本地单用户部署场景。与前台产品共用同一个 Supabase 实例，前端直连数据库，权限通过 Service Role Key 隔离。
+
+### 技术架构
+
+```
+admin-routes.html          # 独立 HTML 页面（无构建工具，直接浏览器打开）
+  ├── src/style-admin.css  # 管理后台样式（复用 WeGO 设计 token）
+  └── src/lib/admin-api.js # 管理端 SDK（持有 service_role key，绕过 RLS）
+                              └── Supabase（routes / spots 表）
+```
+
+### 认证策略
+
+| 环境 | Key 类型 | 所在文件 | 权限 |
+|---|---|---|---|
+| 前台产品 | Anon Key（公开） | `api-client.js` | 仅读取 routes/spots |
+| 管理后台 | Service Role Key（私有） | `admin-api.js` | 完整读写（含修改/删除） |
+
+Service Role Key 写入 `window.__WEGO_API_CONFIG__.supabaseServiceKey`（由 `admin-routes.html` 页面加载时从 `.env` 读取注入）。
+
+### 核心能力矩阵
+
+| 操作 | 路线 | 景点 |
+|---|---|---|
+| 查看/列表 | title, tags, category, difficulty, heat_level, heat_count | name, tags, lat/lng, photos, sort_order |
+| 编辑 | title, description, tags, category, difficulty, duration_minutes, total_distance_km, cover_image | name, subtitle, short_desc, detail, tags, thumb, photos, lat, lng, geofence_radius_m, estimated_stay_min, sort_order |
+| 删除 | 删除路线（ON DELETE CASCADE） | 删除景点 |
+| **不可编辑** | heat_level, heat_count | — |
+
+heat_level / heat_count 为 read-only，仅展示。
+
+### 关键约束
+
+- **热度字段保护**：`heat_level` / `heat_count` 在 UI 上不输出编辑控件，代码层面禁止 patch
+- **坐标系**：景点 lat/lng 录入保持 WGS-84，不做转换（前台地图 Adapter 层负责展示时转换）
+- **幂等安全**：更新操作使用 Supabase Upsert，避免误覆盖
+- **前台 Key 不受影响**：`api-client.js` 保持原样，不引入 service_role
+
 ---
 
 ## 7. 开发阶段规划
+
 
 ### Phase 1：Web MVP 核心验证（当前 -> 4 周）
 - [ ] 搭建 Supabase 项目，创建核心表结构（含索引）

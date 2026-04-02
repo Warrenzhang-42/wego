@@ -439,9 +439,26 @@ WeGO/
 | **9.7** | 编写 `tests/contracts/route-ingestion.test.mjs`，覆盖“解析后 -> 校验 -> 清洗后”三段契约测试 | 测试 | `tests/contracts/route-ingestion.test.mjs` | 全部测试 PASS |
 | **9.8** | 在 README 或运维文档增加发布 SOP（dry run -> review -> publish -> verify -> rollback） | 文档 | `README` 或运维文档 | 团队可按步骤独立完成一次新路线上线 |
 
+
+
+### Sprint 10：路线内容管理后台（预计 3 天）
+
+> 目标：为内容审核人员提供独立的路线内容管理界面，支持查看、修改、删除路线与景点，不提供新增功能。
+> 原则：热度字段 read-only；前端直连 Supabase Service Role Key；不修改前台代码。
+
+| # | Task | 类型 | 涉及文件 | 验收标准 |
+|---|------|------|---------|---------|
+| **10.1** | 更新 `WeGO_Product_Proposal.md`、`WeGO_Technical_Solution.md`、`WeGO_Development_Plan.md`：在 Sprint 9 成果基础上补充 Admin 模块的产品定位、技术架构与开发计划 | 文档 | 三份文档 | 三份文档均已更新，内容完整可读 |
+| **10.2** | 新建 `src/lib/admin-api.js`：实现管理端 CRUD SDK（getRoutesAdmin / getRouteAdmin / getSpotsAdmin / updateRoute / updateSpot / deleteRoute / deleteSpot），使用 service_role key，屏蔽 heat_level/heat_count 的写入 | 纯接口 | `src/lib/admin-api.js` | 7个方法全部可调用，返回符合契约的数据 |
+| **10.3** | 新建 `src/style-admin.css`：复用 WeGO 主色体系（故宫红、象牙白、Manrope/Noto Serif SC），覆盖表格、模态框、展开行、分页、标签 Chip、heat 字段只读样式 | 样式 | `src/style-admin.css` | 样式与 WeGO 主风格一致，heat 字段无编辑控件 |
+| **10.4** | 新建 `admin-routes.html`：路线管理主页面，含顶部工具栏（搜索/过滤）、路线列表表格（带展开行查看景点）、分页控件 | 页面 | `admin-routes.html` | 页面可正常打开，列表加载正常，展开行显示景点 |
+| **10.5** | 在 `admin-routes.html` 中实现编辑/删除模态框：路线编辑模态框（不含 heat 字段）、景点编辑模态框、删除确认模态框（路线删除提示级联风险） | 交互 | `admin-routes.html`（内联 JS） | 编辑保存后列表刷新，删除确认提示正确 |
+| **10.6** | 验收测试：页面加载、CRUD 操作、heat 字段保护、跨域配置验证 | 测试 | 全部文件 | 所有验收项通过，无 JS 报错 |
+
 ---
 
 ## 4. 每个 Task 的执行规范
+
 
 ### 给 AI 的 Prompt 模板
 
