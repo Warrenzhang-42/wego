@@ -144,15 +144,28 @@ import { appendRouteCards } from './lib/route-display.js';
     startAuto();
   }, { passive: true });
 
-  // Mouse drag (desktop preview)
-  track.addEventListener('mousedown', e => { startX = e.clientX; isDragging = true; clearInterval(autoTimer); });
-  track.addEventListener('mouseup',   e => {
-    if (!isDragging) return;
-    const diff = startX - e.clientX;
-    if (Math.abs(diff) > 40) diff > 0 ? next() : goTo(current - 1);
+  track.addEventListener('touchcancel', () => {
     isDragging = false;
     startAuto();
+  }, { passive: true });
+
+  // Mouse drag（桌面）：必须在 document 上结束拖拽，否则在轨道外松开鼠标时 isDragging
+  // 无法复位，可能干扰后续交互；滑动判断仍以起点在轮轨内为准。
+  function onCarouselMouseUp(e) {
+    if (!isDragging) return;
+    if (track.contains(e.target)) {
+      const diff = startX - e.clientX;
+      if (Math.abs(diff) > 40) diff > 0 ? next() : goTo(current - 1);
+    }
+    isDragging = false;
+    startAuto();
+  }
+  track.addEventListener('mousedown', e => {
+    startX = e.clientX;
+    isDragging = true;
+    clearInterval(autoTimer);
   });
+  document.addEventListener('mouseup', onCarouselMouseUp);
 
   // CTA click
   document.querySelectorAll('.slide-cta-btn').forEach(btn => {

@@ -74,7 +74,8 @@ input { font-family: inherit; }
   min-height: 100dvh;
   background: var(--clr-bg);
   position: relative;
-  overflow-x: hidden;
+  /* 勿在此使用 overflow-x: hidden：会与 overflow-y 成对计算为 auto，部分移动 WebKit
+     下会把纵向滚动困在错误层导致整页无法下滑。横向溢出由各区块（轮播、chips）自行裁剪。 */
 }
 
 /* ---- Status Bar ------------------------------------ */
@@ -205,14 +206,18 @@ input { font-family: inherit; }
 /* ---- Carousel -------------------------------------- */
 .carousel-wrapper {
   position: relative;
+  z-index: 0;
   width: 100%;
   margin: 0;
   overflow: hidden;
+  /* 限制轮播合成层与溢出绘制在盒内，避免 transform/will-change 在 iOS WebKit
+     上把可点区域「摊」到下方 chips / 列表之上 */
+  isolation: isolate;
+  contain: paint;
 }
 .carousel-track {
   display: flex;
   transition: transform 0.42s cubic-bezier(0.25,0.8,0.25,1);
-  will-change: transform;
 }
 .carousel-slide {
   flex: 0 0 100%;
@@ -349,6 +354,8 @@ input { font-family: inherit; }
 
 /* ---- Chips ----------------------------------------- */
 .chips-row {
+  position: relative;
+  z-index: 1;
   display: flex;
   gap: 8px;
   padding: 14px 18px 10px;
@@ -387,6 +394,8 @@ input { font-family: inherit; }
 
 /* ---- Section Header -------------------------------- */
 .section-header {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -408,6 +417,8 @@ input { font-family: inherit; }
 
 /* ---- Route List ------------------------------------ */
 .route-list {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   gap: 0;
