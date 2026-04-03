@@ -264,9 +264,9 @@
           </div>
 
           <div class="form-field full">
-            <label class="form-label">标签（英文逗号分隔）</label>
+            <label class="form-label">标签（使用中英文逗号分隔，按回车批量添加）</label>
             <div class="form-tags-input" id="route-tags-container">
-              <input type="text" id="route-tags-input" placeholder="输入后按回车添加标签">
+              <input type="text" id="route-tags-input" placeholder="中英文逗号分隔，按回车批量添加">
             </div>
             <div class="tags-list" id="route-tags-preview" style="margin-top:6px;"></div>
           </div>
@@ -388,21 +388,77 @@
           </div>
 
           <div class="form-field full">
-            <label class="form-label" for="spot-thumb">缩略图 URL</label>
-            <input class="form-input" type="url" id="spot-thumb" placeholder="https://…">
+            <label class="form-label">缩略图</label>
+            <div class="cover-picker" id="spot-thumb-picker">
+              <div class="cover-picker__tabs">
+                <button type="button" class="cover-picker__tab active" data-tab="url">网址 URL</button>
+                <button type="button" class="cover-picker__tab" data-tab="upload">本地上传</button>
+              </div>
+              <div class="cover-picker__panel active" data-panel="url">
+                <input class="form-input" type="url" id="spot-thumb" placeholder="https://…">
+              </div>
+              <div class="cover-picker__panel" data-panel="upload">
+                <div class="cover-picker__drop-zone" id="spot-thumb-drop-zone" tabindex="0" role="button" aria-label="点击或拖拽上传缩略图">
+                  <input type="file" id="spot-thumb-file" accept="image/*" style="display:none;">
+                  <div class="cover-picker__drop-hint" id="spot-thumb-drop-hint">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    <span>点击上传 或 拖拽图片到这里</span>
+                    <span class="cover-picker__drop-sub">支持 JPG / PNG / WebP，建议 800×600 以上</span>
+                  </div>
+                  <div class="cover-picker__preview" id="spot-thumb-preview" style="display:none;">
+                    <img id="spot-thumb-preview-img" src="" alt="缩略图预览">
+                    <div class="cover-picker__preview-actions">
+                      <button type="button" class="btn btn-sm btn-secondary" id="spot-thumb-remove-btn">移除</button>
+                    </div>
+                  </div>
+                  <div class="cover-picker__uploading" id="spot-thumb-uploading" style="display:none;">
+                    <div class="cover-picker__spinner"></div>
+                    <span>上传中…</span>
+                  </div>
+                </div>
+              </div>
+              <div class="cover-picker__url-preview" id="spot-thumb-url-preview" style="display:none;">
+                <img id="spot-thumb-url-preview-img" src="" alt="缩略图预览">
+                <button type="button" class="cover-picker__url-clear" id="spot-thumb-url-clear-btn" title="清除图片">×</button>
+              </div>
+            </div>
           </div>
 
           <div class="form-field full">
-            <label class="form-label">标签（英文逗号分隔）</label>
+            <label class="form-label">标签（使用中英文逗号分隔，按回车批量添加）</label>
             <div class="form-tags-input" id="spot-tags-container">
-              <input type="text" id="spot-tags-input" placeholder="输入后按回车添加标签">
+              <input type="text" id="spot-tags-input" placeholder="中英文逗号分隔，按回车批量添加">
             </div>
             <div class="tags-list" id="spot-tags-preview" style="margin-top:6px;"></div>
           </div>
 
           <div class="form-field full">
-            <label class="form-label">图片 URL（每行一个）</label>
-            <textarea class="form-textarea" id="spot-photos" rows="3" placeholder="https://图片1.jpg&#10;https://图片2.jpg"></textarea>
+            <label class="form-label">图片</label>
+            <div class="cover-picker" id="spot-photos-picker">
+              <div class="cover-picker__tabs">
+                <button type="button" class="cover-picker__tab active" data-tab="url">网址 URL</button>
+                <button type="button" class="cover-picker__tab" data-tab="upload">本地上传</button>
+              </div>
+              <div class="cover-picker__panel active" data-panel="url">
+                <p class="text-sm text-muted" style="margin:0 0 6px;">每行一个图片 URL</p>
+                <textarea class="form-textarea" id="spot-photos" rows="3" placeholder="https://图片1.jpg&#10;https://图片2.jpg"></textarea>
+              </div>
+              <div class="cover-picker__panel" data-panel="upload">
+                <p class="text-sm text-muted" style="margin:0 0 8px;">可多选；上传成功后 URL 会追加到「网址 URL」列表末尾</p>
+                <div class="cover-picker__drop-zone" id="spot-photos-drop-zone" tabindex="0" role="button" aria-label="点击或拖拽上传图片">
+                  <input type="file" id="spot-photos-file" accept="image/*" multiple style="display:none;">
+                  <div class="cover-picker__drop-hint" id="spot-photos-drop-hint">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    <span>点击上传 或 拖拽多张图片</span>
+                    <span class="cover-picker__drop-sub">支持 JPG / PNG / WebP，单张不超过 10MB</span>
+                  </div>
+                  <div class="cover-picker__uploading" id="spot-photos-uploading" style="display:none;">
+                    <div class="cover-picker__spinner"></div>
+                    <span id="spot-photos-uploading-text">上传中…</span>
+                  </div>
+                </div>
+              </div>
+            </div>
             <div class="photos-list" id="spot-photos-preview" style="margin-top:8px;"></div>
           </div>
         </div>
@@ -649,11 +705,285 @@ function refreshUrlPreview() {
     container.style.display = '';
     clearBtn.onclick = () => {
       _coverEffectiveUrl = '';
+      const rc = document.getElementById('route-cover');
+      if (rc) rc.value = '';
       refreshUrlPreview();
     };
   } else {
     container.style.display = 'none';
     img.src = '';
+  }
+}
+
+/* ============================================================
+   Spot Thumb Picker — 双模式（URL / 本地上传）
+   ============================================================ */
+let _spotThumbEffectiveUrl = '';
+let _spotThumbRouteId = null;
+let _spotThumbSpotId = null;
+let _spotThumbPickerInitialized = false;
+
+function initSpotThumbPicker() {
+  const picker = document.getElementById('spot-thumb-picker');
+  if (!picker) return;
+  if (_spotThumbPickerInitialized) return;
+  _spotThumbPickerInitialized = true;
+
+  picker.querySelectorAll('.cover-picker__tab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      picker.querySelectorAll('.cover-picker__tab').forEach((t) => t.classList.remove('active'));
+      picker.querySelectorAll('.cover-picker__panel').forEach((p) => p.classList.remove('active'));
+      tab.classList.add('active');
+      picker.querySelector(`.cover-picker__panel[data-panel="${tab.dataset.tab}"]`).classList.add('active');
+    });
+  });
+
+  const fileInput = document.getElementById('spot-thumb-file');
+  const dropZone = document.getElementById('spot-thumb-drop-zone');
+  const dropHint = document.getElementById('spot-thumb-drop-hint');
+  const preview = document.getElementById('spot-thumb-preview');
+  const uploading = document.getElementById('spot-thumb-uploading');
+  const removeBtn = document.getElementById('spot-thumb-remove-btn');
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files[0]) handleSpotThumbFile(fileInput.files[0]);
+  });
+
+  dropZone.addEventListener('click', (e) => {
+    if (e.target === removeBtn || removeBtn.contains(e.target)) return;
+    fileInput.click();
+  });
+  dropZone.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') fileInput.click();
+  });
+
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('drag-over');
+  });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    if (e.dataTransfer.files[0]) handleSpotThumbFile(e.dataTransfer.files[0]);
+  });
+
+  removeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    _spotThumbEffectiveUrl = '';
+    const inp = document.getElementById('spot-thumb');
+    if (inp) inp.value = '';
+    fileInput.value = '';
+    preview.style.display = 'none';
+    dropHint.style.display = '';
+    uploading.style.display = 'none';
+    refreshSpotThumbUrlPreview();
+  });
+
+  document.getElementById('spot-thumb').addEventListener('input', () => {
+    _spotThumbEffectiveUrl = document.getElementById('spot-thumb').value.trim();
+    refreshSpotThumbUrlPreview();
+  });
+}
+
+function resetSpotThumbPicker(routeId, spotId, thumbUrl) {
+  _spotThumbRouteId = routeId;
+  _spotThumbSpotId = spotId;
+  _spotThumbEffectiveUrl = thumbUrl || '';
+
+  const fileInput = document.getElementById('spot-thumb-file');
+  if (fileInput) fileInput.value = '';
+  const dh = document.getElementById('spot-thumb-drop-hint');
+  if (dh) dh.style.display = '';
+  const pv = document.getElementById('spot-thumb-preview');
+  if (pv) pv.style.display = 'none';
+  const up = document.getElementById('spot-thumb-uploading');
+  if (up) up.style.display = 'none';
+  const inp = document.getElementById('spot-thumb');
+  if (inp) inp.value = _spotThumbEffectiveUrl;
+
+  refreshSpotThumbUrlPreview();
+  const urlTab = document.querySelector('#spot-thumb-picker .cover-picker__tab[data-tab="url"]');
+  if (urlTab) urlTab.click();
+}
+
+function handleSpotThumbFile(file) {
+  if (!file.type.startsWith('image/')) {
+    toast('error', '请选择图片文件（JPG / PNG / WebP）');
+    return;
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    toast('error', '图片大小不能超过 10MB');
+    return;
+  }
+
+  const dropHint = document.getElementById('spot-thumb-drop-hint');
+  const preview = document.getElementById('spot-thumb-preview');
+  const previewImg = document.getElementById('spot-thumb-preview-img');
+  const uploading = document.getElementById('spot-thumb-uploading');
+  const fileInput = document.getElementById('spot-thumb-file');
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    previewImg.src = e.target.result;
+    preview.style.display = '';
+    uploading.style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+
+  dropHint.style.display = 'none';
+  preview.style.display = 'none';
+  uploading.style.display = '';
+
+  adminApi
+    .uploadSpotImage(file, _spotThumbRouteId, _spotThumbSpotId, 'thumb')
+    .then((url) => {
+      _spotThumbEffectiveUrl = url;
+      const inp = document.getElementById('spot-thumb');
+      if (inp) inp.value = url;
+      uploading.style.display = 'none';
+      refreshSpotThumbUrlPreview();
+    })
+    .catch((err) => {
+      uploading.style.display = 'none';
+      dropHint.style.display = '';
+      toast('error', `上传失败：${err.message}`);
+    });
+}
+
+function refreshSpotThumbUrlPreview() {
+  const url = _spotThumbEffectiveUrl;
+  const container = document.getElementById('spot-thumb-url-preview');
+  const img = document.getElementById('spot-thumb-url-preview-img');
+  const clearBtn = document.getElementById('spot-thumb-url-clear-btn');
+  if (!container || !img || !clearBtn) return;
+  if (url) {
+    img.src = url;
+    container.style.display = '';
+    clearBtn.onclick = () => {
+      _spotThumbEffectiveUrl = '';
+      const inp = document.getElementById('spot-thumb');
+      if (inp) inp.value = '';
+      refreshSpotThumbUrlPreview();
+    };
+  } else {
+    container.style.display = 'none';
+    img.src = '';
+  }
+}
+
+/* ============================================================
+   Spot Photos Picker — URL 文本 + 本地上传追加
+   ============================================================ */
+let _spotPhotosPickerInitialized = false;
+
+function initSpotPhotosPicker() {
+  const picker = document.getElementById('spot-photos-picker');
+  if (!picker || _spotPhotosPickerInitialized) return;
+  _spotPhotosPickerInitialized = true;
+
+  picker.querySelectorAll('.cover-picker__tab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      picker.querySelectorAll('.cover-picker__tab').forEach((t) => t.classList.remove('active'));
+      picker.querySelectorAll('.cover-picker__panel').forEach((p) => p.classList.remove('active'));
+      tab.classList.add('active');
+      picker.querySelector(`.cover-picker__panel[data-panel="${tab.dataset.tab}"]`).classList.add('active');
+    });
+  });
+
+  const fileInput = document.getElementById('spot-photos-file');
+  const dropZone = document.getElementById('spot-photos-drop-zone');
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files?.length) handleSpotPhotoFiles(Array.from(fileInput.files));
+  });
+
+  dropZone.addEventListener('click', () => {
+    const uploading = document.getElementById('spot-photos-uploading');
+    if (uploading && uploading.style.display !== 'none') return;
+    fileInput.click();
+  });
+  dropZone.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      const uploading = document.getElementById('spot-photos-uploading');
+      if (uploading && uploading.style.display !== 'none') return;
+      fileInput.click();
+    }
+  });
+
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropZone.classList.add('drag-over');
+  });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropZone.classList.remove('drag-over');
+    if (e.dataTransfer.files?.length) handleSpotPhotoFiles(Array.from(e.dataTransfer.files));
+  });
+}
+
+function resetSpotPhotosPicker() {
+  const fi = document.getElementById('spot-photos-file');
+  if (fi) fi.value = '';
+  const hint = document.getElementById('spot-photos-drop-hint');
+  const uploading = document.getElementById('spot-photos-uploading');
+  if (hint) hint.style.display = '';
+  if (uploading) uploading.style.display = 'none';
+  const uploadingText = document.getElementById('spot-photos-uploading-text');
+  if (uploadingText) uploadingText.textContent = '上传中…';
+  const urlTab = document.querySelector('#spot-photos-picker .cover-picker__tab[data-tab="url"]');
+  if (urlTab) urlTab.click();
+}
+
+async function handleSpotPhotoFiles(files) {
+  const routeId = document.getElementById('spot-edit-route-id')?.value;
+  const spotId = document.getElementById('spot-edit-id')?.value;
+  if (!spotId) {
+    toast('error', '无法上传：缺少游玩点 ID');
+    return;
+  }
+
+  const images = files.filter((f) => f.type.startsWith('image/'));
+  if (!images.length) {
+    toast('error', '请选择图片文件（JPG / PNG / WebP）');
+    return;
+  }
+  for (const f of images) {
+    if (f.size > 10 * 1024 * 1024) {
+      toast('error', '图片大小不能超过 10MB');
+      return;
+    }
+  }
+
+  const dropHint = document.getElementById('spot-photos-drop-hint');
+  const uploading = document.getElementById('spot-photos-uploading');
+  const uploadingText = document.getElementById('spot-photos-uploading-text');
+  const ta = document.getElementById('spot-photos');
+
+  dropHint.style.display = 'none';
+  uploading.style.display = '';
+  let done = 0;
+  try {
+    for (let i = 0; i < images.length; i++) {
+      if (uploadingText) uploadingText.textContent = `上传中 ${i + 1}/${images.length}…`;
+      const url = await adminApi.uploadSpotImage(images[i], routeId, spotId, 'gallery');
+      const lines = ta.value.trim()
+        ? ta.value.trim().split('\n').map((s) => s.trim()).filter(Boolean)
+        : [];
+      lines.push(url);
+      ta.value = lines.join('\n');
+      done++;
+    }
+    renderSpotPhotosPreview();
+    toast('success', done === 1 ? '已追加 1 张图片 URL' : `已追加 ${done} 张图片 URL`);
+  } catch (err) {
+    toast('error', `上传失败：${err.message}`);
+  } finally {
+    uploading.style.display = 'none';
+    dropHint.style.display = '';
+    document.getElementById('spot-photos-file').value = '';
+    if (uploadingText) uploadingText.textContent = '上传中…';
   }
 }
 
@@ -664,6 +994,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initAdminCityFilterSelect();
   initRouteProvinceCitySelectors();
   bindToolbarEvents();
+  initSpotThumbPicker();
+  initSpotPhotosPicker();
   bindTagInput('route-tags-input', 'route-tags-container', 'route-tags-preview', 'route');
   bindTagInput('spot-tags-input', 'spot-tags-container', 'spot-tags-preview', 'spot');
   document.getElementById('btn-save-route-draft').addEventListener('click', () => saveRoute(true));
@@ -1270,8 +1602,10 @@ async function openEditSpot(id, routeId) {
     document.getElementById('spot-stay').value = spot.estimated_stay_min ?? '';
     document.getElementById('spot-geofence').value = spot.geofence_radius_m ?? '';
     document.getElementById('spot-sort').value = spot.sort_order ?? '';
-    document.getElementById('spot-thumb').value = spot.thumb || '';
+    initSpotThumbPicker();
+    resetSpotThumbPicker(spot.route_id, spot.id, spot.thumb || '');
     document.getElementById('spot-photos').value = (spot.photos || []).join('\n');
+    resetSpotPhotosPicker();
 
     _spotTags = spot.tags || [];
     renderSpotTags();
@@ -1378,7 +1712,7 @@ async function saveSpot() {
       const v = parseInt(document.getElementById('spot-sort').value, 10);
       return Number.isFinite(v) ? v : 1;
     })(),
-    thumb: document.getElementById('spot-thumb').value.trim() || null,
+    thumb: (_spotThumbEffectiveUrl || document.getElementById('spot-thumb').value.trim()) || null,
     photos,
     tags: _spotTags,
     spot_type: document.getElementById('spot-type').value,
@@ -1479,24 +1813,37 @@ async function confirmDeleteSpot() {
 /* ============================================================
    Tag Input (shared)
    ============================================================ */
+/** 按中英文逗号切分标签（用于回车批量添加） */
+function parseTagInputTokens(raw) {
+  return String(raw)
+    .split(/[,，]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
 /** @param {'route'|'spot'} mode */
 function bindTagInput(inputId, containerId, previewId, mode) {
   const input = document.getElementById(inputId);
   const container = document.getElementById(containerId);
 
   input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' || e.key === ',') {
+    if (e.key === 'Enter') {
       e.preventDefault();
-      const val = input.value.trim().replace(/,$/, '');
+      const tokens = parseTagInputTokens(input.value);
       const tags = mode === 'route' ? _routeTags : _spotTags;
-      if (val && !tags.includes(val)) {
+      let added = false;
+      for (const val of tokens) {
+        if (val && !tags.includes(val)) {
+          tags.push(val);
+          added = true;
+        }
+      }
+      if (added) {
         if (mode === 'route') {
-          _routeTags.push(val);
           renderRouteTags();
           _routeModalDirty = true;
           scheduleRouteDraftSave(500);
         } else {
-          _spotTags.push(val);
           renderSpotTags();
         }
       }

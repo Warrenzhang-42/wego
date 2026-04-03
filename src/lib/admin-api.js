@@ -289,6 +289,32 @@ async function uploadCoverImage(file, routeId) {
   return urlData.publicUrl;
 }
 
+/**
+ * 上传景点配图到 Supabase Storage（缩略图或图集），返回公开 URL。
+ * @param {File} file
+ * @param {string} [routeId]
+ * @param {string} [spotId]
+ * @param {'thumb'|'gallery'} kind
+ */
+async function uploadSpotImage(file, routeId, spotId, kind) {
+  const sb = await _getClient();
+  const ext = file.name.split('.').pop() || 'jpg';
+  const prefix = kind === 'thumb' ? 'thumb' : 'photo';
+  const path =
+    routeId && spotId
+      ? `spot-assets/${routeId}/${spotId}/${prefix}-${Date.now()}.${ext}`
+      : `temp/spot-${prefix}-${Date.now()}.${ext}`;
+
+  const { data, error: uploadError } = await sb.storage
+    .from('images')
+    .upload(path, file, { cacheControl: '3600', upsert: false });
+
+  if (uploadError) throw new Error(`[admin-api] uploadSpotImage 上传失败: ${uploadError.message}`);
+
+  const { data: urlData } = sb.storage.from('images').getPublicUrl(data.path);
+  return urlData.publicUrl;
+}
+
 export const adminApi = {
   getRoutesAdmin,
   getRouteAdmin,
@@ -303,4 +329,5 @@ export const adminApi = {
   insertSpot,
   deleteSpot,
   uploadCoverImage,
+  uploadSpotImage,
 };
