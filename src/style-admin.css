@@ -815,3 +815,140 @@ tr:hover .row-actions { opacity: 1; }
 .text-muted { color: var(--clr-text-muted, #6b6e72); }
 .text-sm { font-size: 12px; }
 .text-danger { color: var(--clr-danger, #c42b2b); }
+
+/* ---- Header tabs + 路线上传（PC） ------------------------ */
+.admin-header__left {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+
+.admin-header__tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-nav-tab {
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-radius: var(--radius-md, 10px);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.admin-nav-tab:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.admin-nav-tab.active {
+  color: var(--clr-primary, #b22314);
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.admin-upload-page {
+  max-width: 1120px;
+}
+
+.admin-upload-intro {
+  margin-bottom: 20px;
+}
+
+.admin-upload-intro h1 {
+  font-family: var(--font-head, 'Noto Serif SC', serif);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--clr-text-h, #1b1c1d);
+  margin-bottom: 10px;
+}
+
+.admin-upload-intro__text {
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--clr-text-b, #3d3f42);
+  max-width: 72ch;
+}
+
+.admin-upload-shell {
+  background: var(--clr-surface-container-lowest, #fff);
+  border-radius: var(--radius-lg, 12px);
+  border: 1px solid var(--clr-outline-variant, #e3beb8);
+  box-shadow: var(--shadow-card, 0 12px 32px rgba(27, 28, 29, 0.04));
+  padding: 24px 28px 32px;
+  min-height: 420px;
+}
+
+.admin-ur-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--clr-outline-variant, #e3beb8);
+}
+
+.admin-ur-back {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--clr-surface-variant, #e4e2e3);
+  color: var(--clr-on-surface, #1b1c1d);
+  transition: background 0.15s;
+}
+
+.admin-ur-back:hover {
+  background: var(--clr-outline-variant, #e3beb8);
+}
+
+.admin-ur-phase-title {
+  font-family: var(--font-head, 'Noto Serif SC', serif);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--clr-on-surface, #1b1c1d);
+  margin: 0;
+}
+
+.admin-ur-main {
+  max-width: none;
+}
+
+.admin-ur-main .ru-container {
+  padding-left: 0;
+  padding-right: 0;
+  max-width: none;
+}
+
+.admin-ur-done {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 32px 8px 16px;
+  gap: 12px;
+}
+
+.admin-ur-done-title {
+  font-family: var(--font-head, 'Noto Serif SC', serif);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--clr-primary, #b22314);
+  margin: 0;
+}
+
+.admin-ur-done-desc {
+  font-size: 14px;
+  color: var(--clr-text-muted, #6b6e72);
+  line-height: 1.6;
+  max-width: 48ch;
+  margin: 0 0 8px;
+}

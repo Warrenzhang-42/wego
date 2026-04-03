@@ -3,7 +3,9 @@ const { readFileSync, existsSync } = require('fs');
 const { resolve } = require('path');
 
 const APP_DIR = __dirname;
-const PORT = 5174;
+const HOST = '127.0.0.1';
+const BASE_PORT = Number(process.env.ADMIN_PORT || process.env.PORT || 5174) || 5174;
+const MAX_PORT_TRIES = 40;
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -30,31 +32,59 @@ function tryRead(url) {
   return null;
 }
 
-createServer((req, res) => {
-  const url = req.url.split('?')[0];
+function createAdminHandler() {
+  return (req, res) => {
+    const url = req.url.split('?')[0];
 
-  if (url === '/admin') {
-    const htmlPath = resolve(APP_DIR, 'src/admin-routes.html');
-    try {
-      const html = readFileSync(htmlPath, 'utf-8');
-      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-      res.end(html);
-    } catch (e) {
-      res.writeHead(500);
-      res.end('Error: ' + e.message);
+    if (url === '/admin') {
+      const htmlPath = resolve(APP_DIR, 'src/admin-routes.html');
+      try {
+        const html = readFileSync(htmlPath, 'utf-8');
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+        res.end(html);
+      } catch (e) {
+        res.writeHead(500);
+        res.end('Error: ' + e.message);
+      }
+      return;
     }
-    return;
+
+    const body = tryRead(url);
+    if (body !== null) {
+      res.writeHead(200, { 'Content-Type': mimeType(url), 'Cache-Control': 'no-cache' });
+      res.end(body);
+      return;
+    }
+    res.writeHead(404);
+    res.end('Not found: ' + url);
+  };
+}
+
+function listenWithFallback(port, attempt) {
+  if (attempt >= MAX_PORT_TRIES) {
+    console.error(`[admin] 在 ${BASE_PORT}–${BASE_PORT + MAX_PORT_TRIES - 1} 范围内未找到可用端口。可设置 ADMIN_PORT 指定端口，或结束占用 ${BASE_PORT} 的进程。`);
+    process.exit(1);
   }
 
-  const body = tryRead(url);
-  if (body !== null) {
-    res.writeHead(200, { 'Content-Type': mimeType(url), 'Cache-Control': 'no-cache' });
-    res.end(body);
-    return;
-  }
-  res.writeHead(404);
-  res.end('Not found: ' + url);
-}).listen(PORT, '127.0.0.1', () => {
-  console.log('WeGO Admin: http://127.0.0.1:' + PORT + '/admin');
-  console.log('前台:     http://127.0.0.1:5173/');
-});
+  const server = createServer(createAdminHandler());
+
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.warn(`[admin] 端口 ${port} 已被占用，尝试 ${port + 1}…`);
+      listenWithFallback(port + 1, attempt + 1);
+      return;
+    }
+    throw err;
+  });
+
+  server.listen(port, HOST, () => {
+    if (port !== BASE_PORT) {
+      console.warn(`[admin] 已改用端口 ${port}（默认 ${BASE_PORT} 占用中）。前台跳转请设 window.__WEGO_ADMIN_ORIGIN__ 或关闭旧后台进程。`);
+    }
+    console.log('WeGO Admin: http://' + HOST + ':' + port + '/admin');
+    console.log('路线上传: http://' + HOST + ':' + port + '/admin#route-upload （Agent 解析 / Gap 引导）');
+    console.log('前台:     http://' + HOST + ':5173/');
+  });
+}
+
+listenWithFallback(BASE_PORT, 0);

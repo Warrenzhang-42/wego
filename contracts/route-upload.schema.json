@@ -1,0 +1,26 @@
+{
+  "$id": "route-upload",
+  "type": "object",
+  "required": ["session_id", "file_content", "file_type"],
+  "properties": {
+    "session_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "会话唯一 ID，用于关联解析状态和后续确认"
+    },
+    "file_content": {
+      "type": "string",
+      "description": "原始文件内容（JSON 文本 / Markdown 文本 / TXT 文本 / URL）"
+    },
+    "file_type": {
+      "type": "string",
+      "enum": ["json", "markdown", "txt", "url"],
+      "description": "文件格式枚举"
+    },
+    "source_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "当 file_type=url 时，原始网页 URL"
+    }
+  }
+}

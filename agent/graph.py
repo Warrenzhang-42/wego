@@ -11,6 +11,8 @@ from tools.search_knowledge import search_knowledge
 from tools.web_search import web_search
 from tools.plan_route import plan_route
 from tools.geofence_narration import geofence_narration
+from tools.upload_route import upload_route
+from tools.confirm_route_upload import confirm_route_upload
 
 load_dotenv()
 
@@ -35,7 +37,7 @@ llm = ChatOpenAI(
     temperature=0.7,
 )
 
-tools = [search_knowledge, web_search, plan_route, geofence_narration]
+tools = [search_knowledge, web_search, plan_route, geofence_narration, upload_route, confirm_route_upload]
 
 # Create LangGraph ReAct Agent
 system_message = f"{system_prompt}\n\n{personality_prompt}"

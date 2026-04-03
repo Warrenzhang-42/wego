@@ -2,280 +2,33 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <title>上传路线 · WeGO</title>
-  <meta name="description" content="上传并发布您的路线到 WeGO" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>正在跳转 · 路线上传</title>
   <style>
-    /* ====================================================
-       页面布局
-       ==================================================== */
-    :root {
-      --ur-nav-h: 56px;
-    }
-    html, body {
-      background: var(--clr-bg, #fbf9fa);
-      min-height: 100dvh;
-    }
-    #ur-app {
-      max-width: 480px;
-      margin: 0 auto;
-      min-height: 100dvh;
-      background: var(--clr-bg, #fbf9fa);
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Top Nav */
-    .ur-top-nav {
-      height: var(--ur-nav-h);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 12px;
-      background: var(--clr-card, #fff);
-      border-bottom: 1px solid var(--clr-outline-variant, #e3beb8);
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      flex-shrink: 0;
-    }
-    .ur-back-btn {
-      width: 36px; height: 36px;
-      border-radius: 50%;
-      border: none;
-      background: var(--clr-surface-variant, #e4e2e3);
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer;
-      color: var(--clr-on-surface, #1b1c1d);
-      transition: background 0.2s;
-    }
-    .ur-back-btn:hover { background: var(--clr-outline-variant, #e3beb8); }
-    .ur-nav-title {
-      font-family: var(--font-head, 'Noto Serif SC', serif);
-      font-size: 17px;
-      font-weight: 700;
-      color: var(--clr-on-surface, #1b1c1d);
-    }
-
-    /* Main */
-    .ur-main {
-      flex: 1;
-      overflow-y: auto;
-      padding-top: 16px;
-    }
-
-    /* Done state */
-    .ur-done {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 60px 24px 40px;
-      text-align: center;
-      gap: 16px;
-    }
-    .ur-done-icon { margin-bottom: 8px; }
-    .ur-done-title {
-      font-family: var(--font-head, 'Noto Serif SC', serif);
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--clr-primary, #b22314);
-    }
-    .ur-done-desc {
-      font-size: 14px;
-      color: var(--clr-text-muted, #6b6e72);
-      max-width: 280px;
-      line-height: 1.6;
-    }
-    .ur-done-cta {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 12px 32px;
-      background: var(--clr-primary, #b22314);
-      color: #fff;
-      border: none;
-      border-radius: var(--radius-pill, 999px);
-      font-size: 15px;
-      font-weight: 700;
-      font-family: var(--font-body, 'Manrope', sans-serif);
-      cursor: pointer;
-      transition: background 0.2s;
-      margin-top: 8px;
-    }
-    .ur-done-cta:hover { background: var(--clr-primary-container, #d53d2a); }
+    body { font-family: system-ui, sans-serif; padding: 2rem; max-width: 40rem; margin: 0 auto; line-height: 1.6; color: #333; }
+    a { color: #b22314; }
   </style>
+  <script>
+    function adminUploadUrl() {
+      if (window.__WEGO_ADMIN_UPLOAD_URL__) return window.__WEGO_ADMIN_UPLOAD_URL__;
+      var o = window.__WEGO_ADMIN_ORIGIN__;
+      if (o) return String(o).replace(/\/$/, '') + '/admin#route-upload';
+      var loc = window.location;
+      var port = loc.port;
+      if (port === '5173') return loc.protocol + '//' + loc.hostname + ':5174/admin#route-upload';
+      return loc.protocol + '//' + loc.hostname + (port ? ':' + port : '') + '/admin#route-upload';
+    }
+    document.addEventListener('DOMContentLoaded', function () {
+      var t = adminUploadUrl();
+      var link = document.getElementById('manual-link');
+      if (link) link.href = t;
+    });
+    window.location.replace(adminUploadUrl());
+  </script>
 </head>
 <body>
-<div id="ur-app">
-
-  <!-- 顶部导航 -->
-  <header class="ur-top-nav">
-    <button class="ur-back-btn" id="ur-back-btn" aria-label="返回">
-      <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-        <path d="M13 4L7 10L13 16" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    </button>
-    <h1 class="ur-nav-title" id="ur-nav-title">上传路线</h1>
-    <div style="width:36px;"></div>
-  </header>
-
-  <!-- 内容区：三个组件动态挂载 -->
-  <main class="ur-main" id="ur-main"></main>
-
-</div><!-- #ur-app -->
-
-<!-- Supabase 配置 -->
-<script>
-  window.__WEGO_CONFIG__ = {
-    supabaseUrl:     'https://mforzutksmcimmzeodfe.supabase.co',
-    supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb3J6dXRrc21jaW1temVvZGZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMjI1NTEsImV4cCI6MjA5MDU5ODU1MX0.cAhiYPKZsJnHEgZHT5WwiTNdstky2DKCkSdD1uV92W0',
-  };
-</script>
-
-<!-- 组件（ES Module） -->
-<script type="module">
-  import { mountRouteUploader } from './components/RouteUploader.js';
-  import { mountGapFillingChat } from './components/GapFillingChat.js';
-  import { mountRoutePreview } from './components/RoutePreview.js';
-
-  /* ============================================================
-     阶段状态机
-     ============================================================ */
-  const main = document.getElementById('ur-main');
-  const navTitle = document.getElementById('ur-nav-title');
-  const backBtn = document.getElementById('ur-back-btn');
-
-  let state = {
-    phase: 'idle',     // idle | gap_filling | preview | done
-    sessionId: '',
-    gaps: [],
-    route: null,
-  };
-
-  let currentDestroy = null;
-
-  function setTitle(title) {
-    navTitle.textContent = title;
-  }
-
-  function navigate() {
-    if (currentDestroy) { currentDestroy(); currentDestroy = null; }
-    main.innerHTML = '';
-
-    if (state.phase === 'idle') {
-      setTitle('上传路线');
-      currentDestroy = mountRouteUploader({
-        container: main,
-        onGapStart,
-        onUploaded,
-        onCancel: () => { window.location.href = 'index.html'; },
-      }).destroy;
-    } else if (state.phase === 'gap_filling') {
-      setTitle('补充信息');
-      currentDestroy = mountGapFillingChat({
-        container: main,
-        sessionId: state.sessionId,
-        gaps: state.gaps,
-        onComplete: onGapComplete,
-        onCancel: () => { window.location.href = 'index.html'; },
-      }).destroy;
-    } else if (state.phase === 'preview') {
-      setTitle('确认上传');
-      currentDestroy = mountRoutePreview({
-        container: main,
-        sessionId: state.sessionId,
-        route: state.route,
-        onConfirm: onConfirm,
-        onContinueEditing: () => { state.phase = 'idle'; navigate(); },
-        onCancel: () => { window.location.href = 'index.html'; },
-      }).destroy;
-    } else if (state.phase === 'done') {
-      setTitle('上传完成');
-      main.innerHTML = `
-        <div class="ur-done">
-          <div class="ur-done-icon" aria-hidden="true">
-            <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
-              <circle cx="40" cy="40" r="40" fill="#f5ebe9"/>
-              <circle cx="40" cy="40" r="28" fill="#b22314" fill-opacity="0.12"/>
-              <path d="M26 40L35 49L54 30" stroke="#b22314" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-          <h2 class="ur-done-title">提交成功！</h2>
-          <p class="ur-done-desc">您的路线已提交审核，审核通过后将自动入库并向用户可见。</p>
-          <button class="ur-done-cta" id="ur-done-back">返回首页</button>
-        </div>
-      `;
-      document.getElementById('ur-done-back').addEventListener('click', () => {
-        window.location.href = 'index.html';
-      });
-    }
-  }
-
-  /* ---- Gap 开始（无主观 Gap，直接进预览） ---- */
-  function onGapStart(sessionId, gaps) {
-    state.sessionId = sessionId;
-    state.gaps = gaps;
-    state.phase = 'gap_filling';
-    navigate();
-  }
-
-  /* ---- 上传完成（无 Gap，直接进预览） ---- */
-  function onUploaded(sessionId, route) {
-    state.sessionId = sessionId;
-    state.route = route;
-    state.phase = 'preview';
-    navigate();
-  }
-
-  /* ---- Gap 填写完成 ---- */
-  function onGapComplete(sessionId, route) {
-    state.sessionId = sessionId;
-    state.route = route;
-    state.phase = 'preview';
-    navigate();
-  }
-
-  /* ---- 确认上传 ---- */
-  async function onConfirm(sessionId) {
-    const cfg = window.__WEGO_CONFIG__ || {};
-    const base = cfg.supabaseUrl || '';
-    const fnUrl = `${base}/functions/v1/route-ingest/${sessionId}/confirm`;
-
-    const res = await fetch(fnUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${cfg.supabaseAnonKey || ''}`,
-      },
-      body: JSON.stringify({ confirmed: true }),
-    });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error((err || {}).error || `HTTP ${res.status}`);
-    }
-
-    state.phase = 'done';
-    navigate();
-  }
-
-  /* ============================================================
-     初始化
-     ============================================================ */
-  backBtn.addEventListener('click', () => {
-    if (state.phase === 'idle' || state.phase === 'done') {
-      window.location.href = 'index.html';
-    } else if (state.phase === 'gap_filling' || state.phase === 'preview') {
-      state.phase = 'idle';
-      navigate();
-    }
-  });
-
-  navigate();
-</script>
+  <h1>路线上传已迁至后台</h1>
+  <p>内容上传与 Agent 解析、补充引导请在 <strong>WeGO 内容管理后台</strong> 的「路线上传」中完成（PC 布局）。</p>
+  <p>若未自动跳转，请<a id="manual-link" href="http://127.0.0.1:5174/admin#route-upload">点此打开后台上传页</a>（本地默认后台端口 5174）。</p>
 </body>
 </html>

@@ -56,7 +56,13 @@
      ADMIN HEADER
      ================================================================ -->
 <header class="admin-header">
-  <div class="admin-header__brand">WeGO 内容管理后台</div>
+  <div class="admin-header__left">
+    <div class="admin-header__brand">WeGO 内容管理后台</div>
+    <nav class="admin-header__tabs" aria-label="后台分区">
+      <button type="button" class="admin-nav-tab active" data-admin-view="list">路线列表</button>
+      <button type="button" class="admin-nav-tab" data-admin-view="upload">路线上传</button>
+    </nav>
+  </div>
   <nav class="admin-header__nav">
     <a href="http://127.0.0.1:5173/" target="_blank">返回前台</a>
     <span class="admin-header__mode">SERVICE ROLE</span>
@@ -64,8 +70,9 @@
 </header>
 
 <!-- ================================================================
-     MAIN CONTENT
+     MAIN: 路线列表
      ================================================================ -->
+<div id="admin-view-list">
 <main class="admin-page">
 
   <!-- Page Title -->
@@ -135,6 +142,31 @@
     </div>
   </div>
 </main>
+</div><!-- #admin-view-list -->
+
+<!-- ================================================================
+     路线上传（PC）：Edge route-ingest + Agent 解析与 Gap 引导
+     ================================================================ -->
+<div id="admin-view-upload" class="admin-page admin-upload-page" hidden>
+  <section class="admin-upload-intro" aria-labelledby="admin-upload-heading">
+    <h1 id="admin-upload-heading">路线上传</h1>
+    <p class="admin-upload-intro__text">
+      在下方提交 JSON / Markdown / 文本或 URL。请求由 <strong>Supabase route-ingest</strong> 接收并调用
+      <strong>Python Agent</strong> 解析路线、识别待补充字段；若有 Gap，请按对话引导补全后再确认入库。
+    </p>
+  </section>
+  <div class="admin-upload-shell">
+    <div class="admin-ur-toolbar">
+      <button type="button" class="admin-ur-back" id="admin-ur-back-btn" aria-label="返回上一步" style="visibility:hidden">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M13 4L7 10L13 16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <h2 class="admin-ur-phase-title" id="admin-ur-nav-title">上传路线</h2>
+    </div>
+    <div id="admin-ur-main" class="admin-ur-main"></div>
+  </div>
+</div>
 
 <!-- ================================================================
      MODAL: EDIT ROUTE
@@ -376,6 +408,8 @@
 window.__WEGO_API_CONFIG__ = {
   supabaseUrl: 'https://mforzutksmcimmzeodfe.supabase.co',
   supabaseServiceKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb3J6dXRrc21jaW1temVvZGZlIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTAyMjU1MSwiZXhwIjoyMDkwNTk4NTUxfQ.2MQfCU6KbIrstRaBCzq1DMc4lU06sg70pnR0T1P3hv0',
+  /** 调用 route-ingest Edge Function（与前台 ingest 一致，需 anon JWT） */
+  supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb3J6dXRrc21jaW1temVvZGZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMjI1NTEsImV4cCI6MjA5MDU5ODU1MX0.cAhiYPKZsJnHEgZHT5WwiTNdstky2DKCkSdD1uV92W0',
 };
 </script>
 
@@ -384,6 +418,7 @@ window.__WEGO_API_CONFIG__ = {
      ================================================================ -->
 <script type="module">
 import { adminApi } from './lib/admin-api.js';
+import { initAdminRouteUploadPanel } from './admin-route-upload.js';
 
 /* ============================================================
    State
@@ -401,6 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
   bindTagInput('route-tags-input', 'route-tags-container', 'route-tags-preview', renderRouteTags);
   bindTagInput('spot-tags-input', 'spot-tags-container', 'spot-tags-preview', renderSpotTags);
   loadRoutes();
+  initAdminRouteUploadPanel();
 });
 
 /* ============================================================

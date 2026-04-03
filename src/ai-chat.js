@@ -165,11 +165,25 @@ let userMarker = null;
     });
   }
 
-  /* 上传路线入口（Sprint 11.6.5） */
+  /* 上传路线入口：跳转内容管理后台「路线上传」（Agent 解析与 Gap 在后台完成） */
   const uploadBtn = document.getElementById('ac-btn-upload');
   if (uploadBtn) {
     uploadBtn.addEventListener('click', () => {
-      window.location.href = 'upload-route.html';
+      if (window.__WEGO_ADMIN_UPLOAD_URL__) {
+        window.location.href = window.__WEGO_ADMIN_UPLOAD_URL__;
+        return;
+      }
+      const o = window.__WEGO_ADMIN_ORIGIN__;
+      if (o) {
+        window.location.href = `${String(o).replace(/\/$/, '')}/admin#route-upload`;
+        return;
+      }
+      const { protocol, hostname, port } = window.location;
+      if (port === '5173') {
+        window.location.href = `${protocol}//${hostname}:5174/admin#route-upload`;
+        return;
+      }
+      window.location.href = `${protocol}//${hostname}${port ? `:${port}` : ''}/admin#route-upload`;
     });
   }
 
