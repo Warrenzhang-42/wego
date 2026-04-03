@@ -58,6 +58,7 @@ function _buildContractSnapshot(route, spots) {
     duration_minutes: route.duration_minutes ?? null,
     tags: route.tags || [],
     category: route.category ?? '',
+    city_adcode: route.city_adcode ?? '',
     cover_image: route.cover_image ?? '',
     thumbnail_image: route.thumbnail_image ?? '',
     is_visible: route.is_visible !== false,
@@ -89,17 +90,17 @@ function _buildContractSnapshot(route, spots) {
 /**
  * @param {Object} opts
  * @param {string} [opts.search]
- * @param {string} [opts.category]
+ * @param {string} [opts.city_adcode]
  * @param {boolean} [opts.is_visible]
  * @param {number} [opts.page]
  * @param {number} [opts.pageSize]
  */
-async function getRoutesAdmin({ search, category, is_visible, page = 1, pageSize = 20 } = {}) {
+async function getRoutesAdmin({ search, city_adcode, is_visible, page = 1, pageSize = 20 } = {}) {
   const sb = await _getClient();
   let query = sb.from('routes').select('*', { count: 'exact' });
 
   if (search) query = query.ilike('title', `%${search}%`);
-  if (category) query = query.eq('category', category);
+  if (city_adcode) query = query.eq('city_adcode', city_adcode);
   if (typeof is_visible === 'boolean') query = query.eq('is_visible', is_visible);
 
   const from = (page - 1) * pageSize;
@@ -127,7 +128,7 @@ async function insertRoute(payload = {}) {
     title: payload.title || '未命名路线',
     description: payload.description ?? null,
     tags: payload.tags || [],
-    category: payload.category ?? null,
+    city_adcode: payload.city_adcode ?? null,
     cover_image: payload.cover_image ?? null,
     is_visible: payload.is_visible !== false,
   };

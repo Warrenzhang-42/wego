@@ -12,6 +12,7 @@
       "description": { "type": "string" },
       "tags": { "type": "array", "items": { "type": "string" } },
       "category": { "type": "string" },
+      "city_adcode": { "type": "string" },
       "cover_image": { "type": "string" },
       "thumbnail_image": { "type": "string" },
       "duration_minutes": { "type": "integer" },

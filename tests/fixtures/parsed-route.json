@@ -1,5 +1,5 @@
 {
-  "id": "e7ec376f-89d6-4734-b8b5-18c8a57e2e6b",
+  "id": "445a39e8-d186-42f5-be75-15b235804f38",
   "title": "大栅栏文化漫游",
   "description": "北京老城慢行路线，串联街区文化与文艺空间。",
   "duration_minutes": 120,
@@ -13,7 +13,7 @@
   "validation_status": "pending",
   "spots": [
     {
-      "id": "02d2fdd8-0158-4ddc-90fa-422e99be3ab8",
+      "id": "7c44c446-9d7a-4c91-8494-750ffa383d7e",
       "name": "前门大街",
       "subtitle": "中轴线南段",
       "short_desc": "适合慢行体验",
@@ -32,7 +32,7 @@
       "validation_errors": []
     },
     {
-      "id": "63a7aed1-1768-44f4-9c34-8fdb764f3e5d",
+      "id": "7ab44878-6943-4136-8875-35183035dd4a",
       "name": "杨梅竹斜街",
       "subtitle": "文艺街巷",
       "short_desc": "适合拍照和逛店",

@@ -90,13 +90,8 @@
       <input type="text" id="search-input" placeholder="搜索路线名称…" autocomplete="off">
     </div>
 
-    <select id="filter-category">
-      <option value="">全部分类</option>
-      <option value="本地">本地</option>
-      <option value="推荐">推荐</option>
-      <option value="美食">美食</option>
-      <option value="文化">文化</option>
-      <option value="自然">自然</option>
+    <select id="filter-city-adcode" class="form-select" style="min-width:200px;" aria-label="按城市筛选">
+      <option value="">全部城市</option>
     </select>
 
     <button type="button" class="btn btn-primary" id="btn-new-route" style="height:38px; padding:0 14px;">新增路线</button>
@@ -111,7 +106,7 @@
         <tr>
           <th style="width:240px;">路线名称</th>
           <th>标签</th>
-          <th>分类</th>
+          <th>所在城市</th>
           <th style="width:72px;">可见</th>
           <th style="width:64px;">版本</th>
           <th style="width:90px;">热度</th>
@@ -178,6 +173,7 @@
     <div class="modal__body">
       <form id="form-edit-route" novalidate>
         <input type="hidden" id="route-edit-id">
+        <input type="hidden" id="route-original-city-adcode" value="">
 
         <div class="form-grid">
           <div class="form-field full">
@@ -191,18 +187,22 @@
           </div>
 
           <div class="form-field">
-            <label class="form-label" for="route-category">分类</label>
-            <select class="form-select" id="route-category">
-              <option value="">未分类</option>
-              <option value="本地">本地</option>
-              <option value="推荐">推荐</option>
-              <option value="美食">美食</option>
-              <option value="文化">文化</option>
-              <option value="自然">自然</option>
+            <label class="form-label" for="route-province">省 / 直辖市 / 自治区</label>
+            <select class="form-select" id="route-province">
+              <option value="">请选择</option>
             </select>
           </div>
 
           <div class="form-field">
+            <label class="form-label" for="route-city">所在城市</label>
+            <select class="form-select" id="route-city">
+              <option value="">请先选择上级区域</option>
+            </select>
+            <p class="text-sm text-muted" style="margin:6px 0 0;">保存草稿 / 发布时，若已选城市将校验全部景点 WGS-84 坐标是否在该城市范围内。</p>
+            <p class="text-sm text-muted" id="route-city-legacy-hint" style="margin:6px 0 0;display:none;color:var(--clr-warn, #b45309);"></p>
+          </div>
+
+          <div class="form-field full">
             <label class="form-label" for="route-visible">
               <input type="checkbox" id="route-visible" checked> 路线对外可见
             </label>
@@ -495,6 +495,12 @@ import { adminApi } from './lib/admin-api.js';
 import { initAdminRouteUploadPanel } from './admin-route-upload.js';
 import { normalizeToWgs84, wgs84ToGcj02 } from './lib/coordinate-frame.js';
 import { ensureAdminSpotMap, syncAdminSpotMapFromForm } from './lib/admin-spot-map-picker.js';
+import {
+  ROUTE_ADMIN_PROVINCES,
+  getCityMeta,
+  listSpotNamesOutsideCity,
+  formatCityLabel,
+} from './lib/admin-route-cities.js';
 
 const SPOT_MAP_PICKER_IDS = {
   mapContainerId: 'spot-map-container',
@@ -655,6 +661,8 @@ function refreshUrlPreview() {
    Bootstrap
    ============================================================ */
 document.addEventListener('DOMContentLoaded', () => {
+  initAdminCityFilterSelect();
+  initRouteProvinceCitySelectors();
   bindToolbarEvents();
   bindTagInput('route-tags-input', 'route-tags-container', 'route-tags-preview', 'route');
   bindTagInput('spot-tags-input', 'spot-tags-container', 'spot-tags-preview', 'spot');
@@ -668,11 +676,138 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /* ============================================================
+   城市筛选 / 编辑联动（省 → 市）
+   ============================================================ */
+function initAdminCityFilterSelect() {
+  const sel = document.getElementById('filter-city-adcode');
+  if (!sel) return;
+  sel.innerHTML = '<option value="">全部城市</option>';
+  for (const p of ROUTE_ADMIN_PROVINCES) {
+    const og = document.createElement('optgroup');
+    og.label = p.name;
+    for (const c of p.cities) {
+      const o = document.createElement('option');
+      o.value = c.adcode;
+      o.textContent = c.name;
+      og.appendChild(o);
+    }
+    sel.appendChild(og);
+  }
+}
+
+function initRouteProvinceCitySelectors() {
+  const provSel = document.getElementById('route-province');
+  const citySel = document.getElementById('route-city');
+  if (!provSel || !citySel) return;
+  provSel.innerHTML = '<option value="">请选择省 / 直辖市 / 自治区</option>';
+  for (const p of ROUTE_ADMIN_PROVINCES) {
+    const o = document.createElement('option');
+    o.value = p.code;
+    o.textContent = p.name;
+    provSel.appendChild(o);
+  }
+  provSel.addEventListener('change', () => {
+    refillRouteCitySelect(provSel.value, '');
+    _routeModalDirty = true;
+    scheduleRouteDraftSave(600);
+  });
+  citySel.addEventListener('change', () => {
+    _routeModalDirty = true;
+    scheduleRouteDraftSave(600);
+  });
+}
+
+function refillRouteCitySelect(provinceCode, selectedAdcode) {
+  const citySel = document.getElementById('route-city');
+  if (!citySel) return;
+  citySel.innerHTML = '';
+  if (!provinceCode) {
+    citySel.innerHTML = '<option value="">请先选择上级区域</option>';
+    return;
+  }
+  const p = ROUTE_ADMIN_PROVINCES.find((x) => x.code === provinceCode);
+  if (!p || !p.cities.length) {
+    citySel.innerHTML = '<option value="">暂无下级城市</option>';
+    return;
+  }
+  citySel.appendChild(new Option('请选择城市', ''));
+  for (const c of p.cities) {
+    citySel.appendChild(new Option(c.name, c.adcode));
+  }
+  if (selectedAdcode && p.cities.some((c) => c.adcode === selectedAdcode)) {
+    citySel.value = selectedAdcode;
+  }
+}
+
+function setRouteCityFormFromAdcode(adcode) {
+  const provSel = document.getElementById('route-province');
+  const citySel = document.getElementById('route-city');
+  if (!provSel || !citySel) return;
+  const code = adcode ? String(adcode) : '';
+  if (!code) {
+    provSel.value = '';
+    refillRouteCitySelect('', '');
+    return;
+  }
+  const meta = getCityMeta(code);
+  if (!meta) {
+    provSel.value = '';
+    refillRouteCitySelect('', '');
+    return;
+  }
+  const prov = ROUTE_ADMIN_PROVINCES.find((pr) => pr.cities.some((c) => c.adcode === code));
+  if (!prov) {
+    provSel.value = '';
+    refillRouteCitySelect('', '');
+    return;
+  }
+  provSel.value = prov.code;
+  refillRouteCitySelect(prov.code, code);
+}
+
+/**
+ * @param {string} routeId
+ * @param {{ requireCity: boolean }} opts
+ */
+async function validateRouteCityBounds(routeId, opts) {
+  const requireCity = opts.requireCity === true;
+  let adcode = (document.getElementById('route-city')?.value || '').trim();
+  if (!adcode) {
+    const orig = (document.getElementById('route-original-city-adcode')?.value || '').trim();
+    if (orig && !getCityMeta(orig)) {
+      if (requireCity) {
+        return {
+          ok: false,
+          message: '请从列表中选择所在城市（当前库内代码不在内置城市列表，无法用于发布校验）',
+        };
+      }
+      return { ok: true };
+    }
+    if (requireCity) {
+      return { ok: false, message: '发布前请先选择所在城市' };
+    }
+    return { ok: true };
+  }
+  if (!getCityMeta(adcode)) {
+    return { ok: false, message: '所选城市无效，请重新选择' };
+  }
+  const full = await adminApi.getRouteAdmin(routeId);
+  const outside = listSpotNamesOutsideCity(full.spots || [], adcode);
+  if (outside.length > 0) {
+    return {
+      ok: false,
+      message: `以下景点坐标不在所选城市范围内：${outside.join('、')}`,
+    };
+  }
+  return { ok: true };
+}
+
+/* ============================================================
    Toolbar
    ============================================================ */
 function bindToolbarEvents() {
   const searchInput = document.getElementById('search-input');
-  const catSelect = document.getElementById('filter-category');
+  const cityFilter = document.getElementById('filter-city-adcode');
   const btnReset = document.getElementById('btn-reset');
 
   let debounceTimer;
@@ -681,10 +816,10 @@ function bindToolbarEvents() {
     debounceTimer = setTimeout(() => { currentPage = 1; loadRoutes(); }, 350);
   });
 
-  catSelect.addEventListener('change', () => { currentPage = 1; loadRoutes(); });
+  cityFilter.addEventListener('change', () => { currentPage = 1; loadRoutes(); });
   btnReset.addEventListener('click', () => {
     searchInput.value = '';
-    catSelect.value = '';
+    cityFilter.value = '';
     currentPage = 1;
     loadRoutes();
   });
@@ -703,10 +838,10 @@ async function loadRoutes() {
 
   try {
     const search = document.getElementById('search-input').value.trim();
-    const category = document.getElementById('filter-category').value;
+    const cityAdcode = document.getElementById('filter-city-adcode').value;
     const { data, total, page, pageSize } = await adminApi.getRoutesAdmin({
       search: search || undefined,
-      category: category || undefined,
+      city_adcode: cityAdcode || undefined,
       page: currentPage,
       pageSize: PAGE_SIZE,
     });
@@ -756,8 +891,8 @@ function renderRouteRow(route) {
       <div class="tags-list">${tags || '<span class="text-muted text-sm">—</span>'}</div>
     </td>
     <td>
-      ${route.category
-        ? `<span class="cat-badge">${escHtml(route.category)}</span>`
+      ${route.city_adcode
+        ? `<span class="text-sm">${escHtml(formatCityLabel(route.city_adcode) || route.city_adcode)}</span>`
         : '<span class="text-muted text-sm">—</span>'}
     </td>
     <td>
@@ -927,7 +1062,7 @@ let _routeModalDirty = false;
 function bindRouteModalAutosave() {
   const modal = document.getElementById('modal-edit-route');
   const debounceMs = 900;
-  const fields = ['route-title', 'route-description', 'route-category', 'route-cover', 'route-visible'];
+  const fields = ['route-title', 'route-description', 'route-province', 'route-city', 'route-cover', 'route-visible'];
   fields.forEach((fid) => {
     const el = document.getElementById(fid);
     if (!el) return;
@@ -965,9 +1100,19 @@ async function openEditRoute(id) {
   try {
     const route = await adminApi.getRouteAdmin(id);
     document.getElementById('route-edit-id').value = route.id;
+    document.getElementById('route-original-city-adcode').value = route.city_adcode || '';
+    const legacyHint = document.getElementById('route-city-legacy-hint');
+    if (route.city_adcode && !getCityMeta(route.city_adcode)) {
+      legacyHint.style.display = '';
+      legacyHint.textContent =
+        `库内城市代码 ${route.city_adcode} 不在内置列表，请从上方重新选择城市后再发布。`;
+    } else {
+      legacyHint.style.display = 'none';
+      legacyHint.textContent = '';
+    }
     document.getElementById('route-title').value = route.title || '';
     document.getElementById('route-description').value = route.description || '';
-    document.getElementById('route-category').value = route.category || '';
+    setRouteCityFormFromAdcode(route.city_adcode || '');
     document.getElementById('route-duration').value = route.duration_minutes ?? '';
     document.getElementById('route-distance').value = route.total_distance_km ?? '';
     document.getElementById('route-cover').value = route.cover_image || '';
@@ -1019,18 +1164,31 @@ function removeRouteTag(index) {
 
 async function saveRoute(showToast = true, silent = false) {
   const id = document.getElementById('route-edit-id').value;
-  if (!id) return;
+  if (!id) return false;
 
   const title = document.getElementById('route-title').value.trim();
   if (!title) {
     if (!silent) toast('error', '路线标题不能为空');
-    return;
+    return false;
+  }
+
+  const cityCheck = await validateRouteCityBounds(id, { requireCity: false });
+  if (!cityCheck.ok) {
+    toast('error', cityCheck.message);
+    return false;
+  }
+
+  const pickedCity = (document.getElementById('route-city').value || '').trim();
+  const origCity = (document.getElementById('route-original-city-adcode').value || '').trim();
+  let cityAdcode = pickedCity || null;
+  if (!cityAdcode && origCity && !getCityMeta(origCity)) {
+    cityAdcode = origCity;
   }
 
   const patch = {
     title,
     description: document.getElementById('route-description').value.trim() || null,
-    category: document.getElementById('route-category').value || null,
+    city_adcode: cityAdcode,
     cover_image: _coverEffectiveUrl || null,
     is_visible: document.getElementById('route-visible').checked,
     tags: _routeTags,
@@ -1039,6 +1197,12 @@ async function saveRoute(showToast = true, silent = false) {
   const statusEl = document.getElementById('route-draft-status');
   try {
     await adminApi.updateRoute(id, patch);
+    document.getElementById('route-original-city-adcode').value = cityAdcode || '';
+    const lh = document.getElementById('route-city-legacy-hint');
+    if (lh && cityAdcode && getCityMeta(cityAdcode)) {
+      lh.style.display = 'none';
+      lh.textContent = '';
+    }
     await adminApi.recomputeRouteDerived(id);
     const refreshed = await adminApi.getRouteAdmin(id);
     document.getElementById('route-duration').value = refreshed.duration_minutes ?? '';
@@ -1048,9 +1212,11 @@ async function saveRoute(showToast = true, silent = false) {
     statusEl.textContent = `草稿已保存 ${t}`;
     if (showToast) toast('success', '草稿已保存');
     loadRoutes();
+    return true;
   } catch (err) {
     statusEl.textContent = '';
     toast('error', `保存失败：${err.message}`);
+    return false;
   }
 }
 
@@ -1058,7 +1224,13 @@ async function publishRouteAction() {
   const id = document.getElementById('route-edit-id').value;
   if (!id) return;
   try {
-    await saveRoute(false, true);
+    const pubCheck = await validateRouteCityBounds(id, { requireCity: true });
+    if (!pubCheck.ok) {
+      toast('error', pubCheck.message);
+      return;
+    }
+    const saved = await saveRoute(false, true);
+    if (!saved) return;
     const { version } = await adminApi.publishRoute(id);
     toast('success', `已发布 v${version}`);
     document.getElementById('route-version-ro').value = `v${version} · ${new Date().toLocaleString()}`;
