@@ -15,7 +15,11 @@
     "seed:dry": "DRY_RUN=true node data/scripts/seed-dashilan.js",
     "seed:beijing": "node data/scripts/seed-beijing-catalog.js",
     "seed:beijing:dry": "DRY_RUN=true node data/scripts/seed-beijing-catalog.js",
-    "migrate:005": "node data/scripts/run-sql-migration.js server/migrations/005_routes_engagement.sql"
+    "migrate:005": "node data/scripts/run-sql-migration.js server/migrations/005_routes_engagement.sql",
+    "migrate:006": "node data/scripts/run-sql-migration.js server/migrations/006_route_ingestion_jobs.sql",
+    "migrate:007": "node data/scripts/run-sql-migration.js server/migrations/007_route_drafts.sql",
+    "migrate:route-upload": "npm run migrate:006 && npm run migrate:007",
+    "deploy:route-ingest": "supabase functions deploy route-ingest"
   },
   "keywords": [],
   "author": "",
