@@ -155,7 +155,6 @@ import { appendRouteCards } from './lib/route-display.js';
       sentinel: localSentinelEl,
       observer: null,
     };
-    const LOCAL_PAGE_SIZE = 10;
 
     function renderNextPage() {
       const { currentPage, allCards, sentinel } = localPaginate;
