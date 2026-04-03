@@ -1,21 +1,22 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { describe, it, before } from 'node:test';
 import { expect } from 'chai';
-import parseRouteMarkdown from '../../../data/scripts/parse-route-md.js';
-import { validateRouteJson } from '../../../data/scripts/validate-route-json.js';
-import { cleanRouteJson } from '../../../data/scripts/clean-route-json.js';
+import parseRouteMarkdown from '../../data/scripts/parse-route-md.js';
+import { validateRouteJson } from '../../data/scripts/validate-route-json.js';
+import { cleanRouteJson } from '../../data/scripts/clean-route-json.js';
 
 // 获取当前文件路径
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // 测试用 Markdown 文件路径
-const mdPath = path.join(__dirname, '../../fixtures/sample-route.md');
-const invalidMdPath = path.join(__dirname, '../../fixtures/invalid-route.md');
+const mdPath = path.join(__dirname, '../fixtures/sample-route.md');
+const invalidMdPath = path.join(__dirname, '../fixtures/invalid-route.md');
 
 // 测试用 JSON Schema 路径
-const schemaPath = path.join(__dirname, '../../../contracts/route-ingestion.schema.json');
+const schemaPath = path.join(__dirname, '../../contracts/route-ingestion.schema.json');
 
 describe('路线数据导入流水线契约测试', () => {
     // 测试用例 1: 解析阶段
@@ -37,7 +38,7 @@ describe('路线数据导入流水线契约测试', () => {
             });
             
             // 保存解析结果供后续测试使用
-            fs.writeFileSync(path.join(__dirname, '../../fixtures/parsed-route.json'), JSON.stringify(result, null, 2));
+            fs.writeFileSync(path.join(__dirname, '../fixtures/parsed-route.json'), JSON.stringify(result, null, 2));
         });
         
         it('应该处理解析错误', () => {
@@ -55,7 +56,7 @@ describe('路线数据导入流水线契约测试', () => {
         
         before(() => {
             // 读取解析阶段生成的 JSON
-            parsedJson = JSON.parse(fs.readFileSync(path.join(__dirname, '../../fixtures/parsed-route.json'), 'utf8'));
+            parsedJson = JSON.parse(fs.readFileSync(path.join(__dirname, '../fixtures/parsed-route.json'), 'utf8'));
         });
         
         it('应该验证有效的 JSON 数据', () => {
@@ -90,7 +91,7 @@ describe('路线数据导入流水线契约测试', () => {
         
         before(() => {
             // 读取解析阶段生成的 JSON
-            parsedJson = JSON.parse(fs.readFileSync(path.join(__dirname, '../../fixtures/parsed-route.json'), 'utf8'));
+            parsedJson = JSON.parse(fs.readFileSync(path.join(__dirname, '../fixtures/parsed-route.json'), 'utf8'));
         });
         
         it('应该清洗有效的 JSON 数据', () => {
@@ -101,7 +102,7 @@ describe('路线数据导入流水线契约测试', () => {
             expect(result.report.remainingIssues).to.have.lengthOf(0);
             
             // 保存清洗结果供后续测试使用
-            fs.writeFileSync(path.join(__dirname, '../../fixtures/cleaned-route.json'), JSON.stringify(result.cleanedData, null, 2));
+            fs.writeFileSync(path.join(__dirname, '../fixtures/cleaned-route.json'), JSON.stringify(result.cleanedData, null, 2));
         });
         
         it('应该修复数据类型问题', () => {

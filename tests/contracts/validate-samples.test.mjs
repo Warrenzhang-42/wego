@@ -24,6 +24,8 @@ test('contracts/*.schema.json 均可解析', () => {
     'contracts/knowledge-chunk.schema.json',
     'contracts/route-plan-request.schema.json',
     'contracts/route-plan-response.schema.json',
+    'contracts/route-ingestion.schema.json',
+    'contracts/route-upload.schema.json',
   ];
   for (const n of names) {
     const j = readJson(n);

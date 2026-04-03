@@ -1,0 +1,54 @@
+{
+  "id": "e7ec376f-89d6-4734-b8b5-18c8a57e2e6b",
+  "title": "大栅栏文化漫游",
+  "description": "北京老城慢行路线，串联街区文化与文艺空间。",
+  "duration_minutes": 120,
+  "tags": [
+    "文化",
+    "历史建筑"
+  ],
+  "cover_image": "https",
+  "total_distance_km": 2.4,
+  "source_file": "sample-route.md",
+  "validation_status": "valid",
+  "spots": [
+    {
+      "id": "02d2fdd8-0158-4ddc-90fa-422e99be3ab8",
+      "name": "前门大街",
+      "subtitle": "中轴线南段",
+      "short_desc": "适合慢行体验",
+      "detail": "**详情**: 这里有老字号与历史建筑群。\n**标签**: 文化, 历史建筑\n**坐标**: 39.8973, 116.3976\n**围栏半径**: 30\n**预计停留**: 30",
+      "tags": [
+        "文化",
+        "历史建筑"
+      ],
+      "thumb": "",
+      "photos": [],
+      "lat": 39.8973,
+      "lng": 116.3976,
+      "geofence_radius_m": 30,
+      "estimated_stay_min": 30,
+      "sort_order": 1,
+      "validation_errors": []
+    },
+    {
+      "id": "63a7aed1-1768-44f4-9c34-8fdb764f3e5d",
+      "name": "杨梅竹斜街",
+      "subtitle": "文艺街巷",
+      "short_desc": "适合拍照和逛店",
+      "detail": "**详情**: 集合了书店、展览与咖啡空间。\n**标签**: 文艺, 胡同\n**坐标**: 39.8958, 116.3956\n**围栏半径**: 30\n**预计停留**: 20",
+      "tags": [
+        "文艺",
+        "胡同"
+      ],
+      "thumb": "",
+      "photos": [],
+      "lat": 39.8958,
+      "lng": 116.3956,
+      "geofence_radius_m": 30,
+      "estimated_stay_min": 20,
+      "sort_order": 2,
+      "validation_errors": []
+    }
+  ]
+}

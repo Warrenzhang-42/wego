@@ -93,9 +93,12 @@ async function callAgentTool(toolName, payload) {
 }
 
 /* ============================================================
-   路由分发
+   路由分发（正则说明）
+   - gap-reply  → /\/:uuid\/gap-reply$/
+   - GET status → /\/:uuid$/
+   - confirm    → /\/:uuid\/confirm$/
+   使用末尾锚定而非行首，因为 pathname 含 /functions/v1/route-ingest 前缀
    ============================================================ */
-const _PATH_RE = /^\/([a-f0-9-]{36})(?:\/confirm)?$/i;
 
 Deno.serve(async (req) => {
   const url = new URL(req.url);
@@ -107,7 +110,7 @@ Deno.serve(async (req) => {
   }
 
   /* ── POST /functions/v1/route-ingest/:session_id/gap-reply ── */
-  const gapReplyMatch = pathname.match(/^\/([a-f0-9-]{36})\/gap-reply$/i);
+  const gapReplyMatch = pathname.match(/\/([a-f0-9-]{36})\/gap-reply$/i);
   if (req.method === 'POST' && gapReplyMatch) {
     const sessionId = gapReplyMatch[1];
     let body;
@@ -129,7 +132,7 @@ Deno.serve(async (req) => {
   }
 
   /* ── GET /functions/v1/route-ingest/:session_id ── */
-  const getMatch = pathname.match(/^\/([a-f0-9-]{36})$/i);
+  const getMatch = pathname.match(/\/([a-f0-9-]{36})$/i);
   if (req.method === 'GET' && getMatch) {
     const sessionId = getMatch[1];
     try {
@@ -148,7 +151,7 @@ Deno.serve(async (req) => {
   }
 
   /* ── POST /functions/v1/route-ingest/:session_id/confirm ── */
-  const confirmMatch = pathname.match(/^\/([a-f0-9-]{36})\/confirm$/i);
+  const confirmMatch = pathname.match(/\/([a-f0-9-]{36})\/confirm$/i);
   if (req.method === 'POST' && confirmMatch) {
     const sessionId = confirmMatch[1];
     let body;
