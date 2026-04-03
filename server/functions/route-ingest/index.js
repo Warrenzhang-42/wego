@@ -24,6 +24,13 @@
 
 'use strict';
 
+/** 与 Supabase 文档一致，避免遗漏浏览器/SDK 使用的请求头导致预检失败 */
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+};
+
 /* ============================================================
    契约校验
    ============================================================ */
@@ -88,16 +95,9 @@ Deno.serve(async (req) => {
   const url = new URL(req.url);
   const pathname = url.pathname;
 
-  // CORS 预检
+  // CORS 预检（须 2xx + 完整 Allow-Headers；网关 verify_jwt 见 supabase/config.toml）
   if (req.method === 'OPTIONS') {
-    return new Response(null, {
-      status: 204,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      },
-    });
+    return new Response('ok', { status: 200, headers: corsHeaders });
   }
 
   /* ── GET /functions/v1/route-ingest/:session_id ── */
@@ -263,7 +263,7 @@ function jsonResp(data, status = 200) {
     status,
     headers: {
       'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
+      ...corsHeaders,
     },
   });
 }

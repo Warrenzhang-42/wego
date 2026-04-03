@@ -1,0 +1,14 @@
+# Supabase CLI：按函数覆盖 Edge Function 行为。
+# 浏览器跨域 POST 会先发 OPTIONS 预检，且预检请求通常不带 Authorization。
+# 网关层默认 verify_jwt=true 会在执行本文件前返回 401，Chrome 报
+# “preflight doesn't have HTTP ok status”。关闭本函数的网关 JWT 校验后，
+# 由 index.js 内首行的 OPTIONS 处理返回合法 CORS。
+#
+# 部署：在项目根目录执行
+#   supabase functions deploy route-ingest
+# 并确保本 config 已随仓库提交、与线上项目关联。
+
+[functions.route-ingest]
+verify_jwt = false
+# CLI 默认找 index.ts；本函数为纯 JS，必须显式指定入口（相对本文件 supabase/config.toml）
+entrypoint = "../server/functions/route-ingest/index.js"
