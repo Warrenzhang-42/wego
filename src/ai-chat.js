@@ -166,9 +166,11 @@ let userMarker = null;
   }
 
   /** REAL AI INTEGRATION */
-  const chatClient = window.WeGOChatClient ? new window.WeGOChatClient() : null;
+  const chatClient = window.WeGOChatClient && window.eventBus
+    ? new window.WeGOChatClient(window.eventBus)
+    : null;
 
-  let MOCK_MESSAGES = [
+  let chatMessages = [
     { sender: 'ai', text: '嗨！您吉祥啊！我是AI导游小go，今儿想去哪儿玩，或者有什么关于老北京的疑问，随时问我！' }
   ];
 
@@ -181,6 +183,56 @@ let userMarker = null;
       .replaceAll('>', '&gt;')
       .replaceAll('"', '&quot;')
       .replaceAll("'", '&#39;');
+  }
+
+  /**
+   * Add a user message and send it to AI.
+   */
+  async function addMessageAndSend(text) {
+    if (!text || !text.trim()) return;
+    const msg = text.trim();
+    // Add user message
+    chatMessages.push({ sender: 'user', text: msg });
+    renderMessages();
+
+    // Send to AI via chatClient
+    if (chatClient) {
+      setInputLoading(true);
+      const loadingId = chatMessages.length;
+      chatMessages.push({ sender: 'ai', text: '...', loading: true });
+      renderMessages();
+
+      try {
+        const aiData = await chatClient.sendMessage(msg);
+        const aiMsg = {
+          sender: 'ai',
+          text: aiData.content || aiData.text || '',
+          inserts: aiData.inserts || [],
+          route: aiData.route || null
+        };
+        chatMessages[loadingId] = aiMsg;
+        if (aiData.route && mapAdapter) {
+          drawRouteOnMap(aiData.route);
+        }
+      } catch (e) {
+        console.error('[ai-chat] AI 回复失败:', e);
+        chatMessages[loadingId] = { sender: 'ai', text: '连接超时，请重试。' };
+      }
+      setInputLoading(false);
+    } else {
+      setTimeout(() => {
+        chatMessages.push({ sender: 'ai', text: '测试环境 MOCK 回复：' + msg + '？' });
+        renderMessages();
+      }, 800);
+    }
+    renderMessages();
+  }
+
+  function setInputLoading(loading) {
+    const sendBtn = document.getElementById('ac-btn-send');
+    const textarea = document.getElementById('ac-chat-textarea');
+    if (sendBtn) sendBtn.disabled = loading;
+    if (textarea) textarea.disabled = loading;
   }
 
   function renderInsertBlock(insert) {
@@ -326,7 +378,7 @@ let userMarker = null;
   function renderMessages() {
     if (!chatContainer) return;
 
-    chatContainer.innerHTML = MOCK_MESSAGES.map(msg => {
+    chatContainer.innerHTML = chatMessages.map((msg) => {
       const isAI = msg.sender === 'ai';
       const avatarName = isAI ? '小go' : '我';
       const insertsHtml = Array.isArray(msg.inserts)
@@ -350,7 +402,7 @@ let userMarker = null;
     chatContainer.querySelectorAll('.ac-route-draw-btn').forEach((btn, i) => {
       btn.addEventListener('click', () => {
         // 找到对应的 route 数据
-        const msgWithRoute = MOCK_MESSAGES.filter(m => m.route)[i];
+        const msgWithRoute = chatMessages.filter(m => m.route)[i];
         if (msgWithRoute && msgWithRoute.route) {
           drawRouteOnMap(msgWithRoute.route);
           // 收起聊天面板以显示地图
@@ -530,92 +582,85 @@ let userMarker = null;
     }
   }
 
-  // Input button handlers (just for interactive feel)
+  // Input button handlers (Sprint 4.10: 键盘→真实 textarea，语音→真实 AI)
   const btnVoice = document.querySelector('.ac-btn-voice');
   const btnKeyboard = document.querySelector('.ac-btn-keyboard');
+  const textInputWrap = document.getElementById('ac-text-input-wrap');
+  const textarea = document.getElementById('ac-chat-textarea');
+  const sendBtn = document.getElementById('ac-btn-send');
 
+  /* 键盘按钮：切换显示/隐藏 textarea */
+  if (btnKeyboard) {
+    btnKeyboard.addEventListener('click', () => {
+      const isVisible = textInputWrap && textInputWrap.style.display !== 'none';
+      if (textInputWrap) textInputWrap.style.display = isVisible ? 'none' : 'flex';
+      if (btnVoice) btnVoice.style.display = isVisible ? 'flex' : 'none';
+      if (!isVisible && textarea) textarea.focus();
+    });
+  }
+
+  /* 文字输入框：自动高度 + Enter 发送 */
+  if (textarea) {
+    textarea.addEventListener('input', () => {
+      textarea.style.height = 'auto';
+      textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+    });
+    textarea.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        submitTextInput();
+      }
+    });
+  }
+
+  if (sendBtn) {
+    sendBtn.addEventListener('click', submitTextInput);
+  }
+
+  async function submitTextInput() {
+    if (!textarea || !textarea.value.trim()) return;
+    const text = textarea.value;
+    textarea.value = '';
+    textarea.style.height = 'auto';
+    await addMessageAndSend(text);
+  }
+
+  /* 语音按钮（Sprint 4.11: 走真实 AI；语音转文字接入后替换这里的固定文字） */
   if (btnVoice) {
     let isRecording = false;
-    btnVoice.addEventListener('touchstart', (e) => {
-      e.preventDefault(); // prevent mouse events firing
+
+    function onVoiceStart(e) {
+      e.preventDefault();
       btnVoice.textContent = '松开发送';
       btnVoice.style.transform = 'scale(0.96)';
       isRecording = true;
-    });
-    btnVoice.addEventListener('touchend', (e) => {
+    }
+
+    async function onVoiceEnd(e) {
       e.preventDefault();
       btnVoice.textContent = '按住说话';
       btnVoice.style.transform = 'scale(1)';
       if (isRecording) {
-        addMessage('user', '好的（语音转换文本）。');
-        addMessage('ai', isConsult ? '收到！还想了解哪一段，随时问我。' : '收到！继续前行吧。');
+        isRecording = false;
+        await addMessageAndSend('好的（通过麦克风输入）。');
+      }
+    }
+
+    btnVoice.addEventListener('touchstart', onVoiceStart, { passive: false });
+    btnVoice.addEventListener('touchend', onVoiceEnd, { passive: false });
+    btnVoice.addEventListener('touchcancel', () => {
+      btnVoice.textContent = '按住说话';
+      btnVoice.style.transform = 'scale(1)';
+      isRecording = false;
+    });
+    btnVoice.addEventListener('mousedown', onVoiceStart);
+    btnVoice.addEventListener('mouseup', onVoiceEnd);
+    btnVoice.addEventListener('mouseleave', () => {
+      if (isRecording) {
+        btnVoice.textContent = '按住说话';
         isRecording = false;
       }
     });
-    
-    // For mouse interaction on desktop test
-    btnVoice.addEventListener('mousedown', () => {
-      btnVoice.textContent = '松开发送';
-    });
-    btnVoice.addEventListener('mouseup', () => {
-      btnVoice.textContent = '按住说话';
-      addMessage('user', '好的（通过麦克风输入）。');
-      setTimeout(() => {
-        addMessage('ai', isConsult ? '收到！规划上还有疑问也可以继续聊。' : '收到！有问题随时叫我。');
-      }, 600);
-    });
-    btnVoice.addEventListener('mouseleave', () => {
-      if (btnVoice.textContent !== '按住说话') {
-         btnVoice.textContent = '按住说话';
-      }
-    });
-  }
-
-  if (btnKeyboard) {
-    btnKeyboard.addEventListener('click', async () => {
-      const text = prompt('请输入您要发送的内容：');
-      if (text && text.trim()) {
-        const msg = text.trim();
-        addMessage('user', msg);
-        
-        if (chatClient) {
-          btnKeyboard.disabled = true;
-          // Add loading state
-          const loadingTempId = MOCK_MESSAGES.length;
-          MOCK_MESSAGES.push({ sender: 'ai', text: '...', loading: true });
-          renderMessages();
-          
-          try {
-            const aiData = await chatClient.sendMessage(msg);
-            // Replace loading state with real message
-            const aiMsg = {
-              sender: 'ai',
-              text: aiData.content || aiData.text || '',
-              inserts: aiData.inserts || [],
-              route: aiData.route || null   // Sprint 7.4：携带路线规划数据
-            };
-            MOCK_MESSAGES[loadingTempId] = aiMsg;
-            // Sprint 7.4：如果 AI 返回了路线，立刻在地图上绘制
-            if (aiData.route && mapAdapter) {
-              drawRouteOnMap(aiData.route);
-            }
-          } catch(e) {
-            MOCK_MESSAGES[loadingTempId] = { sender: 'ai', text: '连接超时，请重试。' };
-          }
-          renderMessages();
-          btnKeyboard.disabled = false;
-        } else {
-          setTimeout(() => {
-            addMessage('ai', '测试环境 MOCK 回复。');
-          }, 800);
-        }
-      }
-    });
-  }
-
-  function addMessage(sender, text) {
-    MOCK_MESSAGES.push({ sender, text });
-    renderMessages();
   }
 
   if (chatContainer) {
@@ -711,8 +756,8 @@ let userMarker = null;
       if (chatClient) {
         console.log(`[ai-chat] 监测到进入景点: ${spot.name}, 正在获取主动导游建议...`);
         
-        const loadingTempId = MOCK_MESSAGES.length;
-        MOCK_MESSAGES.push({ 
+        const loadingTempId = chatMessages.length;
+        chatMessages.push({ 
           sender: 'ai', 
           text: `嘿！发现您离【${spot.name}】很近了，我来给您讲讲这里的道道...`, 
           loading: true 
@@ -731,13 +776,13 @@ let userMarker = null;
             text: aiData.content || aiData.text || '',
             inserts: aiData.inserts || []
           };
-          MOCK_MESSAGES[loadingTempId] = aiMsg;
+          chatMessages[loadingTempId] = aiMsg;
           
           // Sprint 7: 开始语音播报
           playAudioNarration(aiMsg.text);
         } catch (e) {
           console.error('[ai-chat] 主动触发失败:', e);
-          MOCK_MESSAGES[loadingTempId] = { sender: 'ai', text: `哎哟，到了${spot.name}了，可我这会儿突然断网了。` };
+          chatMessages[loadingTempId] = { sender: 'ai', text: `哎哟，到了${spot.name}了，可我这会儿突然断网了。` };
         }
         renderMessages();
       }

@@ -80,11 +80,11 @@ import { appendRouteCards } from './lib/route-display.js';
       resetPagination(null);
     }
 
-    // ── Chip Tag 过滤（Sprint 8.3）──────────────────────
+    // ── Chip Tag 过滤（Sprint 8.3：调用 apiClient.getRoutes({ tag }) 动态拉取）──
     const allChips = document.querySelectorAll('.chip');
     const chipTagMap = {
-      local:     null,        // 显示全部（硬编码 + 数据库）
-      recommend: null,        // 显示推荐 tab
+      local:     null,        // 显示全部（从数据库重新拉取）
+      recommend: null,         // 显示推荐 tab
       food:      '美食',
       culture:   '文化',
       nature:    '自然',
@@ -92,25 +92,90 @@ import { appendRouteCards } from './lib/route-display.js';
     const localTabEl = document.getElementById('tab-content-local');
     const recommendTabEl = document.getElementById('tab-content-recommend');
     const localSentinelEl = localTabEl?.querySelector('.route-pagination-sentinel') || null;
-    const allRouteCards = () => Array.from(document.querySelectorAll('#route-list .route-card'));
-    const cardHasTag = (card, wantedTag) => {
-      if (!wantedTag) return true;
-      const tags = Array.from(card.querySelectorAll('.route-tags .tag'))
-        .map(tag => (tag.textContent || '').trim());
-      return tags.some(tag => tag.includes(wantedTag));
-    };
-    const restoreAllCardsVisible = () => {
-      allRouteCards().forEach(card => { card.style.display = ''; });
-    };
-    const filterAllRoutesByTag = (wantedTag) => {
-      if (localTabEl) localTabEl.style.display = 'block';
-      if (recommendTabEl) recommendTabEl.style.display = 'block';
-      allRouteCards().forEach(card => {
-        card.style.display = cardHasTag(card, wantedTag) ? '' : 'none';
-      });
-    };
 
-    // 注意：此函数覆盖了 initChips() 的 tab 切换行为，因此需在此处统一管理
+    // 按标签从数据库动态拉取路线，重新渲染 local tab
+    async function reloadLocalRoutes(tag) {
+      if (!localTabEl) return;
+      try {
+        const routes = await apiClient.getRoutes(tag ? { tag } : {});
+        localTabEl.innerHTML = '';
+        if (routes.length) {
+          appendRouteCards(localTabEl, routes, { listReferrerFile: 'index.html', fromParam: 'index' });
+        } else {
+          localTabEl.innerHTML = `<p style="text-align:center;color:#999;font-size:13px;padding:20px 0;">暂无「${tag || ''}」相关路线</p>`;
+        }
+
+        // 重新追加分页 sentinel
+        const sentinel = document.createElement('p');
+        sentinel.className = 'route-pagination-sentinel';
+        Object.assign(sentinel.style, {
+          textAlign: 'center', fontSize: '12px', color: '#999',
+          margin: '6px 0 12px', fontWeight: '600',
+        });
+        sentinel.textContent = routes.length ? '下拉加载更多路线' : '暂无更多路线';
+        localTabEl.appendChild(sentinel);
+
+        // 重新绑定卡片点击
+        localTabEl.querySelectorAll('.route-card').forEach(card => {
+          card.addEventListener('click', () => {
+            card.style.transition = 'transform 0.12s';
+            card.style.transform = 'scale(0.97)';
+            setTimeout(() => {
+              card.style.transform = '';
+              sessionStorage.setItem('wegoRouteDetailReferrer', 'index.html');
+              window.location.href = 'route-detail.html?from=index';
+            }, 150);
+          });
+        });
+
+        // 重新观察分页
+        localPaginate.currentPage = 0;
+        localPaginate.allCards = () => Array.from(localTabEl.querySelectorAll('.route-card'));
+        if (routes.length > 0) {
+          localPaginate.allCards().forEach(c => { c.style.display = 'none'; });
+          renderNextPage();
+        }
+        localPaginate.sentinel = sentinel;
+        localPaginate.observer?.disconnect();
+        localPaginate.observer = new IntersectionObserver(entries => {
+          const [entry] = entries;
+          if (!entry?.isIntersecting || localTabEl.style.display === 'none') return;
+          renderNextPage();
+        }, { root: null, threshold: 0.1 });
+        localPaginate.observer.observe(sentinel);
+      } catch (e) {
+        console.warn('[app.js] 按标签拉取路线失败:', e);
+      }
+    }
+
+    // ── 分页状态（供 reloadLocalRoutes 引用）────────────────
+    let localPaginate = {
+      currentPage: 0,
+      allCards: () => Array.from((localTabEl || {}).querySelectorAll('.route-card') || []),
+      sentinel: localSentinelEl,
+      observer: null,
+    };
+    const LOCAL_PAGE_SIZE = 10;
+
+    function renderNextPage() {
+      const { currentPage, allCards, sentinel } = localPaginate;
+      const cards = allCards();
+      const start = currentPage * LOCAL_PAGE_SIZE;
+      if (start >= cards.length) {
+        if (sentinel) sentinel.textContent = cards.length ? '已展示全部路线' : '暂无路线';
+        return;
+      }
+      cards.slice(start, start + LOCAL_PAGE_SIZE).forEach(c => { c.style.display = ''; });
+      localPaginate.currentPage += 1;
+      if (sentinel) {
+        sentinel.textContent =
+          localPaginate.currentPage * LOCAL_PAGE_SIZE < cards.length
+            ? '下拉加载更多路线'
+            : '已展示全部路线';
+      }
+    }
+
+    // ── Chip 点击处理 ────────────────────────────────────────
     allChips.forEach(chip => {
       chip.addEventListener('click', async () => {
         allChips.forEach(c => { c.classList.remove('active'); c.setAttribute('aria-selected', 'false'); });
@@ -119,28 +184,27 @@ import { appendRouteCards } from './lib/route-display.js';
         chip.style.transform = 'scale(0.93)';
         setTimeout(() => { chip.style.transform = ''; }, 160);
 
-        const tabId  = chip.dataset.tab;
+        const tabId = chip.dataset.tab;
         const tagFilter = chipTagMap[tabId];
 
-        // 固定 tab 切换
+        // 隐藏所有 tab
         document.querySelectorAll('.route-group').forEach(g => { g.style.display = 'none'; });
-        const target = document.getElementById('tab-content-' + tabId);
 
-        // local tab 必须优先处理，否则会被通用 target 分支吞掉，无法重置筛选状态
         if (tabId === 'local') {
-          restoreAllCardsVisible();
+          // 重新拉取全部路线
           if (localTabEl) {
-            localTabEl.style.display = 'block';
-            resetPagination(null);
+            localTabEl.style.display = '';
+            await reloadLocalRoutes(null);
           }
-          if (localSentinelEl) localSentinelEl.style.display = '';
-        } else if (target) {
-          restoreAllCardsVisible();
-          target.style.display = 'block';
-          if (localSentinelEl) localSentinelEl.style.display = '';
+        } else if (tabId === 'recommend') {
+          // 推荐 tab：直接显示
+          if (recommendTabEl) recommendTabEl.style.display = '';
         } else if (tagFilter) {
-          // 美食/文化/自然：按标签过滤全部路线（本地 + 推荐 + 动态）
-          filterAllRoutesByTag(tagFilter);
+          // 标签过滤：从数据库按标签拉取，重新渲染 local tab
+          if (localTabEl) {
+            localTabEl.style.display = '';
+            await reloadLocalRoutes(tagFilter);
+          }
           if (localSentinelEl) localSentinelEl.style.display = 'none';
         }
       });

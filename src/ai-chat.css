@@ -801,6 +801,57 @@ body.ac-consult-mode .ac-chat-header {
   box-shadow: var(--shadow-elevated);
 }
 
+/* 文字输入模式 (Sprint 4.10) */
+.ac-text-input-wrap {
+  flex: 1;
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+.ac-chat-textarea {
+  flex: 1;
+  min-height: 48px;
+  max-height: 120px;
+  height: auto;
+  resize: none;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--clr-ghost-border);
+  background: var(--clr-surface-container-lowest);
+  padding: 10px 12px;
+  font-size: 15px;
+  font-family: var(--font-body);
+  color: var(--clr-text-primary);
+  line-height: 1.5;
+  box-sizing: border-box;
+  overflow-y: auto;
+  scrollbar-width: none;
+  transition: border-color 0.15s;
+}
+.ac-chat-textarea:focus {
+  outline: none;
+  border-color: var(--clr-primary);
+}
+.ac-chat-textarea::-webkit-scrollbar { display: none; }
+
+.ac-btn-send {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--clr-primary), var(--clr-primary-container));
+  border: none;
+  color: var(--clr-on-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+.ac-btn-send:active { transform: scale(0.96); }
+.ac-btn-send:disabled { opacity: 0.5; cursor: not-allowed; }
+
 /* ── 路线规划卡片 (Sprint 7.4) ──────────────────────────── */
 .ac-route-card {
   background: var(--clr-surface-container-lowest);

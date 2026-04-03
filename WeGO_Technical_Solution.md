@@ -635,6 +635,337 @@ heat_level / heat_count 为 read-only，仅展示。
 
 ---
 
+## 6.3 Agent 自助路线上传技术设计
+
+### 6.3.1 定位与设计目标
+
+Agent 自助路线上传是 Sprint 11 的核心功能，旨在实现"用户上传任意格式路线内容 -> Agent 全自动解析、补全、校验 -> 用户二次确认 -> 写入数据库"的闭环。具体设计目标：
+
+- 支持 JSON / Markdown / 纯文本 / URL 抓取四种上传格式
+- Agent 自动检测并补全缺失字段（经纬度、标签、停留时长等）
+- 客观数据自动查询后展示给用户确认，主观内容以对话方式询问用户
+- 全程 Agent 驱动，状态透明，用户始终掌握最终确认权
+
+### 6.3.2 系统架构
+
+```
+用户（上传入口）
+    │
+    ├── AI 对话入口（ChatPanel）
+    ├── 独立上传页面（/upload-route）
+    └── URL 抓取
+    │
+    ▼
+Supabase Edge Function: route-ingest
+    │ POST /functions/v1/route-ingest         （上传入口）
+    │ GET  /functions/v1/route-ingest/:id     （查询状态）
+    │ POST /functions/v1/route-ingest/:id/confirm（确认写入）
+    │
+    ▼
+Python Agent（LangGraph）
+    │
+    ├── upload_route（主工具）
+    │   ├── parse_json_route()
+    │   ├── parse_markdown_route()
+    │   ├── parse_text_route()
+    │   ├── fetch_url_content()
+    │   └── gap_detection()
+    │
+    ├── auto_query（辅助函数，非 Tool）
+    │   ├── auto_query_coordinates()  ──→ 高德 Geocoding API
+    │   ├── infer_tags_from_spot()
+    │   └── infer_stay_duration()
+    │
+    └── confirm_route_upload（确认工具）
+        ├── upsert_routes()
+        ├── upsert_spots()
+        └── record_ingestion_job()
+    │
+    ▼
+Supabase 数据库
+    ├── routes 表
+    ├── spots 表
+    ├── route_drafts 表（新增）
+    └── route_ingestion_jobs 表（复用）
+```
+
+### 6.3.3 新增数据契约
+
+**`contracts/route-upload.schema.json`**（上传请求契约）：
+
+```json
+{
+  "$id": "route-upload",
+  "type": "object",
+  "required": ["session_id", "file_type"],
+  "properties": {
+    "session_id": { "type": "string" },
+    "file_type": {
+      "type": "string",
+      "enum": ["json", "md", "txt", "url"]
+    },
+    "file_content": { "type": "string" },
+    "source_url": { "type": "string", "format": "uri" }
+  }
+}
+```
+
+**`route-ingestion.schema.json` 扩展字段**（Gap 项新增）：
+
+| 字段 | 类型 | 说明 |
+|:---|:---|:---|
+| `gap_items[].gap_type` | `objective \| subjective` | Gap 分类 |
+| `gap_items[].auto_queried` | `boolean` | 是否已自动查询 |
+| `gap_items[].suggested_value` | `string \| object` | 查询/推断的建议值 |
+| `gap_items[].confidence` | `high \| medium \| low` | 查询置信度 |
+
+### 6.3.4 数据库变更
+
+**新增表：`route_drafts`**
+
+```sql
+CREATE TABLE route_drafts (
+  id              UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id      TEXT        NOT NULL UNIQUE,
+  source_file     TEXT,
+  source_url      TEXT,
+  file_type       TEXT        CHECK (file_type IN ('json', 'md', 'txt', 'url')),
+  raw_content     TEXT,
+  parsed_data     JSONB,
+  status          TEXT        NOT NULL DEFAULT 'draft'
+                        CHECK (status IN (
+                          'draft', 'parsing', 'gap_filling',
+                          'pending_review', 'confirmed', 'active', 'editing'
+                        )),
+  gap_items       JSONB       DEFAULT '[]',
+  user_overrides  JSONB       DEFAULT '{}',
+  created_at      TIMESTAMPTZ DEFAULT NOW(),
+  updated_at      TIMESTAMPTZ DEFAULT NOW()
+);
+```
+
+**说明**：
+- `session_id` 由 Edge Function 生成，用于串联同一次上传会话的所有状态
+- `parsed_data` 存储解析后的 `route-ingestion.schema.json` 格式数据
+- `gap_items` 存储当前未处理的 Gap 列表
+- `user_overrides` 存储用户在确认时手动修改的字段
+- `status` 字段追踪会话全生命周期
+
+### 6.3.5 Agent 工具详细设计
+
+#### upload_route（主工具）
+
+**输入 Schema**：
+
+```python
+class UploadRouteInput(BaseModel):
+    file_content: str                          # 文件原始内容
+    file_type: Literal["json", "md", "txt", "url"]
+    source_url: Optional[str] = None            # 仅 url 模式
+    session_id: str
+```
+
+**输出 Schema**：
+
+```python
+class UploadRouteOutput(BaseModel):
+    session_id: str
+    status: Literal["parsing", "gap_filling", "pending_review", "error"]
+    route_preview: Optional[dict]              # route-ingestion 格式
+    gaps: Optional[list[GapItem]]
+    error_message: Optional[str]
+
+class GapItem(BaseModel):
+    spot_name: str
+    field: str
+    gap_type: Literal["objective", "subjective"]
+    suggested_value: Optional[Any]
+    auto_queried: bool = False
+    confidence: Optional[Literal["high", "medium", "low"]]
+```
+
+**内部处理流程**：
+
+```
+1. 解析文件
+   ├─ json       → parse_json_route()
+   ├─ md         → parse_markdown_route()  （LLM 提取结构化信息）
+   ├─ txt        → parse_text_route()      （LLM 理解文本并提取）
+   └─ url        → fetch_url_content() → parse_text_route()
+
+2. 逐 Spot 校验必填字段（route.schema.json）
+   对每个 Spot 检查：id / name / lat / lng / sort_order
+
+3. Gap 分类处理
+   ├─ 客观 Gap（lat/lng 缺失）
+   │   └─ auto_query_coordinates() → 高德 API 查询
+   │       └─ 返回：lat/lng + confidence
+   │           → 存入 GapItem，展示给用户确认
+   │
+   ├─ 客观 Gap（tags 缺失）
+   │   └─ infer_tags_from_spot() → LLM 推断
+   │       └─ 存入 GapItem，展示给用户确认
+   │
+   └─ 主观 Gap（subtitle/detail/short_desc 缺失）
+       └─ 组织询问话术，返回 GapItem
+
+4. 若所有必填 Gap 均已处理（或用户跳过）→ status = "pending_review"
+   若尚有未处理必填 Gap → status = "gap_filling"
+   若解析失败 → status = "error"
+```
+
+#### confirm_route_upload（确认工具）
+
+**输入 Schema**：
+
+```python
+class ConfirmRouteUploadInput(BaseModel):
+    session_id: str
+    confirmed: bool
+    overrides: Optional[dict] = None   # 用户在预览页手动修改的字段
+```
+
+**输出 Schema**：
+
+```python
+class ConfirmRouteUploadOutput(BaseModel):
+    success: bool
+    route_id: Optional[str]
+    error_message: Optional[str]
+```
+
+**内部处理流程**：
+
+```
+1. 从 route_drafts 表读取 session_id 对应记录
+2. 校验 status（必须是 pending_review）
+3. 若 confirmed=True：
+   ├─ 执行 upsert_routes(parsed_data)
+   ├─ 执行 upsert_spots(route_id, parsed_data.spots)
+   ├─ 执行 record_ingestion_job(session_id, report)
+   └─ 返回 { success: true, route_id }
+4. 若 confirmed=False：
+   └─ 更新 status = 'editing'，返回 { success: false }
+```
+
+### 6.3.6 坐标系处理
+
+高德地图 Geocoding API 返回的坐标为 **GCJ-02** 格式，需转换为 **WGS-84** 后方可写入数据库。
+
+```python
+import gcoord
+
+def auto_query_coordinates(spot_name: str, region: str = "北京") -> dict | None:
+    # 1. 调用高德 API（GCJ-02 返回）
+    # GET https://restapi.amap.com/v3/geocode/geo
+    #     ?key=<AMAP_KEY>&address=<spot_name>&city=<region>
+
+    gcj02_result = amap_response["geocodes"][0]
+    gcj02_lng = float(gcj02_result["location"].split(",")[0])
+    gcj02_lat = float(gcj02_result["location"].split(",")[1])
+
+    # 2. 转换为 WGS-84（写入数据库用）
+    wgs84_lat, wgs84_lng = gcoord.transform(
+        [gcj02_lng, gcj02_lat],
+        gcoord.GCJ02,
+        gcoord.WGS84
+    )
+
+    return {
+        "lat": round(wgs84_lat, 7),
+        "lng": round(wgs84_lng, 7),
+        "confidence": "high"
+    }
+```
+
+> 注：`gcoord` 是成熟的 JS 坐标转换库，Python 端推荐使用 `pycoord` 或直接复用相同转换算法。
+
+### 6.3.7 Edge Function 接口设计
+
+**`POST /functions/v1/route-ingest`**
+
+```
+请求：
+{
+  "session_id": "uuid-xxx",
+  "file_type": "json" | "md" | "txt" | "url",
+  "file_content": "...",    // 非 url 必填
+  "source_url": "..."       // 仅 url 必填
+}
+
+响应：
+{
+  "session_id": "uuid-xxx",
+  "status": "parsing" | "gap_filling" | "pending_review" | "error",
+  "route_preview": { ... },  // route-ingestion 格式，error 时为 null
+  "gaps": [
+    {
+      "spot_name": "炭儿胡同",
+      "field": "lat",
+      "gap_type": "objective",
+      "suggested_value": { "lat": 39.8961, "lng": 116.3989 },
+      "auto_queried": true,
+      "confidence": "high"
+    }
+  ],
+  "error_message": null
+}
+```
+
+**`GET /functions/v1/route-ingest/:session_id`**
+
+```
+响应：同上（返回当前会话最新状态）
+```
+
+**`POST /functions/v1/route-ingest/:session_id/confirm`**
+
+```
+请求：
+{
+  "confirmed": true,
+  "overrides": {
+    "title": "京城胡同游（修订版）"
+  }
+}
+
+响应：
+{
+  "success": true,
+  "route_id": "uuid-yyy",
+  "error_message": null
+}
+```
+
+### 6.3.8 前端组件设计
+
+| 组件 | 文件 | 职责 |
+|:---|:---|:---|
+| `RouteUploader` | `src/components/RouteUploader.tsx` | 文件上传：拖拽 / 点击 / URL / 粘贴 |
+| `GapFillingChat` | `src/components/GapFillingChat.tsx` | 主观 Gap 补全对话渲染 + 用户回复处理 |
+| `RoutePreview` | `src/components/RoutePreview.tsx` | 二次确认预览页面 + 三个操作按钮 |
+| `upload-route Page` | `src/pages/upload-route/index.tsx` | 整合三个组件，串联完整流程 |
+| `ChatPanel` 改动 | `src/components/ChatPanel.tsx` | 增加「上传路线」文件上传入口 |
+
+**独立上传页面流程状态机**：
+
+```
+idle → uploading → parsing → gap_filling → pending_review
+                                              ↓
+                                    ┌─── confirmed → success
+                                    └─── editing → gap_filling
+```
+
+### 6.3.9 技术约束
+
+- **坐标**：所有写入数据库的 lat/lng 必须是 WGS-84，不得直接写入 GCJ-02
+- **契约**：所有跨层调用（Edge Function → Agent → 数据库）必须严格符合 `contracts/route-ingestion.schema.json`
+- **不可跳过确认**：Agent 不得在 `pending_review` 状态以外写入数据库
+- **幂等写入**：使用 `route.id` 作为 upsert 键，重复上传应更新而非创建重复记录
+- **环境变量**：`AMAP_API_KEY` 必须写入 Supabase Vault 或 `.env`，不得硬编码
+
+---
+
 ## 7. 开发阶段规划
 
 

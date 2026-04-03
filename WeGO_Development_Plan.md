@@ -457,6 +457,61 @@ WeGO/
 
 ---
 
+---
+
+### Sprint 11：Agent 自助路线上传（预计 5 天）
+
+> 目标：让运营人员或普通用户通过对话或上传页面，自助提交路线内容文件（JSON / Markdown / TXT / URL），Agent 自动解析、校验、补全缺失内容（经纬度自动查询、主观内容对话询问），经用户二次确认后写入数据库。
+> 原则：Agent 全程驱动，用户始终掌握最终确认权；每次写入必须经过 pending_review 状态。
+
+#### 11.1 新增数据契约
+
+| # | Task | 类型 | 涉及文件 | 验收标准 |
+|---|------|------|---------|---------|
+| **11.1.1** | 新增 `contracts/route-upload.schema.json`：定义路线上传请求契约，含 `session_id` / `file_content` / `file_type` / `source_url` 字段 | 契约 | `contracts/route-upload.schema.json` | Schema 可用于 AJV 校验 |
+| **11.1.2** | 扩展 `contracts/route-ingestion.schema.json`：在 `gap_items[]` 中增加 `gap_type`（objective/subjective）、`auto_queried`、suggested_value 字段 | 契约变更 | `contracts/route-ingestion.schema.json` | 扩展字段不影响现有校验逻辑 |
+
+#### 11.2 数据库 Migration
+
+| # | Task | 类型 | 涉及文件 | 验收标准 |
+|---|------|------|---------|---------|
+| **11.2.1** | 编写 `server/migrations/007_route_drafts.sql`：创建 `route_drafts` 表（session_id / source_file / file_type / raw_content / parsed_data / status / gap_items / user_overrides） | 纯 SQL | `007_route_drafts.sql` | SQL 执行成功，表结构符合设计 |
+
+#### 11.3 Agent 工具开发
+
+| # | Task | 类型 | 涉及文件 | 验收标准 |
+|---|------|------|---------|---------|
+| **11.3.1** | 编写 `agent/tools/upload_route.py`：`UploadRouteInput`（含 file_content / file_type / session_id），内部实现 JSON / Markdown / TXT / URL 四种格式解析，返回 `UploadRouteOutput`（含 status / route_preview / gaps[]） | 单一工具 | `upload_route.py` | CLI 传入示例 JSON 文件返回正确解析结果 |
+| **11.3.2** | 编写 `agent/tools/auto_query.py`：实现 `auto_query_coordinates(spot_name)` 调用高德 Geocoding API 查询经纬度；`infer_tags_from_spot(spot)` 推断标签；`infer_stay_duration(spot)` 推断停留时长；`fetch_url_content(url)` 抓取网页正文 | 辅助函数 | `auto_query.py` | 已知景点名称返回正确 WGS-84 坐标（7位小数） |
+| **11.3.3** | 编写 `agent/tools/confirm_route_upload.py`：`ConfirmRouteUploadInput`（session_id / confirmed / overrides），执行 routes + spots 表 upsert，写入 ingestion_job，返回写入结果 | 单一工具 | `confirm_route_upload.py` | CLI 确认后数据库出现对应 routes + spots 记录 |
+| **11.3.4** | 新增 `agent/prompts/upload_route.md`：upload_route 工具的系统指令，包含 Gap 分类处理逻辑（客观 Gap 自动查询/主观 Gap 询问用户）、输出格式要求 | Prompt | `upload_route.md` | Prompt 中明确包含"高德 API 查询后展示给用户确认"的指令 |
+
+#### 11.4 Agent 核心变更
+
+| # | Task | 类型 | 涉及文件 | 验收标准 |
+|---|------|------|---------|---------|
+| **11.4.1** | 修改 `agent/graph.py`：将 `upload_route` / `confirm_route_upload` / `auto_query` 三个工具注册到 LangGraph Agent 工具列表 | 编排逻辑 | `graph.py` | graph 加载后 tools 列表包含全部新工具 |
+| **11.4.2** | 修改 `agent/server.py`：扩展 `/chat` 端点支持 `file_content` + `file_type` 上传模式；新增 `POST /route-upload/confirm` 端点；新增 `GET /route-upload/:session_id` 查询会话状态 | 后端 API | `server.py` | curl 测试三个端点均返回正确响应 |
+
+#### 11.5 Supabase Edge Function
+
+| # | Task | 类型 | 涉及文件 | 验收标准 |
+|---|------|------|---------|---------|
+| **11.5.1** | 编写 `server/functions/route-ingest/index.js`：`POST /functions/v1/route-ingest` 接收上传请求，调用 Python Agent 工具，返回解析状态和 Gap 列表；`GET /functions/v1/route-ingest/:session_id` 查询会话状态；`POST /functions/v1/route-ingest/:session_id/confirm` 执行确认写入 | 后端 API | `route-ingest/index.js` | 输出 JSON 通过 route-ingestion.schema.json 校验 |
+
+#### 11.6 前端组件开发
+
+| # | Task | 类型 | 涉及文件 | 验收标准 |
+|---|------|------|---------|---------|
+| **11.6.1** | 新建 `src/components/RouteUploader.tsx`：文件上传组件，支持拖拽上传（JSON/MD/TXT）、点击选择文件、URL 输入、纯文本粘贴四种模式 | UI 组件 | `RouteUploader.tsx` | 四种模式均能正确触发上传流程 |
+| **11.6.2** | 新建 `src/components/GapFillingChat.tsx`：Gap 补全对话组件，渲染 Agent 的主观 Gap 询问消息 + 用户回复输入区，处理用户补充内容并提交给 Agent | UI 组件 | `GapFillingChat.tsx` | 主观 Gap 询问后用户回复被正确提交 |
+| **11.6.3** | 新建 `src/components/RoutePreview.tsx`：二次确认预览组件，展示完整路线预览（含所有景点字段状态），渲染「确认上传」/「继续编辑」/「取消」三个操作按钮 | UI 组件 | `RoutePreview.tsx` | 预览数据与 Agent 返回的 route_preview 一致 |
+| **11.6.4** | 新建 `src/pages/upload-route/index.tsx`：独立上传页面，整合 RouteUploader / GapFillingChat / RoutePreview 三个组件，串联完整上传 → Gap 处理 → 确认流程 | 页面 | `upload-route/index.tsx` | 页面可正常打开，四种文件格式均可完成完整流程 |
+| **11.6.5** | 修改 `src/components/ChatPanel.tsx`：在聊天输入区增加「上传路线」触发入口（文件上传按钮），点击后触发上传流程 | UI 改动 | `ChatPanel.tsx` | 聊天界面出现上传按钮，点击后可上传文件 |
+| **11.6.6** | 修改 `src/App.tsx`：路由增加 `/upload-route` 页面注册 | 路由 | `App.tsx` | 访问 `/upload-route` 正确渲染上传页面 |
+
+---
+
 ## 4. 每个 Task 的执行规范
 
 
@@ -524,9 +579,13 @@ Sprint 0 ──▸ Sprint 1 ──▸ Sprint 2 ──▸ Sprint 3
 Sprint 4 ──▸ Sprint 5 ──▸ Sprint 6 ──▸ Sprint 7 ──▸ Sprint 8
 AI Agent       围栏触发       打卡系统       路线规划       数据驱动首页
 (5天)          (3天)          (2天)          (3天)          (2天)
+                                                          ↓
+                                               Sprint 9 ──▸ Sprint 10 ──▸ Sprint 11
+                                               数据清洗       管理后台      Agent 自助上传
+                                               (4天)          (3天)         (5天)
 ```
 
-**总计约 29 个工作日**，每个 Sprint 结束时可独立演示一个完整的功能闭环。
+**总计约 34 个工作日**，每个 Sprint 结束时可独立演示一个完整的功能闭环。
 
 ---
 
