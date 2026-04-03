@@ -741,6 +741,7 @@ body.ac-consult-mode .ac-chat-header {
   display: flex;
   gap: 12px;
   padding: 12px 18px 24px;
+  align-items: flex-end;
   background: rgba(251, 249, 250, 0.92);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -775,6 +776,29 @@ body.ac-consult-mode .ac-chat-header {
 
 .ac-btn-keyboard svg {
   display: block;
+}
+
+/* Sprint 11.6.5: Upload Route button */
+.ac-btn-upload {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1.5px solid var(--clr-outline-variant, #e3beb8);
+  background: var(--clr-card, #fff);
+  color: var(--clr-primary, #b22314);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color 0.2s, background 0.2s, transform 0.15s;
+}
+.ac-btn-upload:hover {
+  border-color: var(--clr-primary, #b22314);
+  background: var(--clr-primary-light, #f5ebe9);
+}
+.ac-btn-upload:active {
+  transform: scale(0.93);
 }
 
 .ac-btn-voice {

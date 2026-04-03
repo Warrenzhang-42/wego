@@ -165,6 +165,14 @@ let userMarker = null;
     });
   }
 
+  /* 上传路线入口（Sprint 11.6.5） */
+  const uploadBtn = document.getElementById('ac-btn-upload');
+  if (uploadBtn) {
+    uploadBtn.addEventListener('click', () => {
+      window.location.href = 'upload-route.html';
+    });
+  }
+
   /** REAL AI INTEGRATION */
   const chatClient = window.WeGOChatClient && window.eventBus
     ? new window.WeGOChatClient(window.eventBus)
@@ -326,8 +334,13 @@ let userMarker = null;
     const distText = route.total_distance_km ? `${route.total_distance_km} km` : '';
     const durText  = route.total_duration_min ? `约 ${route.total_duration_min} 分钟` : '';
 
+    let polylineAttr = '';
+    try {
+      polylineAttr = `data-polyline="${escapeHtml(JSON.stringify(route))}"`;
+    } catch { /* ignore */ }
+
     return `
-      <div class="ac-rich-card ac-route-card" data-has-polyline="${route.polyline ? 'true' : 'false'}">
+      <div class="ac-rich-card ac-route-card" ${polylineAttr}>
         <div class="ac-card-badge">🗺️ 为您规划的路线</div>
         <div class="ac-card-title">${escapeHtml(route.route_name || '精选路线')}</div>
         <div class="ac-route-meta">
@@ -398,18 +411,21 @@ let userMarker = null;
       `;
     }).join('');
 
-    // 绑定路线卡片按钮
-    chatContainer.querySelectorAll('.ac-route-draw-btn').forEach((btn, i) => {
+    // 绑定路线卡片按钮（使用闭包保存对应消息的 route 引用，彻底避免索引错位）
+    chatContainer.querySelectorAll('.ac-route-draw-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
-        // 找到对应的 route 数据
-        const msgWithRoute = chatMessages.filter(m => m.route)[i];
-        if (msgWithRoute && msgWithRoute.route) {
-          drawRouteOnMap(msgWithRoute.route);
-          // 收起聊天面板以显示地图
-          if (app && !app.classList.contains('rd-map-expanded')) {
-            app.classList.add('rd-map-expanded');
-            if (chatPanel) chatPanel.classList.add('is-collapsed');
-          }
+        const card = btn.closest('.ac-route-card');
+        if (!card) return;
+        // 从卡片 DOM 上读取 route 数据（由 renderRouteCard 注入）
+        const rawRoute = card.dataset.polyline;
+        let route = null;
+        try { route = JSON.parse(rawRoute); } catch { /* ignore */ }
+        if (!route) return;
+        drawRouteOnMap(route);
+        // 收起聊天面板以显示地图
+        if (app && !app.classList.contains('rd-map-expanded')) {
+          app.classList.add('rd-map-expanded');
+          if (chatPanel) chatPanel.classList.add('is-collapsed');
         }
       });
     });
