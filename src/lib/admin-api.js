@@ -265,6 +265,29 @@ async function deleteSpot(id) {
   return { id };
 }
 
+/**
+ * 上传封面图到 Supabase Storage，返回公开 URL。
+ * @param {File} file - 图片文件
+ * @param {string} [routeId] - 关联路线 ID（用于组织存储路径）
+ * @returns {Promise<string>} 公开访问 URL
+ */
+async function uploadCoverImage(file, routeId) {
+  const sb = await _getClient();
+  const ext = file.name.split('.').pop() || 'jpg';
+  const path = routeId
+    ? `route-covers/${routeId}/${Date.now()}.${ext}`
+    : `temp/cover-${Date.now()}.${ext}`;
+
+  const { data, error: uploadError } = await sb.storage
+    .from('images')
+    .upload(path, file, { cacheControl: '3600', upsert: false });
+
+  if (uploadError) throw new Error(`[admin-api] uploadCoverImage 上传失败: ${uploadError.message}`);
+
+  const { data: urlData } = sb.storage.from('images').getPublicUrl(data.path);
+  return urlData.publicUrl;
+}
+
 export const adminApi = {
   getRoutesAdmin,
   getRouteAdmin,
@@ -278,4 +301,5 @@ export const adminApi = {
   updateSpot,
   insertSpot,
   deleteSpot,
+  uploadCoverImage,
 };

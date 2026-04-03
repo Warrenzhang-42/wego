@@ -224,8 +224,43 @@
           </div>
 
           <div class="form-field full">
-            <label class="form-label" for="route-cover">封面图 URL</label>
-            <input class="form-input" type="url" id="route-cover" placeholder="https://…">
+            <label class="form-label">封面图</label>
+            <div class="cover-picker" id="cover-picker">
+              <div class="cover-picker__tabs">
+                <button type="button" class="cover-picker__tab active" data-tab="url">网址 URL</button>
+                <button type="button" class="cover-picker__tab" data-tab="upload">本地上传</button>
+              </div>
+              <!-- URL 模式 -->
+              <div class="cover-picker__panel active" data-panel="url">
+                <input class="form-input" type="url" id="route-cover" placeholder="https://…">
+              </div>
+              <!-- 本地上传模式 -->
+              <div class="cover-picker__panel" data-panel="upload">
+                <div class="cover-picker__drop-zone" id="cover-drop-zone" tabindex="0" role="button" aria-label="点击或拖拽上传封面图">
+                  <input type="file" id="route-cover-file" accept="image/*" style="display:none;">
+                  <div class="cover-picker__drop-hint" id="cover-drop-hint">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    <span>点击上传 或 拖拽图片到这里</span>
+                    <span class="cover-picker__drop-sub">支持 JPG / PNG / WebP，建议 1200×630 以上</span>
+                  </div>
+                  <div class="cover-picker__preview" id="cover-preview" style="display:none;">
+                    <img id="cover-preview-img" src="" alt="封面预览">
+                    <div class="cover-picker__preview-actions">
+                      <button type="button" class="btn btn-sm btn-secondary" id="cover-remove-btn">移除</button>
+                    </div>
+                  </div>
+                  <div class="cover-picker__uploading" id="cover-uploading" style="display:none;">
+                    <div class="cover-picker__spinner"></div>
+                    <span>上传中…</span>
+                  </div>
+                </div>
+              </div>
+              <!-- 预览（URL 模式下也显示） -->
+              <div class="cover-picker__url-preview" id="cover-url-preview" style="display:none;">
+                <img id="cover-url-preview-img" src="" alt="封面预览">
+                <button type="button" class="cover-picker__url-clear" id="cover-url-clear-btn" title="清除图片">×</button>
+              </div>
+            </div>
           </div>
 
           <div class="form-field full">
@@ -456,6 +491,142 @@ let currentPage = 1;
 const PAGE_SIZE = 20;
 let pendingDeleteRouteId = null;
 let pendingDeleteSpotId = null;
+
+/* ============================================================
+   Cover Image Picker — 双模式（URL / 本地上传）
+   ============================================================ */
+let _coverEffectiveUrl = '';
+let _coverRouteId = null;
+let _coverPickerInitialized = false;
+
+function initCoverPicker() {
+  const picker = document.getElementById('cover-picker');
+  if (!picker) return;
+  if (_coverPickerInitialized) {
+    // 仅同步状态；事件监听器已挂载，无需重复注册
+    return;
+  }
+  _coverPickerInitialized = true;
+
+  // Tab 切换
+  picker.querySelectorAll('.cover-picker__tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      picker.querySelectorAll('.cover-picker__tab').forEach(t => t.classList.remove('active'));
+      picker.querySelectorAll('.cover-picker__panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      picker.querySelector(`.cover-picker__panel[data-panel="${tab.dataset.tab}"]`).classList.add('active');
+    });
+  });
+
+  const fileInput = document.getElementById('route-cover-file');
+  const dropZone = document.getElementById('cover-drop-zone');
+  const dropHint = document.getElementById('cover-drop-hint');
+  const preview = document.getElementById('cover-preview');
+  const uploading = document.getElementById('cover-uploading');
+  const removeBtn = document.getElementById('cover-remove-btn');
+
+  fileInput.addEventListener('change', () => { if (fileInput.files[0]) handleCoverFile(fileInput.files[0]); });
+
+  dropZone.addEventListener('click', (e) => { if (e.target !== removeBtn) fileInput.click(); });
+  dropZone.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') fileInput.click(); });
+
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+  dropZone.addEventListener('drop', e => {
+    e.preventDefault(); dropZone.classList.remove('drag-over');
+    if (e.dataTransfer.files[0]) handleCoverFile(e.dataTransfer.files[0]);
+  });
+
+  removeBtn.addEventListener('click', () => {
+    _coverEffectiveUrl = '';
+    fileInput.value = '';
+    preview.style.display = 'none';
+    dropHint.style.display = '';
+    uploading.style.display = 'none';
+    refreshUrlPreview();
+  });
+
+  // URL 输入同步预览（只注册一次）
+  document.getElementById('route-cover').addEventListener('input', () => {
+    _coverEffectiveUrl = document.getElementById('route-cover').value.trim();
+    refreshUrlPreview();
+  });
+}
+
+function resetCoverPicker(routeId, coverUrl) {
+  _coverRouteId = routeId;
+  _coverEffectiveUrl = coverUrl || '';
+
+  document.getElementById('route-cover-file').value = '';
+  document.getElementById('cover-drop-hint').style.display = '';
+  document.getElementById('cover-preview').style.display = 'none';
+  document.getElementById('cover-uploading').style.display = 'none';
+  document.getElementById('route-cover').value = _coverEffectiveUrl;
+
+  refreshUrlPreview();
+  // 默认显示 URL 模式（已有值时停留在 URL 模式，无值时停留在上传模式）
+  const urlTab = document.querySelector('.cover-picker__tab[data-tab="url"]');
+  if (urlTab) urlTab.click();
+}
+
+function handleCoverFile(file) {
+  if (!file.type.startsWith('image/')) {
+    toast('error', '请选择图片文件（JPG / PNG / WebP）');
+    return;
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    toast('error', '图片大小不能超过 10MB');
+    return;
+  }
+
+  const dropHint = document.getElementById('cover-drop-hint');
+  const preview = document.getElementById('cover-preview');
+  const previewImg = document.getElementById('cover-preview-img');
+  const uploading = document.getElementById('cover-uploading');
+  const fileInput = document.getElementById('route-cover-file');
+
+  // 本地预览（立即显示）
+  const reader = new FileReader();
+  reader.onload = e => {
+    previewImg.src = e.target.result;
+    preview.style.display = '';
+    uploading.style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+
+  // 显示上传中状态
+  dropHint.style.display = 'none';
+  preview.style.display = 'none';
+  uploading.style.display = '';
+
+  adminApi.uploadCoverImage(file, _coverRouteId).then(url => {
+    _coverEffectiveUrl = url;
+    uploading.style.display = 'none';
+    refreshUrlPreview();
+  }).catch(err => {
+    uploading.style.display = 'none';
+    dropHint.style.display = '';
+    toast('error', `上传失败：${err.message}`);
+  });
+}
+
+function refreshUrlPreview() {
+  const url = _coverEffectiveUrl;
+  const container = document.getElementById('cover-url-preview');
+  const img = document.getElementById('cover-url-preview-img');
+  const clearBtn = document.getElementById('cover-url-clear-btn');
+  if (url) {
+    img.src = url;
+    container.style.display = '';
+    clearBtn.onclick = () => {
+      _coverEffectiveUrl = '';
+      refreshUrlPreview();
+    };
+  } else {
+    container.style.display = 'none';
+    img.src = '';
+  }
+}
 
 /* ============================================================
    Bootstrap
@@ -784,6 +955,10 @@ async function openEditRoute(id) {
     document.getElementById('route-heat-level-ro').value = route.heat_level ?? '—';
     document.getElementById('route-heat-count-ro').value = (route.heat_count ?? 0) + '（简单累计）';
 
+    // 重置封面图选择器（先重置状态再初始化）
+    initCoverPicker();   // 事件监听器只挂一次
+    resetCoverPicker(route.id, route.cover_image);
+
     _routeTags = route.tags || [];
     renderRouteTags();
 
@@ -833,7 +1008,7 @@ async function saveRoute(showToast = true, silent = false) {
     title,
     description: document.getElementById('route-description').value.trim() || null,
     category: document.getElementById('route-category').value || null,
-    cover_image: document.getElementById('route-cover').value.trim() || null,
+    cover_image: _coverEffectiveUrl || null,
     is_visible: document.getElementById('route-visible').checked,
     tags: _routeTags,
   };
@@ -1200,6 +1375,58 @@ window.addNewSpot = addNewSpot;
      SPIN ANIMATION
      ================================================================ -->
 <style>
+/* ================================================================
+   Cover Image Picker
+   ================================================================ */
+.cover-picker { display: flex; flex-direction: column; gap: 8px; }
+
+.cover-picker__tabs { display: flex; gap: 2px; border-bottom: 2px solid #e5e7eb; }
+.cover-picker__tab {
+  padding: 6px 16px; border: none; background: none; cursor: pointer; font-size: 13px;
+  color: #6b7280; border-bottom: 2px solid transparent; margin-bottom: -2px;
+  transition: color 0.15s, border-color 0.15s; border-radius: 4px 4px 0 0;
+}
+.cover-picker__tab:hover { color: #374151; }
+.cover-picker__tab.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 500; }
+
+.cover-picker__panel { display: none; }
+.cover-picker__panel.active { display: block; }
+
+.cover-picker__drop-zone {
+  border: 2px dashed #d1d5db; border-radius: 8px; padding: 24px; text-align: center;
+  cursor: pointer; transition: border-color 0.15s, background 0.15s; position: relative;
+  background: #f9fafb; min-height: 100px; display: flex; align-items: center; justify-content: center;
+}
+.cover-picker__drop-zone:hover, .cover-picker__drop-zone.drag-over {
+  border-color: #2563eb; background: #eff6ff;
+}
+.cover-picker__drop-zone:focus { outline: 2px solid #2563eb; outline-offset: 2px; }
+
+.cover-picker__drop-hint { display: flex; flex-direction: column; align-items: center; gap: 8px; color: #6b7280; }
+.cover-picker__drop-hint svg { color: #9ca3af; }
+.cover-picker__drop-sub { font-size: 11px; color: #9ca3af; }
+
+.cover-picker__preview { position: relative; }
+.cover-picker__preview img { width: 100%; max-height: 200px; object-fit: cover; border-radius: 6px; display: block; }
+.cover-picker__preview-actions { display: flex; justify-content: flex-end; margin-top: 6px; }
+
+.cover-picker__uploading { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 16px; color: #6b7280; font-size: 13px; }
+.cover-picker__spinner {
+  width: 18px; height: 18px; border: 2px solid #d1d5db; border-top-color: #2563eb;
+  border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.cover-picker__url-preview { position: relative; display: inline-block; width: 100%; }
+.cover-picker__url-preview img { width: 100%; max-height: 160px; object-fit: cover; border-radius: 6px; display: block; border: 1px solid #e5e7eb; }
+.cover-picker__url-clear {
+  position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%;
+  border: none; background: rgba(0,0,0,0.55); color: #fff; font-size: 14px; line-height: 1;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+.cover-picker__url-clear:hover { background: rgba(0,0,0,0.75); }
+
 .spin { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 </style>
