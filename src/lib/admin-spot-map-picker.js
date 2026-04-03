@@ -101,6 +101,8 @@ function writeGcjToForm(lat, lng, latInputId, lngInputId) {
   if (!latEl || !lngEl) return;
   latEl.value = String(Number(lat.toFixed(7)));
   lngEl.value = String(Number(lng.toFixed(7)));
+  latEl.dispatchEvent(new Event('input', { bubbles: true }));
+  lngEl.dispatchEvent(new Event('input', { bubbles: true }));
 }
 
 const DEFAULT_GCJ = { lng: 116.397428, lat: 39.90923 };

@@ -467,7 +467,7 @@
     <div class="modal__footer" style="flex-wrap:wrap;gap:8px;">
       <span class="text-sm text-muted" id="spot-draft-status" style="margin-right:auto;"></span>
       <button class="btn btn-secondary" onclick="closeModal('modal-edit-spot')">关闭</button>
-      <button class="btn btn-primary" id="btn-save-spot" type="button">保存</button>
+      <button class="btn btn-primary" id="btn-save-spot" type="button">保存草稿</button>
     </div>
   </div>
 </div>
@@ -557,6 +557,14 @@ import {
   listSpotNamesOutsideCity,
   formatCityLabel,
 } from './lib/admin-route-cities.js';
+import {
+  routeLocalDraftKey,
+  spotLocalDraftKey,
+  saveLocalDraft,
+  loadLocalDraft,
+  clearLocalDraft,
+  clearSpotLocalDraftsForSpotId,
+} from './lib/admin-edit-local-cache.js';
 
 const SPOT_MAP_PICKER_IDS = {
   mapContainerId: 'spot-map-container',
@@ -629,12 +637,14 @@ function initCoverPicker() {
     dropHint.style.display = '';
     uploading.style.display = 'none';
     refreshUrlPreview();
+    scheduleRouteLocalCache(300);
   });
 
   // URL 输入同步预览（只注册一次）
   document.getElementById('route-cover').addEventListener('input', () => {
     _coverEffectiveUrl = document.getElementById('route-cover').value.trim();
     refreshUrlPreview();
+    scheduleRouteLocalCache(500);
   });
 }
 
@@ -688,6 +698,7 @@ function handleCoverFile(file) {
     _coverEffectiveUrl = url;
     uploading.style.display = 'none';
     refreshUrlPreview();
+    scheduleRouteLocalCache(300);
   }).catch(err => {
     uploading.style.display = 'none';
     dropHint.style.display = '';
@@ -708,6 +719,7 @@ function refreshUrlPreview() {
       const rc = document.getElementById('route-cover');
       if (rc) rc.value = '';
       refreshUrlPreview();
+      scheduleRouteLocalCache(300);
     };
   } else {
     container.style.display = 'none';
@@ -778,11 +790,13 @@ function initSpotThumbPicker() {
     dropHint.style.display = '';
     uploading.style.display = 'none';
     refreshSpotThumbUrlPreview();
+    markSpotModalEdited(300);
   });
 
   document.getElementById('spot-thumb').addEventListener('input', () => {
     _spotThumbEffectiveUrl = document.getElementById('spot-thumb').value.trim();
     refreshSpotThumbUrlPreview();
+    markSpotModalEdited(500);
   });
 }
 
@@ -843,6 +857,7 @@ function handleSpotThumbFile(file) {
       if (inp) inp.value = url;
       uploading.style.display = 'none';
       refreshSpotThumbUrlPreview();
+      markSpotModalEdited(300);
     })
     .catch((err) => {
       uploading.style.display = 'none';
@@ -865,6 +880,7 @@ function refreshSpotThumbUrlPreview() {
       const inp = document.getElementById('spot-thumb');
       if (inp) inp.value = '';
       refreshSpotThumbUrlPreview();
+      markSpotModalEdited(300);
     };
   } else {
     container.style.display = 'none';
@@ -976,6 +992,7 @@ async function handleSpotPhotoFiles(files) {
       done++;
     }
     renderSpotPhotosPreview();
+    markSpotModalEdited(200);
     toast('success', done === 1 ? '已追加 1 张图片 URL' : `已追加 ${done} 张图片 URL`);
   } catch (err) {
     toast('error', `上传失败：${err.message}`);
@@ -1000,11 +1017,12 @@ document.addEventListener('DOMContentLoaded', () => {
   bindTagInput('spot-tags-input', 'spot-tags-container', 'spot-tags-preview', 'spot');
   document.getElementById('btn-save-route-draft').addEventListener('click', () => saveRoute(true));
   document.getElementById('btn-publish-route').addEventListener('click', publishRouteAction);
-  document.getElementById('btn-save-spot').addEventListener('click', () => saveSpot());
+  document.getElementById('btn-save-spot').addEventListener('click', () => saveSpot(true));
   document.getElementById('btn-new-route').addEventListener('click', createNewRoute);
   loadRoutes();
   initAdminRouteUploadPanel();
   bindRouteModalAutosave();
+  bindSpotModalAutosave();
 });
 
 /* ============================================================
@@ -1042,10 +1060,12 @@ function initRouteProvinceCitySelectors() {
     refillRouteCitySelect(provSel.value, '');
     _routeModalDirty = true;
     scheduleRouteDraftSave(600);
+    scheduleRouteLocalCache(600);
   });
   citySel.addEventListener('change', () => {
     _routeModalDirty = true;
     scheduleRouteDraftSave(600);
+    scheduleRouteLocalCache(600);
   });
 }
 
@@ -1390,9 +1410,19 @@ function goPage(p) {
    ============================================================ */
 let _routeDraftTimer = null;
 let _routeModalDirty = false;
+let _suppressRouteLocalCache = false;
+let _routeLocalCacheTimer = null;
+let _routeStatusServerText = '';
+let _routeStatusLocalTime = '';
+
+let _spotDraftTimer = null;
+let _spotModalDirty = false;
+let _suppressSpotLocalCache = false;
+let _spotLocalCacheTimer = null;
+let _spotStatusServerText = '';
+let _spotStatusLocalTime = '';
 
 function bindRouteModalAutosave() {
-  const modal = document.getElementById('modal-edit-route');
   const debounceMs = 900;
   const fields = ['route-title', 'route-description', 'route-province', 'route-city', 'route-cover', 'route-visible'];
   fields.forEach((fid) => {
@@ -1401,10 +1431,12 @@ function bindRouteModalAutosave() {
     el.addEventListener('input', () => {
       _routeModalDirty = true;
       scheduleRouteDraftSave(debounceMs);
+      scheduleRouteLocalCache(debounceMs);
     });
     el.addEventListener('change', () => {
       _routeModalDirty = true;
       scheduleRouteDraftSave(debounceMs);
+      scheduleRouteLocalCache(debounceMs);
     });
   });
 }
@@ -1418,6 +1450,336 @@ function scheduleRouteDraftSave(ms) {
   }, ms);
 }
 
+function scheduleSpotDraftSave(ms) {
+  clearTimeout(_spotDraftTimer);
+  _spotDraftTimer = setTimeout(() => {
+    if (_suppressSpotLocalCache) return;
+    const id = document.getElementById('spot-edit-id')?.value;
+    if (!id || !_spotModalDirty) return;
+    saveSpot(false, true);
+  }, ms);
+}
+
+function collectRouteLocalState() {
+  return {
+    title: document.getElementById('route-title')?.value ?? '',
+    description: document.getElementById('route-description')?.value ?? '',
+    province: (document.getElementById('route-province')?.value || '').trim(),
+    city: (document.getElementById('route-city')?.value || '').trim(),
+    visible: document.getElementById('route-visible')?.checked !== false,
+    cover: (_coverEffectiveUrl || document.getElementById('route-cover')?.value || '').trim(),
+    tags: [..._routeTags].map(String).sort(),
+    originalCityAdcode: document.getElementById('route-original-city-adcode')?.value ?? '',
+  };
+}
+
+function routeLocalStateSignature(obj) {
+  return JSON.stringify(obj);
+}
+
+function renderRouteDraftStatusLine() {
+  const el = document.getElementById('route-draft-status');
+  if (!el) return;
+  const parts = [];
+  if (_routeStatusServerText) parts.push(_routeStatusServerText);
+  if (_routeStatusLocalTime) parts.push(`本地缓存 ${_routeStatusLocalTime}`);
+  el.textContent = parts.join(' · ');
+}
+
+function persistRouteLocalCache() {
+  if (_suppressRouteLocalCache) return;
+  const id = document.getElementById('route-edit-id')?.value;
+  if (!id) return;
+  saveLocalDraft(routeLocalDraftKey(id), collectRouteLocalState());
+  const rec = loadLocalDraft(routeLocalDraftKey(id));
+  if (rec) _routeStatusLocalTime = new Date(rec.savedAt).toLocaleTimeString();
+  renderRouteDraftStatusLine();
+}
+
+function scheduleRouteLocalCache(ms = 450) {
+  if (_suppressRouteLocalCache) return;
+  clearTimeout(_routeLocalCacheTimer);
+  _routeLocalCacheTimer = setTimeout(() => persistRouteLocalCache(), ms);
+}
+
+function showRouteLocalRestoreOffer(rec) {
+  const el = document.getElementById('route-draft-status');
+  if (!el) return;
+  el.innerHTML = '';
+  const row = document.createElement('span');
+  row.setAttribute('data-local-restore-row', '1');
+  row.style.cssText = 'display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;max-width:100%;';
+  const txt = document.createElement('span');
+  txt.className = 'text-sm text-muted';
+  txt.textContent = `检测到本地备份（${new Date(rec.savedAt).toLocaleString()}）`;
+  const btnR = document.createElement('button');
+  btnR.type = 'button';
+  btnR.className = 'btn btn-sm btn-secondary';
+  btnR.textContent = '恢复';
+  btnR.addEventListener('click', () => restoreRouteFromLocalDraft());
+  const btnD = document.createElement('button');
+  btnD.type = 'button';
+  btnD.className = 'btn btn-sm btn-ghost';
+  btnD.textContent = '丢弃备份';
+  btnD.addEventListener('click', () => discardRouteLocalDraft());
+  row.appendChild(txt);
+  row.appendChild(btnR);
+  row.appendChild(btnD);
+  el.appendChild(row);
+}
+
+function maybeOfferRouteLocalRestore() {
+  const id = document.getElementById('route-edit-id')?.value;
+  const el = document.getElementById('route-draft-status');
+  if (!id || !el) return;
+  const rec = loadLocalDraft(routeLocalDraftKey(id));
+  if (!rec?.payload) {
+    renderRouteDraftStatusLine();
+    return;
+  }
+  const cur = collectRouteLocalState();
+  if (routeLocalStateSignature(cur) === routeLocalStateSignature(rec.payload)) {
+    _routeStatusLocalTime = new Date(rec.savedAt).toLocaleTimeString();
+    renderRouteDraftStatusLine();
+    return;
+  }
+  showRouteLocalRestoreOffer(rec);
+}
+
+function discardRouteLocalDraft() {
+  const id = document.getElementById('route-edit-id')?.value;
+  if (id) clearLocalDraft(routeLocalDraftKey(id));
+  _routeStatusLocalTime = '';
+  maybeOfferRouteLocalRestore();
+}
+
+function restoreRouteFromLocalDraft() {
+  const id = document.getElementById('route-edit-id')?.value;
+  if (!id) return;
+  const rec = loadLocalDraft(routeLocalDraftKey(id));
+  const p = rec?.payload;
+  if (!p || typeof p !== 'object') return;
+  _suppressRouteLocalCache = true;
+  try {
+    document.getElementById('route-title').value = p.title != null ? String(p.title) : '';
+    document.getElementById('route-description').value = p.description != null ? String(p.description) : '';
+    const prov = p.province != null ? String(p.province) : '';
+    const cityAd = p.city != null ? String(p.city) : '';
+    if (cityAd) {
+      setRouteCityFormFromAdcode(cityAd);
+    } else {
+      const provSel = document.getElementById('route-province');
+      if (provSel) {
+        provSel.value = prov;
+        refillRouteCitySelect(prov, '');
+      }
+    }
+    document.getElementById('route-visible').checked = p.visible !== false;
+    const cover = p.cover != null ? String(p.cover) : '';
+    document.getElementById('route-cover').value = cover;
+    _coverEffectiveUrl = cover;
+    refreshUrlPreview();
+    resetCoverPicker(id, cover);
+    _routeTags = Array.isArray(p.tags) ? p.tags.map(String) : [];
+    renderRouteTags();
+    if (p.originalCityAdcode !== undefined && p.originalCityAdcode !== null) {
+      document.getElementById('route-original-city-adcode').value = String(p.originalCityAdcode);
+    }
+    _routeModalDirty = true;
+    scheduleRouteDraftSave(600);
+  } finally {
+    _suppressRouteLocalCache = false;
+  }
+  persistRouteLocalCache();
+  toast('success', '已从本地缓存恢复');
+}
+
+/* ----- 游玩点 · 本地缓存 ----- */
+function collectSpotLocalState() {
+  return {
+    name: document.getElementById('spot-name')?.value ?? '',
+    subtitle: document.getElementById('spot-subtitle')?.value ?? '',
+    shortDesc: document.getElementById('spot-short-desc')?.value ?? '',
+    rich: document.getElementById('spot-rich')?.value ?? '',
+    type: document.getElementById('spot-type')?.value ?? 'attraction',
+    lat: document.getElementById('spot-lat')?.value ?? '',
+    lng: document.getElementById('spot-lng')?.value ?? '',
+    visible: document.getElementById('spot-visible')?.checked !== false,
+    easter: document.getElementById('spot-easter')?.checked === true,
+    stay: document.getElementById('spot-stay')?.value ?? '',
+    geofence: document.getElementById('spot-geofence')?.value ?? '',
+    sort: document.getElementById('spot-sort')?.value ?? '',
+    thumb: (_spotThumbEffectiveUrl || document.getElementById('spot-thumb')?.value || '').trim(),
+    photos: document.getElementById('spot-photos')?.value ?? '',
+    tags: [..._spotTags].map(String).sort(),
+  };
+}
+
+function spotLocalStateSignature(obj) {
+  return JSON.stringify(obj);
+}
+
+function renderSpotDraftStatusLine() {
+  const el = document.getElementById('spot-draft-status');
+  if (!el) return;
+  const parts = [];
+  if (_spotStatusServerText) parts.push(_spotStatusServerText);
+  if (_spotStatusLocalTime) parts.push(`本地缓存 ${_spotStatusLocalTime}`);
+  el.textContent = parts.join(' · ');
+}
+
+function persistSpotLocalCache() {
+  if (_suppressSpotLocalCache) return;
+  const spotId = document.getElementById('spot-edit-id')?.value;
+  const routeId = document.getElementById('spot-edit-route-id')?.value;
+  if (!spotId || !routeId) return;
+  saveLocalDraft(spotLocalDraftKey(routeId, spotId), collectSpotLocalState());
+  const rec = loadLocalDraft(spotLocalDraftKey(routeId, spotId));
+  if (rec) _spotStatusLocalTime = new Date(rec.savedAt).toLocaleTimeString();
+  renderSpotDraftStatusLine();
+}
+
+function scheduleSpotLocalCache(ms = 450) {
+  if (_suppressSpotLocalCache) return;
+  clearTimeout(_spotLocalCacheTimer);
+  _spotLocalCacheTimer = setTimeout(() => persistSpotLocalCache(), ms);
+}
+
+/** 与路线编辑一致：标记未保存 + 防抖服务端草稿 + 本地缓存 */
+function markSpotModalEdited(ms = 900) {
+  _spotModalDirty = true;
+  scheduleSpotDraftSave(ms);
+  scheduleSpotLocalCache(ms);
+}
+
+function showSpotLocalRestoreOffer(rec) {
+  const el = document.getElementById('spot-draft-status');
+  if (!el) return;
+  el.innerHTML = '';
+  const row = document.createElement('span');
+  row.setAttribute('data-local-restore-row', '1');
+  row.style.cssText = 'display:inline-flex;flex-wrap:wrap;align-items:center;gap:6px;max-width:100%;';
+  const txt = document.createElement('span');
+  txt.className = 'text-sm text-muted';
+  txt.textContent = `检测到本地备份（${new Date(rec.savedAt).toLocaleString()}）`;
+  const btnR = document.createElement('button');
+  btnR.type = 'button';
+  btnR.className = 'btn btn-sm btn-secondary';
+  btnR.textContent = '恢复';
+  btnR.addEventListener('click', () => restoreSpotFromLocalDraft());
+  const btnD = document.createElement('button');
+  btnD.type = 'button';
+  btnD.className = 'btn btn-sm btn-ghost';
+  btnD.textContent = '丢弃备份';
+  btnD.addEventListener('click', () => discardSpotLocalDraft());
+  row.appendChild(txt);
+  row.appendChild(btnR);
+  row.appendChild(btnD);
+  el.appendChild(row);
+}
+
+function maybeOfferSpotLocalRestore() {
+  const spotId = document.getElementById('spot-edit-id')?.value;
+  const routeId = document.getElementById('spot-edit-route-id')?.value;
+  const el = document.getElementById('spot-draft-status');
+  if (!spotId || !routeId || !el) return;
+  const rec = loadLocalDraft(spotLocalDraftKey(routeId, spotId));
+  if (!rec?.payload) {
+    renderSpotDraftStatusLine();
+    return;
+  }
+  const cur = collectSpotLocalState();
+  if (spotLocalStateSignature(cur) === spotLocalStateSignature(rec.payload)) {
+    _spotStatusLocalTime = new Date(rec.savedAt).toLocaleTimeString();
+    renderSpotDraftStatusLine();
+    return;
+  }
+  showSpotLocalRestoreOffer(rec);
+}
+
+function discardSpotLocalDraft() {
+  const spotId = document.getElementById('spot-edit-id')?.value;
+  const routeId = document.getElementById('spot-edit-route-id')?.value;
+  if (spotId && routeId) clearLocalDraft(spotLocalDraftKey(routeId, spotId));
+  _spotStatusLocalTime = '';
+  maybeOfferSpotLocalRestore();
+}
+
+function restoreSpotFromLocalDraft() {
+  const spotId = document.getElementById('spot-edit-id')?.value;
+  const routeId = document.getElementById('spot-edit-route-id')?.value;
+  if (!spotId || !routeId) return;
+  const rec = loadLocalDraft(spotLocalDraftKey(routeId, spotId));
+  const p = rec?.payload;
+  if (!p || typeof p !== 'object') return;
+  _suppressSpotLocalCache = true;
+  try {
+    document.getElementById('spot-name').value = p.name != null ? String(p.name) : '';
+    document.getElementById('spot-subtitle').value = p.subtitle != null ? String(p.subtitle) : '';
+    document.getElementById('spot-short-desc').value = p.shortDesc != null ? String(p.shortDesc) : '';
+    document.getElementById('spot-rich').value = p.rich != null ? String(p.rich) : '';
+    document.getElementById('spot-type').value = p.type || 'attraction';
+    document.getElementById('spot-lat').value = p.lat != null ? String(p.lat) : '';
+    document.getElementById('spot-lng').value = p.lng != null ? String(p.lng) : '';
+    document.getElementById('spot-visible').checked = p.visible !== false;
+    document.getElementById('spot-easter').checked = p.easter === true;
+    document.getElementById('spot-stay').value = p.stay != null ? String(p.stay) : '';
+    document.getElementById('spot-geofence').value = p.geofence != null ? String(p.geofence) : '';
+    document.getElementById('spot-sort').value = p.sort != null ? String(p.sort) : '';
+    const thumb = p.thumb != null ? String(p.thumb) : '';
+    document.getElementById('spot-thumb').value = thumb;
+    _spotThumbEffectiveUrl = thumb;
+    refreshSpotThumbUrlPreview();
+    resetSpotThumbPicker(routeId, spotId, thumb);
+    document.getElementById('spot-photos').value = p.photos != null ? String(p.photos) : '';
+    _spotTags = Array.isArray(p.tags) ? p.tags.map(String) : [];
+    renderSpotTags();
+    renderSpotPhotosPreview();
+    syncAdminSpotMapFromForm(SPOT_MAP_PICKER_IDS);
+    _spotModalDirty = true;
+    scheduleSpotDraftSave(600);
+    scheduleSpotLocalCache(600);
+  } finally {
+    _suppressSpotLocalCache = false;
+  }
+  persistSpotLocalCache();
+  toast('success', '已从本地缓存恢复');
+}
+
+/** 与 bindRouteModalAutosave 一致：字段变更 → 防抖写服务端草稿 + localStorage */
+function bindSpotModalAutosave() {
+  const debounceMs = 900;
+  const fields = [
+    'spot-name',
+    'spot-subtitle',
+    'spot-short-desc',
+    'spot-rich',
+    'spot-type',
+    'spot-lat',
+    'spot-lng',
+    'spot-visible',
+    'spot-easter',
+    'spot-stay',
+    'spot-geofence',
+    'spot-sort',
+    'spot-thumb',
+  ];
+  fields.forEach((fid) => {
+    const el = document.getElementById(fid);
+    if (!el) return;
+    el.addEventListener('input', () => {
+      _spotModalDirty = true;
+      scheduleSpotDraftSave(debounceMs);
+      scheduleSpotLocalCache(debounceMs);
+    });
+    el.addEventListener('change', () => {
+      _spotModalDirty = true;
+      scheduleSpotDraftSave(debounceMs);
+      scheduleSpotLocalCache(debounceMs);
+    });
+  });
+}
+
 async function createNewRoute() {
   try {
     const row = await adminApi.insertRoute({ title: '未命名路线' });
@@ -1429,6 +1791,7 @@ async function createNewRoute() {
 }
 
 async function openEditRoute(id) {
+  _suppressRouteLocalCache = true;
   try {
     const route = await adminApi.getRouteAdmin(id);
     document.getElementById('route-edit-id').value = route.id;
@@ -1462,6 +1825,8 @@ async function openEditRoute(id) {
     _routeTags = route.tags || [];
     renderRouteTags();
 
+    _routeStatusServerText = '';
+    _routeStatusLocalTime = '';
     document.getElementById('route-draft-status').textContent = '';
     _routeModalDirty = false;
     openModal('modal-edit-route');
@@ -1470,7 +1835,10 @@ async function openEditRoute(id) {
     const refreshed = await adminApi.getRouteAdmin(id);
     document.getElementById('route-duration').value = refreshed.duration_minutes ?? '';
     document.getElementById('route-distance').value = refreshed.total_distance_km ?? '';
+    _suppressRouteLocalCache = false;
+    maybeOfferRouteLocalRestore();
   } catch (err) {
+    _suppressRouteLocalCache = false;
     toast('error', `加载路线失败：${err.message}`);
   }
 }
@@ -1492,6 +1860,7 @@ function removeRouteTag(index) {
   renderRouteTags();
   _routeModalDirty = true;
   scheduleRouteDraftSave(500);
+  scheduleRouteLocalCache(500);
 }
 
 async function saveRoute(showToast = true, silent = false) {
@@ -1541,12 +1910,15 @@ async function saveRoute(showToast = true, silent = false) {
     document.getElementById('route-distance').value = refreshed.total_distance_km ?? '';
     _routeModalDirty = false;
     const t = new Date().toLocaleTimeString();
-    statusEl.textContent = `草稿已保存 ${t}`;
+    clearLocalDraft(routeLocalDraftKey(id));
+    _routeStatusLocalTime = '';
+    _routeStatusServerText = `草稿已保存 ${t}`;
+    statusEl.innerHTML = '';
+    renderRouteDraftStatusLine();
     if (showToast) toast('success', '草稿已保存');
     loadRoutes();
     return true;
   } catch (err) {
-    statusEl.textContent = '';
     toast('error', `保存失败：${err.message}`);
     return false;
   }
@@ -1576,11 +1948,17 @@ async function publishRouteAction() {
    Modal: Edit Spot
    ============================================================ */
 async function openEditSpot(id, routeId) {
+  clearTimeout(_spotDraftTimer);
+  _suppressSpotLocalCache = true;
   try {
     const route_id = routeId || document.getElementById('spot-edit-route-id')?.value;
     const spots = await adminApi.getSpotsAdmin(route_id);
     const spot = spots.find(s => s.id === id);
-    if (!spot) { toast('error', '未找到该游玩点'); return; }
+    if (!spot) {
+      toast('error', '未找到该游玩点');
+      _suppressSpotLocalCache = false;
+      return;
+    }
 
     document.getElementById('spot-edit-id').value = spot.id;
     document.getElementById('spot-edit-route-id').value = spot.route_id;
@@ -1610,15 +1988,24 @@ async function openEditSpot(id, routeId) {
     _spotTags = spot.tags || [];
     renderSpotTags();
     renderSpotPhotosPreview();
+    _spotStatusServerText = '';
+    _spotStatusLocalTime = '';
     document.getElementById('spot-draft-status').textContent = '';
+    _spotModalDirty = false;
 
     openModal('modal-edit-spot');
     requestAnimationFrame(() => {
-      ensureAdminSpotMap({ ...SPOT_MAP_PICKER_IDS, toast }).then((ok) => {
-        if (ok) syncAdminSpotMapFromForm(SPOT_MAP_PICKER_IDS);
-      });
+      ensureAdminSpotMap({ ...SPOT_MAP_PICKER_IDS, toast })
+        .then((ok) => {
+          if (ok) syncAdminSpotMapFromForm(SPOT_MAP_PICKER_IDS);
+        })
+        .finally(() => {
+          _suppressSpotLocalCache = false;
+          maybeOfferSpotLocalRestore();
+        });
     });
   } catch (err) {
+    _suppressSpotLocalCache = false;
     toast('error', `加载游玩点失败：${err.message}`);
   }
 }
@@ -1670,14 +2057,19 @@ function renderSpotTags() {
 function removeSpotTag(index) {
   _spotTags.splice(index, 1);
   renderSpotTags();
+  markSpotModalEdited(400);
 }
 
-async function saveSpot() {
+/** 与 saveRoute 一致：可静默自动写库 + 清本地草稿 + 状态行 */
+async function saveSpot(showToast = true, silent = false) {
   const id = document.getElementById('spot-edit-id').value;
-  if (!id) return;
+  if (!id) return false;
 
   const name = document.getElementById('spot-name').value.trim();
-  if (!name) { toast('error', '游玩点名称不能为空'); return; }
+  if (!name) {
+    if (!silent) toast('error', '游玩点名称不能为空');
+    return false;
+  }
 
   const photosRaw = document.getElementById('spot-photos').value.trim();
   const photos = photosRaw ? photosRaw.split('\n').map(s => s.trim()).filter(Boolean) : [];
@@ -1685,8 +2077,8 @@ async function saveSpot() {
   const rawLat = parseFloat(document.getElementById('spot-lat').value);
   const rawLng = parseFloat(document.getElementById('spot-lng').value);
   if (!Number.isFinite(rawLat) || !Number.isFinite(rawLng)) {
-    toast('error', '请填写有效经纬度');
-    return;
+    if (!silent) toast('error', '请填写有效经纬度');
+    return false;
   }
   const wgs = normalizeToWgs84(rawLat, rawLng, 'GCJ02');
 
@@ -1720,14 +2112,24 @@ async function saveSpot() {
     is_easter_egg: document.getElementById('spot-easter').checked,
   };
 
+  const statusEl = document.getElementById('spot-draft-status');
   try {
     await adminApi.updateSpot(id, patch);
     const gcjAfter = wgs84ToGcj02(wgs.lat, wgs.lng);
     document.getElementById('spot-lat').value = String(Number(gcjAfter.lat.toFixed(7)));
     document.getElementById('spot-lng').value = String(Number(gcjAfter.lng.toFixed(7)));
     syncAdminSpotMapFromForm(SPOT_MAP_PICKER_IDS);
-    document.getElementById('spot-draft-status').textContent = `已保存 ${new Date().toLocaleTimeString()}`;
-    toast('success', '游玩点已保存');
+    const routeIdForDraft = document.getElementById('spot-edit-route-id').value;
+    if (routeIdForDraft) clearLocalDraft(spotLocalDraftKey(routeIdForDraft, id));
+    _spotModalDirty = false;
+    const t = new Date().toLocaleTimeString();
+    _spotStatusLocalTime = '';
+    _spotStatusServerText = `草稿已保存 ${t}`;
+    if (statusEl) {
+      statusEl.innerHTML = '';
+      renderSpotDraftStatusLine();
+    }
+    if (showToast) toast('success', '草稿已保存');
 
     const routeId = document.getElementById('spot-edit-route-id').value;
     if (routeId) {
@@ -1742,8 +2144,10 @@ async function saveSpot() {
       await toggleSpots(routeId2);
       await toggleSpots(routeId2);
     }
+    return true;
   } catch (err) {
     toast('error', `保存失败：${err.message}`);
+    return false;
   }
 }
 
@@ -1756,7 +2160,10 @@ function renderSpotPhotosPreview() {
   if (photos.length > 5) preview.innerHTML += `<span class="text-muted text-sm">+${photos.length - 5} 张</span>`;
 }
 
-document.getElementById('spot-photos').addEventListener('input', renderSpotPhotosPreview);
+document.getElementById('spot-photos').addEventListener('input', () => {
+  renderSpotPhotosPreview();
+  markSpotModalEdited(450);
+});
 
 /* ============================================================
    Modal: Delete Route
@@ -1771,6 +2178,7 @@ function openDeleteRoute(id, title) {
 async function confirmDeleteRoute() {
   if (!pendingDeleteRouteId) return;
   try {
+    clearLocalDraft(routeLocalDraftKey(pendingDeleteRouteId));
     await adminApi.deleteRoute(pendingDeleteRouteId);
     toast('success', '路线已删除');
     closeModal('modal-delete-route');
@@ -1795,6 +2203,7 @@ function openDeleteSpot(id, name) {
 async function confirmDeleteSpot() {
   if (!pendingDeleteSpotId) return;
   try {
+    clearSpotLocalDraftsForSpotId(pendingDeleteSpotId);
     await adminApi.deleteSpot(pendingDeleteSpotId);
     toast('success', '景点已删除');
     closeModal('modal-delete-spot');
@@ -1843,8 +2252,10 @@ function bindTagInput(inputId, containerId, previewId, mode) {
           renderRouteTags();
           _routeModalDirty = true;
           scheduleRouteDraftSave(500);
+          scheduleRouteLocalCache(500);
         } else {
           renderSpotTags();
+          markSpotModalEdited(500);
         }
       }
       input.value = '';
@@ -1854,9 +2265,11 @@ function bindTagInput(inputId, containerId, previewId, mode) {
         renderRouteTags();
         _routeModalDirty = true;
         scheduleRouteDraftSave(500);
+        scheduleRouteLocalCache(500);
       } else if (mode === 'spot' && _spotTags.length > 0) {
         _spotTags.pop();
         renderSpotTags();
+        markSpotModalEdited(500);
       }
     }
   });
