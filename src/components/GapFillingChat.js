@@ -400,8 +400,9 @@ export function mountGapFillingChat({ container, sessionId, gaps = [], onComplet
     render();
 
     try {
-      const cfg = window.__WEGO_CONFIG__ || {};
-      const base = cfg.supabaseUrl || '';
+      const api = window.__WEGO_API_CONFIG__ || {};
+      const pub = window.__WEGO_CONFIG__ || {};
+      const base = pub.supabaseUrl || api.supabaseUrl || '';
       const fnUrl = `${base}/functions/v1/route-ingest/${sessionId}/confirm`;
 
       const overrides = subjectiveGaps.slice(0, pendingIndex + 1).map((g, idx) => ({
@@ -413,7 +414,7 @@ export function mountGapFillingChat({ container, sessionId, gaps = [], onComplet
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${cfg.supabaseAnonKey || ''}`,
+          'Authorization': `Bearer ${pub.supabaseAnonKey || api.supabaseAnonKey || ''}`,
         },
         body: JSON.stringify({ confirmed: true, overrides }),
       });

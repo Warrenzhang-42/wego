@@ -424,14 +424,23 @@ export function mountRouteUploader({ container, onGapStart, onUploaded, onCancel
   /* ============================================================
      核心：提交 Payload
      ============================================================ */
+  /** 与 admin（__WEGO_API_CONFIG__）、前台 MPA（__WEGO_CONFIG__）对齐 */
+  function getSupabasePublicCfg() {
+    const api = window.__WEGO_API_CONFIG__ || {};
+    const pub = window.__WEGO_CONFIG__ || {};
+    return {
+      supabaseUrl: pub.supabaseUrl || api.supabaseUrl || '',
+      supabaseAnonKey: pub.supabaseAnonKey || api.supabaseAnonKey || '',
+    };
+  }
+
   function getFnUrl() {
-    const cfg = window.__WEGO_CONFIG__ || {};
-    const base = cfg.supabaseUrl || '';
-    return `${base}/functions/v1/route-ingest`;
+    const { supabaseUrl } = getSupabasePublicCfg();
+    return `${supabaseUrl}/functions/v1/route-ingest`;
   }
 
   function getAnonKey() {
-    return (window.__WEGO_CONFIG__ || {}).supabaseAnonKey || '';
+    return getSupabasePublicCfg().supabaseAnonKey;
   }
 
   async function submitPayload(payload) {
