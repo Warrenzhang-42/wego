@@ -118,6 +118,11 @@ class RouteConfirmRequest(BaseModel):
     overrides: list[dict] = []
 
 
+class RouteGapReplyRequest(BaseModel):
+    session_id: str
+    overrides: list[dict] = []
+
+
 @app.post("/route-upload")
 async def route_upload(req: RouteUploadRequest):
     """
@@ -136,6 +141,16 @@ async def route_upload(req: RouteUploadRequest):
             return {'status': 'error', 'error': f'工具返回格式异常: {result_str}'}
     except Exception as e:
         return {'status': 'error', 'error': str(e)}
+
+
+@app.post("/route-upload/gap-reply")
+async def route_gap_reply_http(req: RouteGapReplyRequest):
+    """
+    后台 Agent 交流：仅更新 route_drafts（parsed_data / gap_items / user_overrides），不入库 routes。
+    """
+    from tools.route_gap_reply import process_gap_reply
+
+    return process_gap_reply(req.session_id, req.overrides or [])
 
 
 @app.post("/route-upload/confirm")

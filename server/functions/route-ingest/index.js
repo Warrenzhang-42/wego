@@ -13,6 +13,10 @@
  *   GET /functions/v1/route-ingest/:session_id
  *     作用：查询会话状态
  *
+ *   POST /functions/v1/route-ingest/:session_id/gap-reply
+ *     Body: { overrides: [{ field, value }, ...] }
+ *     作用：后台 Agent 交流，合并补全并刷新 route_drafts（不入库 routes）
+ *
  *   POST /functions/v1/route-ingest/:session_id/confirm
  *     Body: { confirmed, overrides? }
  *     作用：确认写入，执行 upsert 后更新草稿状态
@@ -102,6 +106,28 @@ Deno.serve(async (req) => {
     return new Response('ok', { status: 200, headers: corsHeaders });
   }
 
+  /* ── POST /functions/v1/route-ingest/:session_id/gap-reply ── */
+  const gapReplyMatch = pathname.match(/^\/([a-f0-9-]{36})\/gap-reply$/i);
+  if (req.method === 'POST' && gapReplyMatch) {
+    const sessionId = gapReplyMatch[1];
+    let body;
+    try {
+      body = await req.json();
+    } catch {
+      return jsonResp({ error: 'Invalid JSON body' }, 400);
+    }
+    const overrides = Array.isArray(body.overrides) ? body.overrides : [];
+    try {
+      const result = await callAgentTool('route-upload/gap-reply', {
+        session_id: sessionId,
+        overrides,
+      });
+      return jsonResp(result);
+    } catch (err) {
+      return jsonResp({ error: err.message }, 500);
+    }
+  }
+
   /* ── GET /functions/v1/route-ingest/:session_id ── */
   const getMatch = pathname.match(/^\/([a-f0-9-]{36})$/i);
   if (req.method === 'GET' && getMatch) {
@@ -147,8 +173,8 @@ Deno.serve(async (req) => {
         overrides,
       });
 
-      // 3. 更新草稿状态
-      const newStatus = confirmed ? 'confirmed' : 'skipped';
+      // 3. 更新草稿状态（未确认时回到待预览，避免写入非法枚举 skipped）
+      const newStatus = confirmed ? 'confirmed' : 'ready_to_confirm';
       await supabaseFetch('route_drafts', {
         method: 'PATCH',
         params: { 'session_id': `eq.${sessionId}` },

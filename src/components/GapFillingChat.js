@@ -5,7 +5,7 @@
  * Gap 补全对话组件（原生 JS）：
  *   - 客观 Gap：自动展示 AI 查询结果
  *   - 主观 Gap：渲染询问消息 + 用户回复输入框
- *   - 提交后触发 onComplete 或继续下一轮
+ *   - 提交后调用 route-ingest …/gap-reply 更新草稿（不入库），全部主观 Gap 解决后再 onComplete
  *
  * 使用方式：
  *   import { mountGapFillingChat } from './GapFillingChat.js';
@@ -223,6 +223,8 @@ export function mountGapFillingChat({ container, sessionId, gaps = [], onComplet
   const objectiveGaps = gaps.filter(g => g.gap_type === 'objective');
   const subjectiveGaps = gaps.filter(g => g.gap_type === 'subjective');
   let pendingIndex = 0;
+  /** @type {{ field: string, value: string }[]} */
+  let accumulatedOverrides = [];
 
   const messages = [];
 
@@ -403,12 +405,10 @@ export function mountGapFillingChat({ container, sessionId, gaps = [], onComplet
       const api = window.__WEGO_API_CONFIG__ || {};
       const pub = window.__WEGO_CONFIG__ || {};
       const base = pub.supabaseUrl || api.supabaseUrl || '';
-      const fnUrl = `${base}/functions/v1/route-ingest/${sessionId}/confirm`;
+      const fnUrl = `${base}/functions/v1/route-ingest/${sessionId}/gap-reply`;
 
-      const overrides = subjectiveGaps.slice(0, pendingIndex + 1).map((g, idx) => ({
-        field: g.field,
-        value: idx === pendingIndex ? text : (g._userOverride || ''),
-      }));
+      accumulatedOverrides = accumulatedOverrides.filter(o => o.field !== gap.field);
+      accumulatedOverrides.push({ field: gap.field, value: text });
 
       const res = await fetch(fnUrl, {
         method: 'POST',
@@ -416,7 +416,7 @@ export function mountGapFillingChat({ container, sessionId, gaps = [], onComplet
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${pub.supabaseAnonKey || api.supabaseAnonKey || ''}`,
         },
-        body: JSON.stringify({ confirmed: true, overrides }),
+        body: JSON.stringify({ overrides: accumulatedOverrides }),
       });
 
       if (!res.ok) {
@@ -424,20 +424,25 @@ export function mountGapFillingChat({ container, sessionId, gaps = [], onComplet
         throw new Error((err || {}).error || `HTTP ${res.status}`);
       }
 
-      /** @type {{ route_preview: Object, status: string }} */
+      /** @type {{ route_preview: Object, status: string, gaps?: GapItem[], assistant_message?: string }} */
       const result = await res.json();
 
-      pendingIndex += 1;
+      if (result.assistant_message) {
+        messages.push({ role: 'ai', content: result.assistant_message });
+      }
 
-      if (result.status === 'has_gaps' && result.route_preview?.gaps?.some(g => g.gap_type === 'subjective')) {
-        const remaining = result.route_preview.gaps.filter(g => g.gap_type === 'subjective');
+      const remaining = (result.gaps || []).filter(g => g.gap_type === 'subjective');
+
+      if (result.status === 'has_gaps' && remaining.length > 0) {
         subjectiveGaps.length = 0;
         subjectiveGaps.push(...remaining);
+        pendingIndex = 0;
+        const next = remaining[0];
         messages.push({
           role: 'ai',
-          content: remaining[0].message,
-          suggested_value: remaining[0].suggested_value,
-          field: remaining[0].field,
+          content: next.message,
+          suggested_value: next.suggested_value,
+          field: next.field,
         });
         phase = 'waiting_input';
         render();

@@ -17,6 +17,8 @@ from langchain_core.tools import tool
 
 # 自身工具
 from .auto_query import auto_query_coordinates, infer_tags_from_spot, infer_stay_duration
+from .llm_route_parse import looks_like_yaml_route, parse_route_document_with_llm
+from .route_merge import collect_gaps_for_route
 
 
 # ──────────────────────────────────────────────────────────
@@ -330,6 +332,31 @@ def upload_route(file_content: str, file_type: str, session_id: str) -> str:
         session_id = str(uuid.uuid4())
 
     try:
+        if file_type in ('txt', 'markdown') and looks_like_yaml_route(file_content):
+            try:
+                route_data = parse_route_document_with_llm(file_content)
+                route_data, merge_gaps = collect_gaps_for_route(route_data)
+                gaps = [GapItem(**g.model_dump()) for g in merge_gaps]
+            except RuntimeError as e:
+                return json.dumps(UploadRouteOutput(
+                    session_id=session_id,
+                    status='error',
+                    error=str(e),
+                ).model_dump(exclude_none=True), ensure_ascii=False)
+            except Exception as e:
+                return json.dumps(UploadRouteOutput(
+                    session_id=session_id,
+                    status='error',
+                    error=f'LLM 解析失败: {e}',
+                ).model_dump(exclude_none=True), ensure_ascii=False)
+            output = UploadRouteOutput(
+                session_id=session_id,
+                status='has_gaps' if gaps else 'success',
+                route_preview=route_data,
+                gaps=[g.model_dump(exclude_none=True) for g in gaps],
+            )
+            return json.dumps(output.model_dump(exclude_none=True), ensure_ascii=False)
+
         if file_type == 'json':
             route_data, gaps = parse_json(file_content)
         elif file_type == 'markdown':

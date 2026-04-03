@@ -11,6 +11,7 @@ Sprint 11.3.3
 CLI 示例：
     python -m tools.confirm_route_upload --session-id <uuid> --overrides '[{"field":"title","value":"我的路线"}]'
 """
+import copy
 import json
 import os
 import uuid
@@ -18,6 +19,8 @@ from typing import Optional
 import requests
 from pydantic import BaseModel, Field
 from langchain_core.tools import tool
+
+from .route_merge import apply_overrides_to_parsed
 
 
 # ──────────────────────────────────────────────────────────
@@ -84,11 +87,13 @@ def _upsert_routes_and_spots(route_data: dict, ingestion_job_id: str = None) -> 
         'description': route_data.get('description', ''),
         'duration_minutes': route_data.get('duration_minutes'),
         'difficulty': route_data.get('difficulty'),
-        'tags': route_data.get('tags', []),
+        'tags': route_data.get('tags', []) or [],
         'cover_image': route_data.get('cover_image'),
         'total_distance_km': route_data.get('total_distance_km'),
         'updated_at': 'now()',
     }
+    if route_data.get('heat_level') is not None:
+        route_payload['heat_level'] = route_data['heat_level']
     if route_data.get('id'):
         route_payload['id'] = route_data['id']
 
@@ -174,7 +179,6 @@ def confirm_route_upload(session_id: str, confirmed: bool, overrides: list[dict]
         }
     """
     overrides = overrides or []
-    override_map = {o['field']: o['value'] for o in overrides}
 
     try:
         draft = _get_draft(session_id)
@@ -185,22 +189,26 @@ def confirm_route_upload(session_id: str, confirmed: bool, overrides: list[dict]
                 'error': f'未找到草稿 session_id={session_id}',
             }, ensure_ascii=False)
 
-        parsed = draft.get('parsed_data', {})
-        route_name = parsed.get('route_name', '未命名路线')
+        stored = draft.get('user_overrides') or []
+        omap = {o['field']: o['value'] for o in stored if o.get('field') is not None}
+        for o in overrides:
+            if o.get('field') is not None:
+                omap[o['field']] = o['value']
+        combined = [{'field': k, 'value': v} for k, v in omap.items()]
 
-        # 应用 overrides
-        for idx, spot in enumerate(parsed.get('spots', [])):
-            for key in ['name', 'lat', 'lng', 'estimated_stay_min', 'tags']:
-                override_key = f'{idx}:{key}'
-                if override_key in override_map:
-                    spot[key] = _parse_override_value(key, override_map[override_key])
-            # 路线名
-            if 'title' in override_map:
-                route_name = override_map['title']
+        parsed = copy.deepcopy(draft.get('parsed_data') or {})
+        merged = apply_overrides_to_parsed(parsed, combined)
 
         final_route = {
-            'route_name': route_name,
-            'spots': parsed.get('spots', []),
+            'route_name': merged.get('route_name', '未命名路线'),
+            'description': merged.get('description', ''),
+            'cover_image': merged.get('cover_image'),
+            'tags': merged.get('tags', []),
+            'duration_minutes': merged.get('duration_minutes'),
+            'total_distance_km': merged.get('total_distance_km'),
+            'heat_level': merged.get('heat_level'),
+            'difficulty': merged.get('difficulty'),
+            'spots': merged.get('spots', []),
         }
 
         if not confirmed:
@@ -241,33 +249,6 @@ def confirm_route_upload(session_id: str, confirmed: bool, overrides: list[dict]
             'status': 'error',
             'error': str(e),
         }, ensure_ascii=False)
-
-
-def _parse_override_value(key: str, value: str):
-    """将字符串值转换为对应类型。"""
-    if key == 'lat':
-        return _safe_float(value)
-    if key == 'lng':
-        return _safe_float(value)
-    if key == 'estimated_stay_min':
-        return _safe_int(value)
-    if key == 'tags':
-        return [t.strip() for t in value.split('、') if t.strip()]
-    return value
-
-
-def _safe_float(v) -> Optional[float]:
-    try:
-        return float(v)
-    except (TypeError, ValueError):
-        return None
-
-
-def _safe_int(v) -> Optional[int]:
-    try:
-        return int(v)
-    except (TypeError, ValueError):
-        return None
 
 
 if __name__ == '__main__':
