@@ -339,22 +339,27 @@
             <textarea class="form-textarea" id="spot-rich" rows="4" placeholder="图文详情（各类型共用，前台按类型换模板）"></textarea>
           </div>
 
-          <div class="form-field">
-            <label class="form-label" for="spot-input-frame">坐标输入参照</label>
-            <select class="form-select" id="spot-input-frame">
-              <option value="WGS84">WGS-84（GPS / Google）</option>
-              <option value="GCJ02">GCJ-02（高德 / 国内图商拾取）</option>
-            </select>
-            <p class="text-sm text-muted" style="margin-top:4px;">保存时统一转为 WGS-84 入库。</p>
+          <div class="form-field full">
+            <label class="form-label" for="spot-map-search">地图选点 / 搜索</label>
+            <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+              <input class="form-input" type="text" id="spot-map-search" placeholder="搜索地点，如：故宫博物院" style="flex:1; min-width:200px;" autocomplete="off">
+              <button type="button" class="btn btn-secondary" id="spot-map-search-btn" style="height:38px; white-space:nowrap;">搜索</button>
+            </div>
+            <div id="spot-map-container" class="admin-spot-map-wrap" aria-label="地图选点"></div>
+            <div class="admin-spot-map-toolbar" style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:10px;">
+              <button type="button" class="btn btn-primary" id="spot-map-commit-btn" style="height:36px;" disabled>确认选点</button>
+              <button type="button" class="btn btn-secondary" id="spot-map-recenter-btn" style="height:36px;">回到已保存点</button>
+              <span class="text-sm text-muted" id="spot-map-pick-status" style="flex:1; min-width:200px;">红点为已写入表单的坐标；另选位置出现蓝点，确认后蓝点消失、红点更新。</span>
+            </div>
           </div>
 
           <div class="form-field">
-            <label class="form-label" for="spot-lat">纬度（lat）</label>
+            <label class="form-label" for="spot-lat">纬度（lat，高德 GCJ-02）</label>
             <input class="form-input" type="number" id="spot-lat" step="0.0000001" min="-90" max="90" placeholder="例如 39.8951">
           </div>
 
           <div class="form-field">
-            <label class="form-label" for="spot-lng">经度（lng）</label>
+            <label class="form-label" for="spot-lng">经度（lng，高德 GCJ-02）</label>
             <input class="form-input" type="number" id="spot-lng" step="0.0000001" min="-180" max="180" placeholder="例如 116.3942">
           </div>
 
@@ -474,6 +479,12 @@ window.__WEGO_API_CONFIG__ = {
   /** 调用 route-ingest Edge Function（与前台 ingest 一致，需 anon JWT） */
   supabaseAnonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1mb3J6dXRrc21jaW1temVvZGZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMjI1NTEsImV4cCI6MjA5MDU5ODU1MX0.cAhiYPKZsJnHEgZHT5WwiTNdstky2DKCkSdD1uV92W0',
 };
+/** 与前台 route-detail 一致；地图选点依赖高德 Web JS Key + 安全密钥 */
+window.__WEGO_MAP_CONFIG__ = {
+  provider: 'amap',
+  apiKey: '4a12d15f179304ca919becb35e7f6b69',
+  securityJsCode: 'da808ff5520aa962794be908a765bbe1',
+};
 </script>
 
 <!-- ================================================================
@@ -482,7 +493,19 @@ window.__WEGO_API_CONFIG__ = {
 <script type="module">
 import { adminApi } from './lib/admin-api.js';
 import { initAdminRouteUploadPanel } from './admin-route-upload.js';
-import { normalizeToWgs84 } from './lib/coordinate-frame.js';
+import { normalizeToWgs84, wgs84ToGcj02 } from './lib/coordinate-frame.js';
+import { ensureAdminSpotMap, syncAdminSpotMapFromForm } from './lib/admin-spot-map-picker.js';
+
+const SPOT_MAP_PICKER_IDS = {
+  mapContainerId: 'spot-map-container',
+  searchInputId: 'spot-map-search',
+  searchButtonId: 'spot-map-search-btn',
+  commitButtonId: 'spot-map-commit-btn',
+  recenterButtonId: 'spot-map-recenter-btn',
+  statusTextId: 'spot-map-pick-status',
+  latInputId: 'spot-lat',
+  lngInputId: 'spot-lng',
+};
 
 /* ============================================================
    State
@@ -1062,9 +1085,14 @@ async function openEditSpot(id, routeId) {
     document.getElementById('spot-short-desc').value = spot.short_desc || '';
     document.getElementById('spot-rich').value = (spot.rich_content || spot.detail || '');
     document.getElementById('spot-type').value = spot.spot_type || 'attraction';
-    document.getElementById('spot-input-frame').value = 'WGS84';
-    document.getElementById('spot-lat').value = spot.lat ?? '';
-    document.getElementById('spot-lng').value = spot.lng ?? '';
+    if (Number.isFinite(Number(spot.lat)) && Number.isFinite(Number(spot.lng))) {
+      const gcj = wgs84ToGcj02(Number(spot.lat), Number(spot.lng));
+      document.getElementById('spot-lat').value = String(Number(gcj.lat.toFixed(7)));
+      document.getElementById('spot-lng').value = String(Number(gcj.lng.toFixed(7)));
+    } else {
+      document.getElementById('spot-lat').value = '';
+      document.getElementById('spot-lng').value = '';
+    }
     document.getElementById('spot-visible').checked = spot.is_visible !== false;
     document.getElementById('spot-easter').checked = !!spot.is_easter_egg;
     document.getElementById('spot-stay').value = spot.estimated_stay_min ?? '';
@@ -1079,6 +1107,11 @@ async function openEditSpot(id, routeId) {
     document.getElementById('spot-draft-status').textContent = '';
 
     openModal('modal-edit-spot');
+    requestAnimationFrame(() => {
+      ensureAdminSpotMap({ ...SPOT_MAP_PICKER_IDS, toast }).then((ok) => {
+        if (ok) syncAdminSpotMapFromForm(SPOT_MAP_PICKER_IDS);
+      });
+    });
   } catch (err) {
     toast('error', `加载游玩点失败：${err.message}`);
   }
@@ -1143,14 +1176,13 @@ async function saveSpot() {
   const photosRaw = document.getElementById('spot-photos').value.trim();
   const photos = photosRaw ? photosRaw.split('\n').map(s => s.trim()).filter(Boolean) : [];
 
-  const frame = document.getElementById('spot-input-frame').value;
   const rawLat = parseFloat(document.getElementById('spot-lat').value);
   const rawLng = parseFloat(document.getElementById('spot-lng').value);
   if (!Number.isFinite(rawLat) || !Number.isFinite(rawLng)) {
     toast('error', '请填写有效经纬度');
     return;
   }
-  const wgs = normalizeToWgs84(rawLat, rawLng, frame);
+  const wgs = normalizeToWgs84(rawLat, rawLng, 'GCJ02');
 
   const rich = document.getElementById('spot-rich').value.trim() || null;
 
@@ -1184,9 +1216,10 @@ async function saveSpot() {
 
   try {
     await adminApi.updateSpot(id, patch);
-    document.getElementById('spot-lat').value = wgs.lat;
-    document.getElementById('spot-lng').value = wgs.lng;
-    document.getElementById('spot-input-frame').value = 'WGS84';
+    const gcjAfter = wgs84ToGcj02(wgs.lat, wgs.lng);
+    document.getElementById('spot-lat').value = String(Number(gcjAfter.lat.toFixed(7)));
+    document.getElementById('spot-lng').value = String(Number(gcjAfter.lng.toFixed(7)));
+    syncAdminSpotMapFromForm(SPOT_MAP_PICKER_IDS);
     document.getElementById('spot-draft-status').textContent = `已保存 ${new Date().toLocaleTimeString()}`;
     toast('success', '游玩点已保存');
 
@@ -1426,6 +1459,15 @@ window.addNewSpot = addNewSpot;
   transition: background 0.15s;
 }
 .cover-picker__url-clear:hover { background: rgba(0,0,0,0.75); }
+
+.admin-spot-map-wrap {
+  height: 220px;
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  background: #f3f4f6;
+}
 
 .spin { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
