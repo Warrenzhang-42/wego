@@ -9,6 +9,17 @@ module.exports = defineConfig({
   root: path.resolve(__dirname, 'src'),
   /** 多 HTML 入口；避免把不存在的路径当成 SPA 回退到 index.html */
   appType: 'mpa',
+  /**
+   * Chrome 146+ 默认禁止文档使用 unload/beforeunload（利于 bfcache）。
+   * Vite HMR 客户端会注册 beforeunload，不设此头时控制台会出现
+   * Permissions policy violation: unload is not allowed。
+   * 生产构建不注入 @vite/client，一般无此提示。
+   */
+  server: {
+    headers: {
+      'Permissions-Policy': 'unload=(self)',
+    },
+  },
   plugins: [
     {
       name: 'wego-dev-strip-src-prefix',
