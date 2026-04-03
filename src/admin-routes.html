@@ -1312,6 +1312,7 @@ async function toggleSpots(routeId) {
 
   if (_spotsCache[routeId]) {
     container.innerHTML = renderSpotsGrid(_spotsCache[routeId], routeId);
+    initSpotsDragReorder(routeId);
     return;
   }
 
@@ -1319,26 +1320,23 @@ async function toggleSpots(routeId) {
     const spots = await adminApi.getSpotsAdmin(routeId);
     _spotsCache[routeId] = spots;
     container.innerHTML = renderSpotsGrid(spots, routeId);
+    initSpotsDragReorder(routeId);
   } catch (err) {
     container.innerHTML = `<div class="text-danger" style="padding:16px;font-size:13px;">加载失败：${err.message}</div>`;
   }
 }
 
-function renderSpotsGrid(spots, routeId) {
-  const addBtn = routeId ? `<div style="margin-bottom:12px;">
-    <button type="button" class="btn btn-secondary btn-sm" onclick="addNewSpot('${routeId}')">＋ 添加景点</button>
-  </div>` : '';
-
-  if (!spots || spots.length === 0) {
-    return `${addBtn}<div class="empty-state" style="padding:30px 0;">
-      <div class="empty-state__title">暂无游玩点</div>
-    </div>`;
-  }
-
-  const cards = spots.map(spot => `
-  <div class="spot-card" id="spot-card-${spot.id}">
+function renderSpotCardInner(spot, routeId, { displayIndex, isEaster }) {
+  const rid = spot.route_id || routeId;
+  const orderEl = isEaster
+    ? '<span class="spot-card__order-spacer" aria-hidden="true"></span>'
+    : `<span class="spot-card__order">${displayIndex}</span>`;
+  const dragAttr = isEaster ? '' : ' draggable="true"';
+  const cardClass = isEaster ? 'spot-card spot-card--easter' : 'spot-card spot-card--draggable';
+  return `
+  <div class="${cardClass}" id="spot-card-${spot.id}" data-spot-id="${spot.id}"${dragAttr}>
     <div class="spot-card__header">
-      <span class="spot-card__order">${spot.sort_order || '?'}</span>
+      ${orderEl}
       <span class="spot-card__name">${escHtml(spot.name)}</span>
       ${spot.is_visible === false ? '<span class="text-sm text-muted">隐藏</span>' : ''}
       ${spot.is_easter_egg ? '<span class="text-sm" style="color:#a67c52;">彩蛋</span>' : ''}
@@ -1353,16 +1351,169 @@ function renderSpotsGrid(spots, routeId) {
       ? `<div class="tags-list" style="margin-top:6px;">${spot.tags.map(t => `<span class="tag-chip">${escHtml(t)}</span>`).join('')}</div>`
       : ''}
     <div class="spot-card__actions">
-      <button class="btn btn-ghost btn-sm" onclick="openEditSpot('${spot.id}', '${spot.route_id}')">
+      <button class="btn btn-ghost btn-sm" onclick="openEditSpot('${spot.id}', '${rid}')">
         <svg width="12" height="12"><use href="#icon-edit"/></svg> 编辑
       </button>
       <button class="btn btn-ghost btn-sm text-danger" onclick="openDeleteSpot('${spot.id}', '${escHtml(spot.name)}')">
         <svg width="12" height="12"><use href="#icon-trash"/></svg> 删除
       </button>
     </div>
-  </div>`).join('');
+  </div>`;
+}
 
-  return `${addBtn}<div class="spots-grid">${cards}</div>`;
+function renderSpotsGrid(spots, routeId) {
+  const addBtn = routeId ? `<div style="margin-bottom:12px;">
+    <button type="button" class="btn btn-secondary btn-sm" onclick="addNewSpot('${routeId}')">＋ 添加景点</button>
+  </div>` : '';
+
+  if (!spots || spots.length === 0) {
+    return `${addBtn}<div class="empty-state" style="padding:30px 0;">
+      <div class="empty-state__title">暂无游玩点</div>
+    </div>`;
+  }
+
+  const sorted = [...spots].sort((a, b) => (Number(a.sort_order) || 0) - (Number(b.sort_order) || 0));
+  const regular = sorted.filter((s) => !s.is_easter_egg);
+  const easter = sorted.filter((s) => s.is_easter_egg);
+
+  const hint = routeId
+    ? '<p class="spots-drag-hint">拖动卡片调整游玩点顺序；彩蛋固定在最末，无序号且不可移动。</p>'
+    : '';
+
+  const regularHtml = regular
+    .map((spot, i) => renderSpotCardInner(spot, routeId, { displayIndex: i + 1, isEaster: false }))
+    .join('');
+
+  const easterBlock =
+    easter.length === 0
+      ? ''
+      : `<div class="spots-easter-sep">彩蛋（置底）</div><div class="spots-grid spots-grid--easter" id="spots-easter-${routeId}">${easter
+          .map((spot) => renderSpotCardInner(spot, routeId, { displayIndex: 0, isEaster: true }))
+          .join('')}</div>`;
+
+  return `${addBtn}${hint}<div class="spots-grid spots-grid--reorder" id="spots-reorder-${routeId}">${regularHtml}</div>${easterBlock}`;
+}
+
+function getDragAfterCardForGrid(container, x) {
+  const cards = [...container.querySelectorAll('.spot-card--draggable:not(.is-dragging)')];
+  let closest = { offset: Number.NEGATIVE_INFINITY, element: null };
+  for (const child of cards) {
+    const box = child.getBoundingClientRect();
+    const mid = box.left + box.width / 2;
+    const offset = x - mid;
+    if (offset < 0 && offset > closest.offset) {
+      closest = { offset, element: child };
+    }
+  }
+  return closest.element;
+}
+
+let _spotReorderDragging = null;
+let _spotReorderRouteId = null;
+let _spotReorderPersisting = false;
+
+function initSpotsDragReorder(routeId) {
+  const zone = document.getElementById(`spots-reorder-${routeId}`);
+  if (!zone) return;
+
+  zone.addEventListener('dragstart', (e) => {
+    const card = e.target.closest('.spot-card--draggable');
+    if (!card || !zone.contains(card)) return;
+    _spotReorderDragging = card;
+    _spotReorderRouteId = routeId;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', card.dataset.spotId || '');
+    requestAnimationFrame(() => card.classList.add('is-dragging'));
+  });
+
+  zone.addEventListener('dragend', (e) => {
+    const card = e.target.closest('.spot-card--draggable');
+    if (card) card.classList.remove('is-dragging');
+    const rid = _spotReorderRouteId;
+    _spotReorderDragging = null;
+    _spotReorderRouteId = null;
+    if (rid === routeId) {
+      persistSpotsOrder(routeId);
+    }
+  });
+
+  zone.addEventListener('dragover', (e) => {
+    if (!_spotReorderDragging || _spotReorderRouteId !== routeId) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const after = getDragAfterCardForGrid(zone, e.clientX);
+    if (after == null) {
+      zone.appendChild(_spotReorderDragging);
+    } else {
+      zone.insertBefore(_spotReorderDragging, after);
+    }
+  });
+
+  zone.addEventListener('drop', (e) => e.preventDefault());
+}
+
+async function persistSpotsOrder(routeId) {
+  if (_spotReorderPersisting) return;
+  const zone = document.getElementById(`spots-reorder-${routeId}`);
+  if (!zone) return;
+  const eastEl = document.getElementById(`spots-easter-${routeId}`);
+  const regIds = [...zone.querySelectorAll('.spot-card--draggable')].map((el) => el.dataset.spotId).filter(Boolean);
+  const eggIds = eastEl
+    ? [...eastEl.querySelectorAll('.spot-card--easter[data-spot-id]')].map((el) => el.dataset.spotId).filter(Boolean)
+    : [];
+
+  const prevSorted = [...(_spotsCache[routeId] || [])].sort(
+    (a, b) => (Number(a.sort_order) || 0) - (Number(b.sort_order) || 0)
+  );
+  const prevRegular = prevSorted.filter((s) => !s.is_easter_egg).map((s) => s.id);
+  const prevEaster = prevSorted.filter((s) => s.is_easter_egg).map((s) => s.id);
+
+  let order = 1;
+  const planned = [];
+  for (const id of regIds) planned.push({ id, sort_order: order++ });
+  for (const id of eggIds) planned.push({ id, sort_order: order++ });
+
+  const changed =
+    regIds.length !== prevRegular.length ||
+    eggIds.length !== prevEaster.length ||
+    regIds.some((id, i) => id !== prevRegular[i]) ||
+    eggIds.some((id, i) => id !== prevEaster[i]) ||
+    planned.some((p) => {
+      const s = prevSorted.find((x) => x.id === p.id);
+      return !s || Number(s.sort_order) !== p.sort_order;
+    });
+
+  if (!changed) return;
+
+  _spotReorderPersisting = true;
+  try {
+    await Promise.all(planned.map((p) => adminApi.updateSpot(p.id, { sort_order: p.sort_order })));
+    try {
+      await adminApi.recomputeRouteDerived(routeId);
+    } catch (_) { /* ignore */ }
+    delete _spotsCache[routeId];
+    const list = await adminApi.getSpotsAdmin(routeId);
+    _spotsCache[routeId] = list;
+    const container = document.getElementById(`spots-container-${routeId}`);
+    if (container) {
+      container.innerHTML = renderSpotsGrid(list, routeId);
+      initSpotsDragReorder(routeId);
+    }
+    toast('success', '游玩点顺序已更新');
+  } catch (err) {
+    toast('error', `保存排序失败：${err.message}`);
+    try {
+      const list = await adminApi.getSpotsAdmin(routeId);
+      _spotsCache[routeId] = list;
+      const container = document.getElementById(`spots-container-${routeId}`);
+      if (container) {
+        container.innerHTML = renderSpotsGrid(list, routeId);
+        initSpotsDragReorder(routeId);
+      }
+    } catch (_) { /* ignore */ }
+  } finally {
+    _spotReorderPersisting = false;
+  }
 }
 
 /* ============================================================
@@ -2013,7 +2164,9 @@ async function openEditSpot(id, routeId) {
 async function addNewSpot(routeId) {
   try {
     const spots = await adminApi.getSpotsAdmin(routeId);
-    const maxOrder = spots.reduce((m, s) => Math.max(m, Number(s.sort_order) || 0), 0);
+    const maxOrder = spots
+      .filter((s) => !s.is_easter_egg)
+      .reduce((m, s) => Math.max(m, Number(s.sort_order) || 0), 0);
     const ref = spots.find((s) => s.is_visible !== false && !s.is_easter_egg) || spots[0];
     const lat = ref ? Number(ref.lat) : 39.9042;
     const lng = ref ? Number(ref.lng) : 116.4074;
@@ -2036,6 +2189,7 @@ async function addNewSpot(routeId) {
       const list = await adminApi.getSpotsAdmin(routeId);
       _spotsCache[routeId] = list;
       container.innerHTML = renderSpotsGrid(list, routeId);
+      initSpotsDragReorder(routeId);
     }
   } catch (err) {
     toast('error', `添加失败：${err.message}`);

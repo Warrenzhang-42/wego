@@ -375,6 +375,38 @@ tr:hover .row-actions { opacity: 1; }
   margin-bottom: 6px;
 }
 
+.spot-card__order-spacer {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.spot-card--draggable {
+  cursor: grab;
+}
+
+.spot-card--draggable:active {
+  cursor: grabbing;
+}
+
+.spot-card--draggable.is-dragging {
+  opacity: 0.55;
+  box-shadow: 0 8px 24px rgba(27, 28, 29, 0.12);
+}
+
+.spots-drag-hint {
+  color: var(--clr-text-muted, #6b6e72);
+  font-size: 12px;
+  margin: 0 0 10px;
+  line-height: 1.4;
+}
+
+.spots-easter-sep {
+  margin: 14px 0 8px;
+  font-size: 12px;
+  color: var(--clr-text-muted, #6b6e72);
+}
+
 .spot-card__order {
   width: 20px;
   height: 20px;
