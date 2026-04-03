@@ -18,7 +18,8 @@
  *     作用：确认写入，执行 upsert 后更新草稿状态
  *
  * 环境变量：
- *   - SUPABASE_URL / SUPABASE_ANON_KEY / SUPABASE_SERVICE_KEY（由 Supabase 自动注入）
+ *   - SUPABASE_URL / SUPABASE_ANON_KEY / SUPABASE_SERVICE_ROLE_KEY（由 Supabase 自动注入）
+ *   - 兼容旧名 SUPABASE_SERVICE_KEY（若手动 secrets 曾使用该名）
  *   - AGENT_BASE_URL（Python Agent Server 地址，默认 http://localhost:8000）
  */
 
@@ -49,7 +50,8 @@ function validateUploadRequest(body) {
    ============================================================ */
 async function supabaseFetch(path, { method = 'GET', body, params, headers: extraHeaders } = {}) {
   const supabaseUrl = Deno.env.get('SUPABASE_URL');
-  const serviceKey = Deno.env.get('SUPABASE_SERVICE_KEY');
+  const serviceKey =
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_SERVICE_KEY');
   const url = new URL(`${supabaseUrl}/rest/v1/${path}`);
   if (params) {
     Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
