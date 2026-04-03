@@ -9,7 +9,8 @@
     "name": { "type": "string" },
     "subtitle": { "type": "string" },
     "short_desc": { "type": "string" },
-    "detail": { "type": "string" },
+    "detail": { "type": "string", "description": "兼容字段；新内容优先用 rich_content" },
+    "rich_content": { "type": "string", "description": "图文主体，各 spot_type 共用结构" },
     "tags": { "type": "array", "items": { "type": "string" } },
     "thumb": { "type": "string" },
     "photos": { "type": "array", "items": { "type": "string" } },
@@ -17,6 +18,13 @@
     "lng": { "type": "number" },
     "geofence_radius_m": { "type": "integer", "default": 30 },
     "estimated_stay_min": { "type": "integer" },
-    "sort_order": { "type": "integer" }
+    "sort_order": { "type": "integer" },
+    "is_visible": { "type": "boolean", "default": true },
+    "is_easter_egg": { "type": "boolean", "default": false },
+    "spot_type": {
+      "type": "string",
+      "enum": ["attraction", "shop", "photo_spot", "knowledge"],
+      "default": "attraction"
+    }
   }
 }

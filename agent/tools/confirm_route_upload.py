@@ -86,10 +86,10 @@ def _upsert_routes_and_spots(route_data: dict, ingestion_job_id: str = None) -> 
         'title': route_data.get('route_name') or route_data.get('title', '未命名'),
         'description': route_data.get('description', ''),
         'duration_minutes': route_data.get('duration_minutes'),
-        'difficulty': route_data.get('difficulty'),
         'tags': route_data.get('tags', []) or [],
         'cover_image': route_data.get('cover_image'),
         'total_distance_km': route_data.get('total_distance_km'),
+        'is_visible': route_data.get('is_visible', True),
         'updated_at': 'now()',
     }
     if route_data.get('heat_level') is not None:
@@ -123,6 +123,7 @@ def _upsert_routes_and_spots(route_data: dict, ingestion_job_id: str = None) -> 
             'subtitle': spot.get('subtitle', ''),
             'short_desc': spot.get('short_desc', ''),
             'detail': spot.get('detail', ''),
+            'rich_content': spot.get('rich_content') or spot.get('detail', ''),
             'tags': spot.get('tags', []),
             'thumb': spot.get('thumb', ''),
             'photos': spot.get('photos', []),
@@ -131,6 +132,9 @@ def _upsert_routes_and_spots(route_data: dict, ingestion_job_id: str = None) -> 
             'geofence_radius_m': spot.get('geofence_radius_m', 30),
             'estimated_stay_min': spot.get('estimated_stay_min'),
             'sort_order': spot.get('sort_order', idx),
+            'is_visible': spot.get('is_visible', True),
+            'is_easter_egg': spot.get('is_easter_egg', False),
+            'spot_type': spot.get('spot_type', 'attraction'),
         }
         if spot.get('id'):
             spot_payload['id'] = spot['id']
@@ -207,7 +211,7 @@ def confirm_route_upload(session_id: str, confirmed: bool, overrides: list[dict]
             'duration_minutes': merged.get('duration_minutes'),
             'total_distance_km': merged.get('total_distance_km'),
             'heat_level': merged.get('heat_level'),
-            'difficulty': merged.get('difficulty'),
+            'is_visible': merged.get('is_visible', True),
             'spots': merged.get('spots', []),
         }
 

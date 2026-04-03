@@ -16,7 +16,6 @@ function parseRouteMarkdown(mdPath) {
         title: '',
         description: '',
         duration_minutes: 0,
-        difficulty: 'medium',
         tags: [],
         cover_image: '',
         total_distance_km: 0,
@@ -144,8 +143,6 @@ function parseMetadata(content, result) {
     for (const line of lines) {
         if (line.startsWith('**时长**:')) {
             result.duration_minutes = parseInt(line.split(':')[1].trim());
-        } else if (line.startsWith('**难度**:')) {
-            result.difficulty = line.split(':')[1].trim().toLowerCase();
         } else if (line.startsWith('**标签**:')) {
             result.tags = line.split(':')[1].trim().split(',').map(tag => tag.trim());
         } else if (line.startsWith('**封面图**:')) {

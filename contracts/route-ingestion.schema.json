@@ -7,18 +7,36 @@
     "title": { "type": "string" },
     "description": { "type": "string" },
     "duration_minutes": { "type": "integer" },
-    "difficulty": { "enum": ["easy", "medium", "hard"] },
     "tags": { "type": "array", "items": { "type": "string" } },
+    "category": { "type": "string" },
     "cover_image": { "type": "string" },
+    "thumbnail_image": { "type": "string" },
+    "is_visible": { "type": "boolean" },
     "total_distance_km": { "type": "number" },
     "source_file": { "type": "string" },
     "validation_status": { "enum": ["pending", "valid", "invalid"] },
+    "gap_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/gap_item" }
+    },
     "spots": {
       "type": "array",
       "items": { "$ref": "#/$defs/spot" }
     }
   },
   "$defs": {
+    "gap_item": {
+      "type": "object",
+      "required": ["field", "message", "gap_type"],
+      "properties": {
+        "field": { "type": "string" },
+        "message": { "type": "string" },
+        "gap_type": { "type": "string", "enum": ["objective", "subjective"] },
+        "auto_queried": { "type": "boolean", "default": false },
+        "suggested_value": {},
+        "user_override": {}
+      }
+    },
     "spot": {
       "type": "object",
       "required": ["id", "name", "lat", "lng", "sort_order"],
@@ -28,6 +46,7 @@
         "subtitle": { "type": "string" },
         "short_desc": { "type": "string" },
         "detail": { "type": "string" },
+        "rich_content": { "type": "string" },
         "tags": { "type": "array", "items": { "type": "string" } },
         "thumb": { "type": "string" },
         "photos": { "type": "array", "items": { "type": "string" } },
@@ -36,6 +55,9 @@
         "geofence_radius_m": { "type": "integer", "default": 30 },
         "estimated_stay_min": { "type": "integer" },
         "sort_order": { "type": "integer" },
+        "is_visible": { "type": "boolean" },
+        "is_easter_egg": { "type": "boolean" },
+        "spot_type": { "type": "string", "enum": ["attraction", "shop", "photo_spot", "knowledge"] },
         "validation_errors": {
           "type": "array",
           "items": {

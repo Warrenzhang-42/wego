@@ -38,10 +38,10 @@ const routeRow = {
   title:             routeData.title,
   description:       routeData.description       || null,
   duration_minutes:  routeData.duration_minutes  || null,
-  difficulty:        routeData.difficulty        || 'easy',
   tags:              routeData.tags              || [],
   cover_image:       routeData.cover_image       || null,
   total_distance_km: routeData.total_distance_km || null,
+  is_visible:        routeData.is_visible !== false,
 };
 
 const spotRows = (routeData.spots || []).map(spot => ({
@@ -51,6 +51,7 @@ const spotRows = (routeData.spots || []).map(spot => ({
   subtitle:           spot.subtitle           || null,
   short_desc:         spot.short_desc         || null,
   detail:             spot.detail             || null,
+  rich_content:       spot.rich_content || spot.detail || null,
   tags:               spot.tags               || [],
   thumb:              spot.thumb              || null,
   photos:             spot.photos             || [],

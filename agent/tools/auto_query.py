@@ -13,6 +13,7 @@ import re
 import json
 from typing import Optional
 import requests
+from langchain_core.tools import tool
 
 # ──────────────────────────────────────────────────────────
 # 高德 Geocoding
@@ -167,3 +168,26 @@ def _mock_coordinates(spot_name: str) -> Optional[dict]:
             return coords
     # 未知景点返回大栅栏中心附近偏移
     return None
+
+
+@tool
+def auto_query(action: str, spot_name: str = "", url: str = "") -> str:
+    """
+    统一自动补全工具：
+    - action='coordinates' 使用高德查询坐标
+    - action='tags' 推断景点标签
+    - action='stay_duration' 推断停留时长
+    - action='fetch_url' 抓取 URL 正文
+    """
+    try:
+        if action == "coordinates":
+            return json.dumps({"coordinates": auto_query_coordinates(spot_name)}, ensure_ascii=False)
+        if action == "tags":
+            return json.dumps({"tags": infer_tags_from_spot(spot_name)}, ensure_ascii=False)
+        if action == "stay_duration":
+            return json.dumps({"estimated_stay_min": infer_stay_duration(spot_name)}, ensure_ascii=False)
+        if action == "fetch_url":
+            return json.dumps({"content": fetch_url_content(url)}, ensure_ascii=False)
+        return json.dumps({"error": f"unsupported action: {action}"}, ensure_ascii=False)
+    except Exception as e:
+        return json.dumps({"error": str(e)}, ensure_ascii=False)

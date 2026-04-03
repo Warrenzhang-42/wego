@@ -24,28 +24,40 @@ app.add_middleware(
 # Chat 端点（Sprint 4.8）
 # ──────────────────────────────────────────────────────────
 class ChatRequest(BaseModel):
-    user_query: str
+    user_query: str = ""
     lat: Optional[float] = None
     lng: Optional[float] = None
     radius_m: Optional[int] = None
     thread_id: str = "default_thread"
     trigger_type: Optional[str] = None
     spot_id: Optional[str] = None
+    file_content: Optional[str] = None
+    file_type: Optional[str] = None
+    session_id: Optional[str] = None
+    source_url: Optional[str] = None
 
 
 async def _sse_event_bytes(req: ChatRequest):
     """整段 JSON 分片 SSE 输出，末尾 [DONE]（Sprint 4.8）。"""
     loop = asyncio.get_event_loop()
     try:
-        result = await loop.run_in_executor(
-            None,
-            lambda: chat_with_agent(
-                req.user_query,
-                req.thread_id,
-                req.trigger_type,
-                req.spot_id,
-            ),
-        )
+        if req.file_content and req.file_type:
+            result_str = upload_route.invoke({
+                'file_content': req.file_content,
+                'file_type': req.file_type,
+                'session_id': req.session_id or req.thread_id,
+            })
+            result = json.loads(result_str)
+        else:
+            result = await loop.run_in_executor(
+                None,
+                lambda: chat_with_agent(
+                    req.user_query,
+                    req.thread_id,
+                    req.trigger_type,
+                    req.spot_id,
+                ),
+            )
     except Exception as e:
         result = {
             "role": "ai",
@@ -63,8 +75,15 @@ async def _sse_event_bytes(req: ChatRequest):
 
 @app.post("/chat")
 async def chat_endpoint(req: ChatRequest):
-    """Standard JSON endpoint for chatting."""
+    """Standard JSON endpoint for chatting (supports upload mode)."""
     try:
+        if req.file_content and req.file_type:
+            result_str = upload_route.invoke({
+                'file_content': req.file_content,
+                'file_type': req.file_type,
+                'session_id': req.session_id or req.thread_id,
+            })
+            return json.loads(result_str)
         return chat_with_agent(
             req.user_query,
             req.thread_id,

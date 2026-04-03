@@ -11,9 +11,12 @@
       "title": { "type": "string" },
       "description": { "type": "string" },
       "tags": { "type": "array", "items": { "type": "string" } },
+      "category": { "type": "string" },
       "cover_image": { "type": "string" },
+      "thumbnail_image": { "type": "string" },
       "duration_minutes": { "type": "integer" },
-      "difficulty": { "type": "string" },
+      "is_visible": { "type": "boolean" },
+      "published_version": { "type": "integer" },
       "heat_level": { "type": "integer" },
       "heat_count": { "type": "number" }
     },

@@ -167,12 +167,16 @@ WeGO 的产品价值锚定在两个核心维度的交汇点上，这也是区别
 
 | 功能 | 说明 |
 |---|---|
-| **查看路线列表** | 支持按名称模糊搜索、category 过滤、difficulty 过滤、分页 |
-| **查看路线详情** | 点击展开，查看该路线下所有景点卡片 |
-| **编辑路线** | 修改 title、description、tags、category、difficulty、duration_minutes、total_distance_km、cover_image |
-| **删除路线** | 确认后删除（级联删除所有关联景点） |
-| **编辑景点** | 修改 name、subtitle、short_desc、detail、tags、thumb、photos、lat、lng、geofence_radius_m、estimated_stay_min、sort_order |
-| **删除景点** | 确认后删除单条景点 |
+| **查看路线列表** | 按名称模糊搜索、category 过滤、分页（已移除 difficulty） |
+| **查看路线详情** | 点击展开，查看该路线下所有游玩点卡片；展示可见性/彩蛋标记 |
+| **新增路线** | 创建空白路线后进入编辑；编辑过程 **debounce 自动保存草稿** |
+| **编辑路线** | title、description、tags、category、cover_image、路线是否可见；**时长/距离/形状缩略图**由系统按可见点与排序自动重算 |
+| **发布** | 将当前草稿写入 **`route_versions` 快照**，递增 **published_version**，记录 **last_published_at** |
+| **删除路线** | 确认后删除（级联删除关联游玩点与版本快照） |
+| **编辑游玩点** | name、subtitle、short_desc、**rich_content**（图文，与 spot_type 模板配合）、detail（与 rich 同步）、tags、thumb、photos、坐标（可选 WGS-84 / GCJ-02 录入）、geofence、停留、排序、**spot_type**、**is_visible**、**is_easter_egg** |
+| **删除游玩点** | 确认后删除单条 |
+
+详细规则见 `docs/product-design/admin-route-editor.md`。
 
 ### 4.5.3 热度字段策略
 
@@ -180,7 +184,7 @@ WeGO 的产品价值锚定在两个核心维度的交汇点上，这也是区别
 
 ### 4.5.4 非结构化数据承载
 
-景点"其他非结构化数据"以 `detail`（长文本字段）和 `tags[]`（结构化标签数组）承载，暂不新增独立 JSONB 字段。后续如需存储景点元数据（来源URL、编辑历史等），可扩展 `spots.metadata` JSONB 列。
+游玩点图文以 **`rich_content`** 为主字段（各 `spot_type` 初期共用结构，前台按类型换模板）；`detail` 与导入链路兼容，可与 `rich_content` 同步。标签仍用 `tags[]`。后续如需元数据（来源 URL、编辑历史等），可扩展 `spots.metadata` JSONB。
 
 ---
 
@@ -259,8 +263,8 @@ Agent 解析 → 识别路线结构和景点列表
 Agent 完成解析后，以结构化预览报告形式呈现完整路线内容，用户必须点击「确认上传」方可写入数据库。
 
 **预览报告内容**：
-- 路线基本信息（标题 / 描述 / 难度 / 时长 / 距离 / 标签）
-- 景点列表（每个景点的字段完整性和来源标注）
+- 路线基本信息（标题 / 描述 / 分类 / 时长 / 距离 / 标签 / 可见性等）
+- 游玩点列表（每个点的字段完整性和来源标注）
 - 已自动查询补全的字段（标注"已自动查询"）
 - 待用户补充的字段（标注"待补充"）
 
@@ -287,17 +291,24 @@ draft（草稿） → parsing（解析中） → gap_filling（缺失补充）
 
 ### 4.6.7 上传文件格式示例
 
-**JSON 标准格式**（符合 `route.schema.json`）：
+**JSON 标准格式**（符合 `route.schema.json` / `route-ingestion.schema.json`）：
 ```json
 {
   "title": "京城胡同游",
   "description": "从杨竹梅斜街到炭儿胡同，感受老北京的烟火气",
   "duration_minutes": 180,
-  "difficulty": "easy",
+  "category": "文化",
   "tags": ["胡同", "文化"],
   "cover_image": "https://example.com/cover.jpg",
   "spots": [
-    { "name": "杨竹梅斜街", "lat": 39.8973, "lng": 116.3976, "sort_order": 1 }
+    {
+      "name": "杨竹梅斜街",
+      "lat": 39.8973,
+      "lng": 116.3976,
+      "sort_order": 1,
+      "spot_type": "attraction",
+      "rich_content": "图文介绍…"
+    }
   ]
 }
 ```
@@ -305,7 +316,7 @@ draft（草稿） → parsing（解析中） → gap_filling（缺失补充）
 **Markdown 格式**（由 Agent 解析提取）：
 ```markdown
 # 京城胡同游
-从杨竹梅斜街到炭儿胡同，感受老北京的烟火气。全程约 3 小时，难度 easy。
+从杨竹梅斜街到炭儿胡同，感受老北京的烟火气。全程约 3 小时。
 
 ## 景点列表
 ### 1. 杨竹梅斜街

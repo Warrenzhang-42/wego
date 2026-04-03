@@ -101,9 +101,13 @@ WeGO/
     "title": { "type": "string" },
     "description": { "type": "string" },
     "duration_minutes": { "type": "integer" },
-    "difficulty": { "enum": ["easy", "medium", "hard"] },
     "tags": { "type": "array", "items": { "type": "string" } },
+    "category": { "type": "string" },
     "cover_image": { "type": "string" },
+    "thumbnail_image": { "type": "string" },
+    "is_visible": { "type": "boolean" },
+    "published_version": { "type": "integer" },
+    "last_published_at": { "type": "string", "format": "date-time" },
     "total_distance_km": { "type": "number" },
     "spots": {
       "type": "array",
@@ -120,6 +124,7 @@ WeGO/
         "subtitle": { "type": "string" },
         "short_desc": { "type": "string" },
         "detail": { "type": "string" },
+        "rich_content": { "type": "string" },
         "tags": { "type": "array", "items": { "type": "string" } },
         "thumb": { "type": "string" },
         "photos": { "type": "array", "items": { "type": "string" } },
@@ -127,12 +132,17 @@ WeGO/
         "lng": { "type": "number" },
         "geofence_radius_m": { "type": "integer", "default": 30 },
         "estimated_stay_min": { "type": "integer" },
-        "sort_order": { "type": "integer" }
+        "sort_order": { "type": "integer" },
+        "is_visible": { "type": "boolean" },
+        "is_easter_egg": { "type": "boolean" },
+        "spot_type": { "type": "string", "enum": ["attraction", "shop", "photo_spot", "knowledge"] }
       }
     }
   }
 }
 ```
+
+> **权威契约**：以仓库内 `contracts/route.schema.json`、`contracts/spot.schema.json` 为准；上表为开发计划摘要。数据库迁移见 `008_admin_route_editor.sql`、`009_route_versions_rls.sql`；后台产品说明见 `docs/product-design/admin-route-editor.md`。
 
 ### Contract 2: 聊天消息
 
@@ -417,7 +427,7 @@ WeGO/
 
 | # | Task | 类型 | 涉及文件 | 验收标准 |
 |---|------|------|---------|---------|
-| **8.1** | 在 `api-client.js` 中实现 `getRoutes(filters)` 方法：查询路线列表，支持按 tag/difficulty 过滤 | 纯接口 | `api-client.js` | 返回路线列表数组 |
+| **8.1** | 在 `api-client.js` 中实现 `getRoutes(filters)` 方法：查询路线列表，支持按 tag 等过滤；**已移除 difficulty**；仅返回 `is_visible !== false` 的路线 | 纯接口 | `api-client.js` | 返回路线列表数组 |
 | **8.2** | 修改 `index.html` + `app.js`：路线卡片区域改为 JS 动态渲染，数据来自 `getRoutes()` | 纯联调 | `index.html`, `app.js` | 首页显示数据库中的路线 |
 | **8.3** | 修改分类 Chip 点击逻辑：点击分类标签时调用 `getRoutes({ tag })` 重新加载 | 纯联调 | `app.js` | 点击"非遗"只显示非遗路线 |
 
@@ -443,17 +453,18 @@ WeGO/
 
 ### Sprint 10：路线内容管理后台（预计 3 天）
 
-> 目标：为内容审核人员提供独立的路线内容管理界面，支持查看、修改、删除路线与景点，不提供新增功能。
-> 原则：热度字段 read-only；前端直连 Supabase Service Role Key；不修改前台代码。
+> 目标：为内容运营提供独立管理界面，支持列表筛选、**新增路线**、编辑路线与游玩点、**草稿自动保存**、**发布与版本快照**（`route_versions`）、删除；热度字段 read-only。
+> 原则：契约见 `contracts/route.schema.json` 等；**service_role** 直连；前台 `api-client.js` 仅用 anon，并按可见性/彩蛋过滤。
+> 数据库：`008_admin_route_editor.sql`、`009_route_versions_rls.sql`；产品细则见 `docs/product-design/admin-route-editor.md`。
 
 | # | Task | 类型 | 涉及文件 | 验收标准 |
 |---|------|------|---------|---------|
 | **10.1** | 更新 `WeGO_Product_Proposal.md`、`WeGO_Technical_Solution.md`、`WeGO_Development_Plan.md`：在 Sprint 9 成果基础上补充 Admin 模块的产品定位、技术架构与开发计划 | 文档 | 三份文档 | 三份文档均已更新，内容完整可读 |
-| **10.2** | 新建 `src/lib/admin-api.js`：实现管理端 CRUD SDK（getRoutesAdmin / getRouteAdmin / getSpotsAdmin / updateRoute / updateSpot / deleteRoute / deleteSpot），使用 service_role key，屏蔽 heat_level/heat_count 的写入 | 纯接口 | `src/lib/admin-api.js` | 7个方法全部可调用，返回符合契约的数据 |
+| **10.2** | 扩展 `src/lib/admin-api.js`：CRUD + `insertRoute` / `insertSpot` / `recomputeRouteDerived` / `publishRoute` / `getRouteVersions`；屏蔽 heat 与非法修改 published_version | 纯接口 | `src/lib/admin-api.js` | 方法可调用，发布写入 `route_versions` |
 | **10.3** | 新建 `src/style-admin.css`：复用 WeGO 主色体系（故宫红、象牙白、Manrope/Noto Serif SC），覆盖表格、模态框、展开行、分页、标签 Chip、heat 字段只读样式 | 样式 | `src/style-admin.css` | 样式与 WeGO 主风格一致，heat 字段无编辑控件 |
 | **10.4** | 新建 `admin-routes.html`：路线管理主页面，含顶部工具栏（搜索/过滤）、路线列表表格（带展开行查看景点）、分页控件 | 页面 | `admin-routes.html` | 页面可正常打开，列表加载正常，展开行显示景点 |
-| **10.5** | 在 `admin-routes.html` 中实现编辑/删除模态框：路线编辑模态框（不含 heat 字段）、景点编辑模态框、删除确认模态框（路线删除提示级联风险） | 交互 | `admin-routes.html`（内联 JS） | 编辑保存后列表刷新，删除确认提示正确 |
-| **10.6** | 验收测试：页面加载、CRUD 操作、heat 字段保护、跨域配置验证 | 测试 | 全部文件 | 所有验收项通过，无 JS 报错 |
+| **10.5** | 在 `admin-routes.html` 中实现编辑/删除模态框：路线（含发布/草稿状态、可见性）、游玩点（rich_content、spot_type、坐标参照、彩蛋）、删除确认 | 交互 | `admin-routes.html`（内联 JS） | 保存/发布/删除流程可用 |
+| **10.6** | 验收测试：页面加载、CRUD、发布版本、heat 只读、跨域与迁移 008/009 已执行 | 测试 | 全部文件 | 验收通过，无关键 JS 报错 |
 
 ---
 

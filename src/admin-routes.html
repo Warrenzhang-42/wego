@@ -99,12 +99,7 @@
       <option value="自然">自然</option>
     </select>
 
-    <select id="filter-difficulty">
-      <option value="">全部难度</option>
-      <option value="easy">easy</option>
-      <option value="medium">medium</option>
-      <option value="hard">hard</option>
-    </select>
+    <button type="button" class="btn btn-primary" id="btn-new-route" style="height:38px; padding:0 14px;">新增路线</button>
 
     <button class="btn btn-secondary" id="btn-reset" style="height:38px; padding:0 14px;">重置</button>
   </div>
@@ -114,10 +109,11 @@
     <table class="admin-table">
       <thead>
         <tr>
-          <th style="width:260px;">路线名称</th>
+          <th style="width:240px;">路线名称</th>
           <th>标签</th>
           <th>分类</th>
-          <th>难度</th>
+          <th style="width:72px;">可见</th>
+          <th style="width:64px;">版本</th>
           <th style="width:90px;">热度</th>
           <th style="width:90px;">热度值</th>
           <th style="width:120px;">操作</th>
@@ -125,7 +121,7 @@
       </thead>
       <tbody id="routes-tbody">
         <tr class="loading-row">
-          <td colspan="7">
+          <td colspan="8">
             <span style="display:inline-flex;align-items:center;gap:8px;">
               <svg width="18" height="18" class="spin"><use href="#icon-loading"/></svg>
               加载中…
@@ -207,23 +203,24 @@
           </div>
 
           <div class="form-field">
-            <label class="form-label" for="route-difficulty">难度</label>
-            <select class="form-select" id="route-difficulty">
-              <option value="">未设置</option>
-              <option value="easy">easy</option>
-              <option value="medium">medium</option>
-              <option value="hard">hard</option>
-            </select>
+            <label class="form-label" for="route-visible">
+              <input type="checkbox" id="route-visible" checked> 路线对外可见
+            </label>
+          </div>
+
+          <div class="form-field full">
+            <label class="form-label--readonly">已发布版本 / 最近发布</label>
+            <input class="form-input" type="text" id="route-version-ro" readonly tabindex="-1" placeholder="—">
           </div>
 
           <div class="form-field">
-            <label class="form-label" for="route-duration">预计时长（分钟）</label>
-            <input class="form-input" type="number" id="route-duration" min="1" placeholder="例如 120">
+            <label class="form-label--readonly" for="route-duration">预计时长（分钟，自动）</label>
+            <input class="form-input" type="number" id="route-duration" min="0" readonly tabindex="-1">
           </div>
 
           <div class="form-field">
-            <label class="form-label" for="route-distance">总距离（km）</label>
-            <input class="form-input" type="number" id="route-distance" min="0" step="0.1" placeholder="例如 2.5">
+            <label class="form-label--readonly" for="route-distance">总距离（km，自动）</label>
+            <input class="form-input" type="number" id="route-distance" min="0" step="0.1" readonly tabindex="-1">
           </div>
 
           <div class="form-field full">
@@ -251,9 +248,11 @@
         </div>
       </form>
     </div>
-    <div class="modal__footer">
-      <button class="btn btn-secondary" onclick="closeModal('modal-edit-route')">取消</button>
-      <button class="btn btn-primary" id="btn-save-route" onclick="saveRoute()">保存</button>
+    <div class="modal__footer" style="flex-wrap:wrap;gap:8px;">
+      <span class="text-sm text-muted" id="route-draft-status" style="margin-right:auto;"></span>
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-route')">关闭</button>
+      <button class="btn btn-secondary" id="btn-save-route-draft" type="button">保存草稿</button>
+      <button class="btn btn-primary" id="btn-publish-route" type="button">发布</button>
     </div>
   </div>
 </div>
@@ -290,19 +289,47 @@
             <textarea class="form-textarea" id="spot-short-desc" rows="2" placeholder="短描述（可选）"></textarea>
           </div>
 
+          <div class="form-field">
+            <label class="form-label" for="spot-type">游玩点类型</label>
+            <select class="form-select" id="spot-type">
+              <option value="attraction">景点</option>
+              <option value="shop">商店</option>
+              <option value="photo_spot">最佳拍照点</option>
+              <option value="knowledge">知识点</option>
+            </select>
+          </div>
+
           <div class="form-field full">
-            <label class="form-label" for="spot-detail">详细介绍</label>
-            <textarea class="form-textarea" id="spot-detail" rows="4" placeholder="详细介绍（非结构化内容）"></textarea>
+            <label class="form-label" for="spot-rich">图文内容</label>
+            <textarea class="form-textarea" id="spot-rich" rows="4" placeholder="图文详情（各类型共用，前台按类型换模板）"></textarea>
           </div>
 
           <div class="form-field">
-            <label class="form-label" for="spot-lat">纬度（lat, WGS-84）</label>
+            <label class="form-label" for="spot-input-frame">坐标输入参照</label>
+            <select class="form-select" id="spot-input-frame">
+              <option value="WGS84">WGS-84（GPS / Google）</option>
+              <option value="GCJ02">GCJ-02（高德 / 国内图商拾取）</option>
+            </select>
+            <p class="text-sm text-muted" style="margin-top:4px;">保存时统一转为 WGS-84 入库。</p>
+          </div>
+
+          <div class="form-field">
+            <label class="form-label" for="spot-lat">纬度（lat）</label>
             <input class="form-input" type="number" id="spot-lat" step="0.0000001" min="-90" max="90" placeholder="例如 39.8951">
           </div>
 
           <div class="form-field">
-            <label class="form-label" for="spot-lng">经度（lng, WGS-84）</label>
+            <label class="form-label" for="spot-lng">经度（lng）</label>
             <input class="form-input" type="number" id="spot-lng" step="0.0000001" min="-180" max="180" placeholder="例如 116.3942">
+          </div>
+
+          <div class="form-field full" style="display:flex;flex-wrap:wrap;gap:16px;">
+            <label class="form-label" for="spot-visible" style="display:flex;align-items:center;gap:8px;">
+              <input type="checkbox" id="spot-visible" checked> 参与列表与路径计算
+            </label>
+            <label class="form-label" for="spot-easter" style="display:flex;align-items:center;gap:8px;">
+              <input type="checkbox" id="spot-easter"> 彩蛋（默认不出现在列表/地图/路径）
+            </label>
           </div>
 
           <div class="form-field">
@@ -341,9 +368,10 @@
         </div>
       </form>
     </div>
-    <div class="modal__footer">
-      <button class="btn btn-secondary" onclick="closeModal('modal-edit-spot')">取消</button>
-      <button class="btn btn-primary" id="btn-save-spot" onclick="saveSpot()">保存</button>
+    <div class="modal__footer" style="flex-wrap:wrap;gap:8px;">
+      <span class="text-sm text-muted" id="spot-draft-status" style="margin-right:auto;"></span>
+      <button class="btn btn-secondary" onclick="closeModal('modal-edit-spot')">关闭</button>
+      <button class="btn btn-primary" id="btn-save-spot" type="button">保存</button>
     </div>
   </div>
 </div>
@@ -419,6 +447,7 @@ window.__WEGO_API_CONFIG__ = {
 <script type="module">
 import { adminApi } from './lib/admin-api.js';
 import { initAdminRouteUploadPanel } from './admin-route-upload.js';
+import { normalizeToWgs84 } from './lib/coordinate-frame.js';
 
 /* ============================================================
    State
@@ -433,10 +462,15 @@ let pendingDeleteSpotId = null;
    ============================================================ */
 document.addEventListener('DOMContentLoaded', () => {
   bindToolbarEvents();
-  bindTagInput('route-tags-input', 'route-tags-container', 'route-tags-preview', renderRouteTags);
-  bindTagInput('spot-tags-input', 'spot-tags-container', 'spot-tags-preview', renderSpotTags);
+  bindTagInput('route-tags-input', 'route-tags-container', 'route-tags-preview', 'route');
+  bindTagInput('spot-tags-input', 'spot-tags-container', 'spot-tags-preview', 'spot');
+  document.getElementById('btn-save-route-draft').addEventListener('click', () => saveRoute(true));
+  document.getElementById('btn-publish-route').addEventListener('click', publishRouteAction);
+  document.getElementById('btn-save-spot').addEventListener('click', () => saveSpot());
+  document.getElementById('btn-new-route').addEventListener('click', createNewRoute);
   loadRoutes();
   initAdminRouteUploadPanel();
+  bindRouteModalAutosave();
 });
 
 /* ============================================================
@@ -445,7 +479,6 @@ document.addEventListener('DOMContentLoaded', () => {
 function bindToolbarEvents() {
   const searchInput = document.getElementById('search-input');
   const catSelect = document.getElementById('filter-category');
-  const diffSelect = document.getElementById('filter-difficulty');
   const btnReset = document.getElementById('btn-reset');
 
   let debounceTimer;
@@ -455,11 +488,9 @@ function bindToolbarEvents() {
   });
 
   catSelect.addEventListener('change', () => { currentPage = 1; loadRoutes(); });
-  diffSelect.addEventListener('change', () => { currentPage = 1; loadRoutes(); });
   btnReset.addEventListener('click', () => {
     searchInput.value = '';
     catSelect.value = '';
-    diffSelect.value = '';
     currentPage = 1;
     loadRoutes();
   });
@@ -470,7 +501,7 @@ function bindToolbarEvents() {
    ============================================================ */
 async function loadRoutes() {
   const tbody = document.getElementById('routes-tbody');
-  tbody.innerHTML = `<tr class="loading-row"><td colspan="7">
+  tbody.innerHTML = `<tr class="loading-row"><td colspan="8">
     <span style="display:inline-flex;align-items:center;gap:8px;">
       <svg width="18" height="18" class="spin"><use href="#icon-loading"/></svg> 加载中…
     </span>
@@ -479,12 +510,9 @@ async function loadRoutes() {
   try {
     const search = document.getElementById('search-input').value.trim();
     const category = document.getElementById('filter-category').value;
-    const difficulty = document.getElementById('filter-difficulty').value;
-
     const { data, total, page, pageSize } = await adminApi.getRoutesAdmin({
       search: search || undefined,
       category: category || undefined,
-      difficulty: difficulty || undefined,
       page: currentPage,
       pageSize: PAGE_SIZE,
     });
@@ -493,7 +521,7 @@ async function loadRoutes() {
       total > 0 ? `共 ${total} 条路线` : '';
 
     if (!data || data.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="7">
+      tbody.innerHTML = `<tr><td colspan="8">
         <div class="empty-state">
           <div class="empty-state__icon">📭</div>
           <div class="empty-state__title">暂无路线</div>
@@ -508,7 +536,7 @@ async function loadRoutes() {
     renderPagination(total, page, pageSize);
   } catch (err) {
     console.error(err);
-    tbody.innerHTML = `<tr><td colspan="7" class="text-danger" style="text-align:center;padding:40px;">
+    tbody.innerHTML = `<tr><td colspan="8" class="text-danger" style="text-align:center;padding:40px;">
       加载失败：${err.message}
     </td></tr>`;
   }
@@ -519,8 +547,7 @@ async function loadRoutes() {
    ============================================================ */
 function renderRouteRow(route) {
   const tags = (route.tags || []).map(t => `<span class="tag-chip">${escHtml(t)}</span>`).join('');
-  const diffClass = route.difficulty ? `diff-${route.difficulty}` : '';
-  const diffLabel = route.difficulty || '—';
+  const visOk = route.is_visible !== false;
 
   const heatDots = Array.from({ length: 5 }, (_, i) =>
     `<span class="heat-dot${i < (route.heat_level || 0) ? ' active' : ''}"></span>`
@@ -540,9 +567,10 @@ function renderRouteRow(route) {
         : '<span class="text-muted text-sm">—</span>'}
     </td>
     <td>
-      ${route.difficulty
-        ? `<span class="diff-badge ${diffClass}">${diffLabel}</span>`
-        : '<span class="text-muted text-sm">—</span>'}
+      ${visOk ? '<span class="cat-badge" style="background:rgba(34,139,34,.15);">是</span>' : '<span class="text-muted text-sm">否</span>'}
+    </td>
+    <td>
+      <span class="text-sm">${route.published_version ?? 0}</span>
     </td>
     <td>
       <div class="heat-badge">
@@ -571,7 +599,7 @@ function renderRouteRow(route) {
     </td>
   </tr>
   <tr id="spots-row-${route.id}" style="display:none;" class="expanded-row">
-    <td colspan="7">
+    <td colspan="8">
       <div id="spots-container-${route.id}">
         <div style="text-align:center;padding:20px;color:var(--clr-text-muted);font-size:13px;">
           <svg width="18" height="18" class="spin"><use href="#icon-loading"/></svg> 加载景点…
@@ -602,23 +630,27 @@ async function toggleSpots(routeId) {
   btn.classList.add('open');
 
   if (_spotsCache[routeId]) {
-    container.innerHTML = renderSpotsGrid(_spotsCache[routeId]);
+    container.innerHTML = renderSpotsGrid(_spotsCache[routeId], routeId);
     return;
   }
 
   try {
     const spots = await adminApi.getSpotsAdmin(routeId);
     _spotsCache[routeId] = spots;
-    container.innerHTML = renderSpotsGrid(spots);
+    container.innerHTML = renderSpotsGrid(spots, routeId);
   } catch (err) {
     container.innerHTML = `<div class="text-danger" style="padding:16px;font-size:13px;">加载失败：${err.message}</div>`;
   }
 }
 
-function renderSpotsGrid(spots) {
+function renderSpotsGrid(spots, routeId) {
+  const addBtn = routeId ? `<div style="margin-bottom:12px;">
+    <button type="button" class="btn btn-secondary btn-sm" onclick="addNewSpot('${routeId}')">＋ 添加景点</button>
+  </div>` : '';
+
   if (!spots || spots.length === 0) {
-    return `<div class="empty-state" style="padding:30px 0;">
-      <div class="empty-state__title">暂无数点</div>
+    return `${addBtn}<div class="empty-state" style="padding:30px 0;">
+      <div class="empty-state__title">暂无游玩点</div>
     </div>`;
   }
 
@@ -627,6 +659,8 @@ function renderSpotsGrid(spots) {
     <div class="spot-card__header">
       <span class="spot-card__order">${spot.sort_order || '?'}</span>
       <span class="spot-card__name">${escHtml(spot.name)}</span>
+      ${spot.is_visible === false ? '<span class="text-sm text-muted">隐藏</span>' : ''}
+      ${spot.is_easter_egg ? '<span class="text-sm" style="color:#a67c52;">彩蛋</span>' : ''}
     </div>
     ${spot.subtitle ? `<div class="spot-card__subtitle">${escHtml(spot.subtitle)}</div>` : ''}
     ${spot.thumb ? `<div class="spot-card__thumb"><img src="${escHtml(spot.thumb)}" alt="${escHtml(spot.name)}" onerror="this.style.display='none'"></div>` : ''}
@@ -638,7 +672,7 @@ function renderSpotsGrid(spots) {
       ? `<div class="tags-list" style="margin-top:6px;">${spot.tags.map(t => `<span class="tag-chip">${escHtml(t)}</span>`).join('')}</div>`
       : ''}
     <div class="spot-card__actions">
-      <button class="btn btn-ghost btn-sm" onclick="openEditSpot('${spot.id}', '${escHtml(spot.route_id)}')">
+      <button class="btn btn-ghost btn-sm" onclick="openEditSpot('${spot.id}', '${spot.route_id}')">
         <svg width="12" height="12"><use href="#icon-edit"/></svg> 编辑
       </button>
       <button class="btn btn-ghost btn-sm text-danger" onclick="openDeleteSpot('${spot.id}', '${escHtml(spot.name)}')">
@@ -647,7 +681,7 @@ function renderSpotsGrid(spots) {
     </div>
   </div>`).join('');
 
-  return `<div class="spots-grid">${cards}</div>`;
+  return `${addBtn}<div class="spots-grid">${cards}</div>`;
 }
 
 /* ============================================================
@@ -693,6 +727,46 @@ function goPage(p) {
 /* ============================================================
    Modal: Edit Route
    ============================================================ */
+let _routeDraftTimer = null;
+let _routeModalDirty = false;
+
+function bindRouteModalAutosave() {
+  const modal = document.getElementById('modal-edit-route');
+  const debounceMs = 900;
+  const fields = ['route-title', 'route-description', 'route-category', 'route-cover', 'route-visible'];
+  fields.forEach((fid) => {
+    const el = document.getElementById(fid);
+    if (!el) return;
+    el.addEventListener('input', () => {
+      _routeModalDirty = true;
+      scheduleRouteDraftSave(debounceMs);
+    });
+    el.addEventListener('change', () => {
+      _routeModalDirty = true;
+      scheduleRouteDraftSave(debounceMs);
+    });
+  });
+}
+
+function scheduleRouteDraftSave(ms) {
+  clearTimeout(_routeDraftTimer);
+  _routeDraftTimer = setTimeout(() => {
+    const id = document.getElementById('route-edit-id').value;
+    if (!id || !_routeModalDirty) return;
+    saveRoute(false, true);
+  }, ms);
+}
+
+async function createNewRoute() {
+  try {
+    const row = await adminApi.insertRoute({ title: '未命名路线' });
+    toast('success', '已创建路线，请完善信息后保存草稿或发布');
+    await openEditRoute(row.id);
+  } catch (err) {
+    toast('error', `创建失败：${err.message}`);
+  }
+}
+
 async function openEditRoute(id) {
   try {
     const route = await adminApi.getRouteAdmin(id);
@@ -700,17 +774,27 @@ async function openEditRoute(id) {
     document.getElementById('route-title').value = route.title || '';
     document.getElementById('route-description').value = route.description || '';
     document.getElementById('route-category').value = route.category || '';
-    document.getElementById('route-difficulty').value = route.difficulty || '';
-    document.getElementById('route-duration').value = route.duration_minutes || '';
-    document.getElementById('route-distance').value = route.total_distance_km || '';
+    document.getElementById('route-duration').value = route.duration_minutes ?? '';
+    document.getElementById('route-distance').value = route.total_distance_km ?? '';
     document.getElementById('route-cover').value = route.cover_image || '';
+    document.getElementById('route-visible').checked = route.is_visible !== false;
+    const pv = route.published_version ?? 0;
+    const lp = route.last_published_at ? new Date(route.last_published_at).toLocaleString() : '从未发布';
+    document.getElementById('route-version-ro').value = `v${pv} · ${lp}`;
     document.getElementById('route-heat-level-ro').value = route.heat_level ?? '—';
-    document.getElementById('route-heat-count-ro').value = (route.heat_count ?? 0) + ' 次完成';
+    document.getElementById('route-heat-count-ro').value = (route.heat_count ?? 0) + '（简单累计）';
 
     _routeTags = route.tags || [];
     renderRouteTags();
 
+    document.getElementById('route-draft-status').textContent = '';
+    _routeModalDirty = false;
     openModal('modal-edit-route');
+
+    await adminApi.recomputeRouteDerived(id);
+    const refreshed = await adminApi.getRouteAdmin(id);
+    document.getElementById('route-duration').value = refreshed.duration_minutes ?? '';
+    document.getElementById('route-distance').value = refreshed.total_distance_km ?? '';
   } catch (err) {
     toast('error', `加载路线失败：${err.message}`);
   }
@@ -731,33 +815,58 @@ function renderRouteTags() {
 function removeRouteTag(index) {
   _routeTags.splice(index, 1);
   renderRouteTags();
+  _routeModalDirty = true;
+  scheduleRouteDraftSave(500);
 }
 
-async function saveRoute() {
+async function saveRoute(showToast = true, silent = false) {
   const id = document.getElementById('route-edit-id').value;
   if (!id) return;
 
   const title = document.getElementById('route-title').value.trim();
-  if (!title) { toast('error', '路线标题不能为空'); return; }
+  if (!title) {
+    if (!silent) toast('error', '路线标题不能为空');
+    return;
+  }
 
   const patch = {
     title,
     description: document.getElementById('route-description').value.trim() || null,
     category: document.getElementById('route-category').value || null,
-    difficulty: document.getElementById('route-difficulty').value || null,
-    duration_minutes: parseInt(document.getElementById('route-duration').value) || null,
-    total_distance_km: parseFloat(document.getElementById('route-distance').value) || null,
     cover_image: document.getElementById('route-cover').value.trim() || null,
+    is_visible: document.getElementById('route-visible').checked,
     tags: _routeTags,
   };
 
+  const statusEl = document.getElementById('route-draft-status');
   try {
     await adminApi.updateRoute(id, patch);
-    toast('success', '路线保存成功');
-    closeModal('modal-edit-route');
+    await adminApi.recomputeRouteDerived(id);
+    const refreshed = await adminApi.getRouteAdmin(id);
+    document.getElementById('route-duration').value = refreshed.duration_minutes ?? '';
+    document.getElementById('route-distance').value = refreshed.total_distance_km ?? '';
+    _routeModalDirty = false;
+    const t = new Date().toLocaleTimeString();
+    statusEl.textContent = `草稿已保存 ${t}`;
+    if (showToast) toast('success', '草稿已保存');
     loadRoutes();
   } catch (err) {
+    statusEl.textContent = '';
     toast('error', `保存失败：${err.message}`);
+  }
+}
+
+async function publishRouteAction() {
+  const id = document.getElementById('route-edit-id').value;
+  if (!id) return;
+  try {
+    await saveRoute(false, true);
+    const { version } = await adminApi.publishRoute(id);
+    toast('success', `已发布 v${version}`);
+    document.getElementById('route-version-ro').value = `v${version} · ${new Date().toLocaleString()}`;
+    loadRoutes();
+  } catch (err) {
+    toast('error', `发布失败：${err.message}`);
   }
 }
 
@@ -769,29 +878,66 @@ async function openEditSpot(id, routeId) {
     const route_id = routeId || document.getElementById('spot-edit-route-id')?.value;
     const spots = await adminApi.getSpotsAdmin(route_id);
     const spot = spots.find(s => s.id === id);
-    if (!spot) { toast('error', '未找到该景点'); return; }
+    if (!spot) { toast('error', '未找到该游玩点'); return; }
 
     document.getElementById('spot-edit-id').value = spot.id;
     document.getElementById('spot-edit-route-id').value = spot.route_id;
     document.getElementById('spot-name').value = spot.name || '';
     document.getElementById('spot-subtitle').value = spot.subtitle || '';
     document.getElementById('spot-short-desc').value = spot.short_desc || '';
-    document.getElementById('spot-detail').value = spot.detail || '';
-    document.getElementById('spot-lat').value = spot.lat || '';
-    document.getElementById('spot-lng').value = spot.lng || '';
-    document.getElementById('spot-stay').value = spot.estimated_stay_min || '';
-    document.getElementById('spot-geofence').value = spot.geofence_radius_m || '';
-    document.getElementById('spot-sort').value = spot.sort_order || '';
+    document.getElementById('spot-rich').value = (spot.rich_content || spot.detail || '');
+    document.getElementById('spot-type').value = spot.spot_type || 'attraction';
+    document.getElementById('spot-input-frame').value = 'WGS84';
+    document.getElementById('spot-lat').value = spot.lat ?? '';
+    document.getElementById('spot-lng').value = spot.lng ?? '';
+    document.getElementById('spot-visible').checked = spot.is_visible !== false;
+    document.getElementById('spot-easter').checked = !!spot.is_easter_egg;
+    document.getElementById('spot-stay').value = spot.estimated_stay_min ?? '';
+    document.getElementById('spot-geofence').value = spot.geofence_radius_m ?? '';
+    document.getElementById('spot-sort').value = spot.sort_order ?? '';
     document.getElementById('spot-thumb').value = spot.thumb || '';
     document.getElementById('spot-photos').value = (spot.photos || []).join('\n');
 
     _spotTags = spot.tags || [];
     renderSpotTags();
     renderSpotPhotosPreview();
+    document.getElementById('spot-draft-status').textContent = '';
 
     openModal('modal-edit-spot');
   } catch (err) {
-    toast('error', `加载景点失败：${err.message}`);
+    toast('error', `加载游玩点失败：${err.message}`);
+  }
+}
+
+async function addNewSpot(routeId) {
+  try {
+    const spots = await adminApi.getSpotsAdmin(routeId);
+    const maxOrder = spots.reduce((m, s) => Math.max(m, Number(s.sort_order) || 0), 0);
+    const ref = spots.find((s) => s.is_visible !== false && !s.is_easter_egg) || spots[0];
+    const lat = ref ? Number(ref.lat) : 39.9042;
+    const lng = ref ? Number(ref.lng) : 116.4074;
+    const spot = await adminApi.insertSpot({
+      route_id: routeId,
+      name: '新游玩点',
+      lat,
+      lng,
+      sort_order: maxOrder + 1,
+      geofence_radius_m: 30,
+      is_visible: true,
+      is_easter_egg: false,
+      spot_type: 'attraction',
+    });
+    delete _spotsCache[routeId];
+    await openEditSpot(spot.id, routeId);
+    const row = document.getElementById(`spots-row-${routeId}`);
+    if (row && row.style.display !== 'none') {
+      const container = document.getElementById(`spots-container-${routeId}`);
+      const list = await adminApi.getSpotsAdmin(routeId);
+      _spotsCache[routeId] = list;
+      container.innerHTML = renderSpotsGrid(list, routeId);
+    }
+  } catch (err) {
+    toast('error', `添加失败：${err.message}`);
   }
 }
 
@@ -817,36 +963,70 @@ async function saveSpot() {
   if (!id) return;
 
   const name = document.getElementById('spot-name').value.trim();
-  if (!name) { toast('error', '景点名称不能为空'); return; }
+  if (!name) { toast('error', '游玩点名称不能为空'); return; }
 
   const photosRaw = document.getElementById('spot-photos').value.trim();
   const photos = photosRaw ? photosRaw.split('\n').map(s => s.trim()).filter(Boolean) : [];
+
+  const frame = document.getElementById('spot-input-frame').value;
+  const rawLat = parseFloat(document.getElementById('spot-lat').value);
+  const rawLng = parseFloat(document.getElementById('spot-lng').value);
+  if (!Number.isFinite(rawLat) || !Number.isFinite(rawLng)) {
+    toast('error', '请填写有效经纬度');
+    return;
+  }
+  const wgs = normalizeToWgs84(rawLat, rawLng, frame);
+
+  const rich = document.getElementById('spot-rich').value.trim() || null;
 
   const patch = {
     name,
     subtitle: document.getElementById('spot-subtitle').value.trim() || null,
     short_desc: document.getElementById('spot-short-desc').value.trim() || null,
-    detail: document.getElementById('spot-detail').value.trim() || null,
-    lat: parseFloat(document.getElementById('spot-lat').value) || null,
-    lng: parseFloat(document.getElementById('spot-lng').value) || null,
-    estimated_stay_min: parseInt(document.getElementById('spot-stay').value) || null,
-    geofence_radius_m: parseInt(document.getElementById('spot-geofence').value) || null,
-    sort_order: parseInt(document.getElementById('spot-sort').value) || null,
+    rich_content: rich,
+    detail: rich,
+    lat: wgs.lat,
+    lng: wgs.lng,
+    estimated_stay_min: (() => {
+      const v = parseInt(document.getElementById('spot-stay').value, 10);
+      return Number.isFinite(v) ? v : null;
+    })(),
+    geofence_radius_m: (() => {
+      const v = parseInt(document.getElementById('spot-geofence').value, 10);
+      return Number.isFinite(v) ? v : 30;
+    })(),
+    sort_order: (() => {
+      const v = parseInt(document.getElementById('spot-sort').value, 10);
+      return Number.isFinite(v) ? v : 1;
+    })(),
     thumb: document.getElementById('spot-thumb').value.trim() || null,
     photos,
     tags: _spotTags,
+    spot_type: document.getElementById('spot-type').value,
+    is_visible: document.getElementById('spot-visible').checked,
+    is_easter_egg: document.getElementById('spot-easter').checked,
   };
 
   try {
     await adminApi.updateSpot(id, patch);
-    toast('success', '景点保存成功');
-    closeModal('modal-edit-spot');
+    document.getElementById('spot-lat').value = wgs.lat;
+    document.getElementById('spot-lng').value = wgs.lng;
+    document.getElementById('spot-input-frame').value = 'WGS84';
+    document.getElementById('spot-draft-status').textContent = `已保存 ${new Date().toLocaleTimeString()}`;
+    toast('success', '游玩点已保存');
 
     const routeId = document.getElementById('spot-edit-route-id').value;
-    if (routeId && _spotsCache[routeId]) {
-      delete _spotsCache[routeId];
-      await toggleSpots(routeId);
-      await toggleSpots(routeId);
+    if (routeId) {
+      try {
+        await adminApi.recomputeRouteDerived(routeId);
+      } catch (_) { /* ignore */ }
+    }
+
+    const routeId2 = document.getElementById('spot-edit-route-id').value;
+    if (routeId2 && _spotsCache[routeId2]) {
+      delete _spotsCache[routeId2];
+      await toggleSpots(routeId2);
+      await toggleSpots(routeId2);
     }
   } catch (err) {
     toast('error', `保存失败：${err.message}`);
@@ -919,7 +1099,8 @@ async function confirmDeleteSpot() {
 /* ============================================================
    Tag Input (shared)
    ============================================================ */
-function bindTagInput(inputId, containerId, previewId, renderFn) {
+/** @param {'route'|'spot'} mode */
+function bindTagInput(inputId, containerId, previewId, mode) {
   const input = document.getElementById(inputId);
   const container = document.getElementById(containerId);
 
@@ -927,10 +1108,13 @@ function bindTagInput(inputId, containerId, previewId, renderFn) {
     if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault();
       const val = input.value.trim().replace(/,$/, '');
-      if (val && !_routeTags?.includes(val) && !_spotTags?.includes(val)) {
-        if (inputId === 'route-tags-input') {
+      const tags = mode === 'route' ? _routeTags : _spotTags;
+      if (val && !tags.includes(val)) {
+        if (mode === 'route') {
           _routeTags.push(val);
           renderRouteTags();
+          _routeModalDirty = true;
+          scheduleRouteDraftSave(500);
         } else {
           _spotTags.push(val);
           renderSpotTags();
@@ -938,10 +1122,12 @@ function bindTagInput(inputId, containerId, previewId, renderFn) {
       }
       input.value = '';
     } else if (e.key === 'Backspace' && !input.value) {
-      if (inputId === 'route-tags-input' && _routeTags.length > 0) {
+      if (mode === 'route' && _routeTags.length > 0) {
         _routeTags.pop();
         renderRouteTags();
-      } else if (_spotTags.length > 0) {
+        _routeModalDirty = true;
+        scheduleRouteDraftSave(500);
+      } else if (mode === 'spot' && _spotTags.length > 0) {
         _spotTags.pop();
         renderSpotTags();
       }
@@ -1007,6 +1193,7 @@ window.removeRouteTag = removeRouteTag;
 window.removeSpotTag = removeSpotTag;
 window.saveRoute = saveRoute;
 window.saveSpot = saveSpot;
+window.addNewSpot = addNewSpot;
 </script>
 
 <!-- ================================================================

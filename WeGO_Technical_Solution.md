@@ -226,20 +226,31 @@ LIMIT 5;
 
 ### 3.2 核心表结构设计
 
+> **权威 DDL**：以 `server/migrations/` 为准（`001_routes`、`002_spots`、`005_routes_engagement`、`008_admin_route_editor`、`009_route_versions_rls`）。下表为逻辑字段摘要。
+
 ```sql
--- 路线表
+-- 路线表（摘要；已无 difficulty，含分类/热度/可见性/发布版本等）
 CREATE TABLE routes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title TEXT NOT NULL,
   description TEXT,
   duration_minutes INT,
-  difficulty TEXT CHECK (difficulty IN ('easy', 'medium', 'hard')),
   tags TEXT[],
+  category TEXT,                    -- 首页 Chip / 运营分类（005）
   cover_image TEXT,
-  created_at TIMESTAMPTZ DEFAULT now()
+  total_distance_km NUMERIC(6,3),
+  heat_level INT,
+  heat_count INT,
+  is_visible BOOLEAN NOT NULL DEFAULT true,
+  thumbnail_image TEXT,
+  published_version INT NOT NULL DEFAULT 0,
+  last_published_at TIMESTAMPTZ,
+  draft_saved_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
 );
 
--- 景点表
+-- 景点表（摘要；库中为 lat/lng NUMERIC，非 PostGIS geom）
 CREATE TABLE spots (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   route_id UUID REFERENCES routes(id),
@@ -247,14 +258,30 @@ CREATE TABLE spots (
   subtitle TEXT,
   short_desc TEXT,
   detail TEXT,
+  rich_content TEXT,
   tags TEXT[],
   thumb TEXT,
   photos TEXT[],
-  geom GEOMETRY(Point, 4326),       -- PostGIS 地理坐标 (WGS-84)
-  geofence_radius_m INT DEFAULT 30, -- 地理围栏触发半径（米）
-  estimated_stay_min INT,           -- 建议停留时间（分钟）
-  sort_order INT,
-  created_at TIMESTAMPTZ DEFAULT now()
+  lat NUMERIC NOT NULL,
+  lng NUMERIC NOT NULL,
+  geofence_radius_m INT DEFAULT 30,
+  estimated_stay_min INT,
+  sort_order INT NOT NULL,
+  is_visible BOOLEAN NOT NULL DEFAULT true,
+  is_easter_egg BOOLEAN NOT NULL DEFAULT false,
+  spot_type TEXT NOT NULL DEFAULT 'attraction',
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 发布快照（008）：每次「发布」写入一条 JSONB 契约形状
+CREATE TABLE route_versions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  route_id UUID NOT NULL REFERENCES routes(id) ON DELETE CASCADE,
+  version_number INT NOT NULL,
+  snapshot JSONB NOT NULL,
+  published_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (route_id, version_number)
 );
 
 -- 知识库向量表
@@ -619,19 +646,27 @@ Service Role Key 写入 `window.__WEGO_API_CONFIG__.supabaseServiceKey`（由 `a
 
 | 操作 | 路线 | 景点 |
 |---|---|---|
-| 查看/列表 | title, tags, category, difficulty, heat_level, heat_count | name, tags, lat/lng, photos, sort_order |
-| 编辑 | title, description, tags, category, difficulty, duration_minutes, total_distance_km, cover_image | name, subtitle, short_desc, detail, tags, thumb, photos, lat, lng, geofence_radius_m, estimated_stay_min, sort_order |
+| 查看/列表 | title, tags, category, heat_level, heat_count, is_visible, published_version | name, tags, lat/lng, thumb, sort_order, spot_type, is_visible, is_easter_egg |
+| 编辑（草稿） | title, description, tags, category, cover_image, is_visible；duration/total_distance/thumbnail 由系统按规则重算 | name, subtitle, short_desc, detail, rich_content, tags, thumb, photos, lat, lng（入库 WGS-84；可选 GCJ-02 录入转换）, geofence_radius_m, estimated_stay_min, sort_order, spot_type, is_visible, is_easter_egg |
+| 发布 | 写入 `route_versions` 快照，`published_version`+1，`last_published_at` 更新 | 快照内含当前 spots 契约字段 |
 | 删除 | 删除路线（ON DELETE CASCADE） | 删除景点 |
-| **不可编辑** | heat_level, heat_count | — |
+| **不可编辑** | heat_level, heat_count（仅展示）；published_version / last_published_at（仅发布动作写入） | — |
 
 heat_level / heat_count 为 read-only，仅展示。
 
 ### 关键约束
 
 - **热度字段保护**：`heat_level` / `heat_count` 在 UI 上不输出编辑控件，代码层面禁止 patch
-- **坐标系**：景点 lat/lng 录入保持 WGS-84，不做转换（前台地图 Adapter 层负责展示时转换）
+- **坐标系**：数据库统一 **WGS-84**；管理端可对 **GCJ-02 录入**做转换（`src/lib/coordinate-frame.js`）；前台地图 Adapter 负责展示时转换
+- **可见性与彩蛋**：`is_visible=false` 或 `is_easter_egg=true` 的景点不参与路径/距离/时长计算；前台 `api-client.js` 默认列表/地图不展示彩蛋与隐藏点
 - **幂等安全**：更新操作使用 Supabase Upsert，避免误覆盖
-- **前台 Key 不受影响**：`api-client.js` 保持原样，不引入 service_role
+- **前台 Key 不受影响**：`api-client.js` 仍仅用 anon，不引入 service_role
+
+### route_versions 与 RLS（009）
+
+- **service_role**（`admin-api.js`）：绕过 RLS，发布时可 `INSERT route_versions`。
+- **anon**：对 `route_versions` **无策略**，无法读取完整路线 JSON 快照，降低泄露风险。
+- **authenticated**：`009_route_versions_rls.sql` 授予 SELECT + INSERT，便于未来「登录编辑者 + 用户 JWT」直连 Supabase；后续可按 `auth.uid()` 或自定义 claim 收紧 `WITH CHECK`。
 
 ---
 

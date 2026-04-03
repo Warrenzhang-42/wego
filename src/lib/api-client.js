@@ -54,8 +54,8 @@ const _localSource = {
     if (!resp.ok) throw new Error(`[api-client] 读取景点文件失败: HTTP ${resp.status}`);
 
     const data = await resp.json();
-    const spots = (data.spots || []).map(s => ({ ...s, route_id: routeId }));
-    // 按 sort_order 排序
+    let spots = (data.spots || []).map(s => ({ ...s, route_id: routeId }));
+    spots = spots.filter((s) => s.is_visible !== false && !s.is_easter_egg);
     return spots.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
   },
 
@@ -67,7 +67,8 @@ const _localSource = {
     if (!resp.ok) throw new Error(`[api-client] 读取路线文件失败: HTTP ${resp.status}`);
 
     const data = await resp.json();
-    const spots = (data.spots || []).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+    let spots = (data.spots || []).filter((s) => s.is_visible !== false && !s.is_easter_egg);
+    spots = spots.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
     return { ...data, spots };
   },
 
@@ -80,8 +81,7 @@ const _localSource = {
         if (!resp.ok) continue;
         const data = await resp.json();
         const { spots, ...route } = data;
-        // 简单过滤
-        if (filters.difficulty && route.difficulty !== filters.difficulty) continue;
+        if (route.is_visible === false) continue;
         if (filters.tag && !(route.tags || []).some(t => t.includes(filters.tag))) continue;
         results.push(route);
       } catch (e) {
@@ -145,6 +145,7 @@ const _supabaseSource = {
     const sb = await this._getClient();
     const { data, error } = await sb.from('routes').select('*').eq('id', id).single();
     if (error) throw new Error(`[api-client] getRoute 失败: ${error.message}`);
+    if (data && data.is_visible === false) throw new Error(`[api-client] 路线不可见`);
     return data;
   },
 
@@ -156,7 +157,7 @@ const _supabaseSource = {
       .eq('route_id', routeId)
       .order('sort_order', { ascending: true });
     if (error) throw new Error(`[api-client] getSpots 失败: ${error.message}`);
-    return data;
+    return (data || []).filter((s) => s.is_visible !== false && !s.is_easter_egg);
   },
 
   async getRouteWithSpots(id) {
@@ -166,13 +167,11 @@ const _supabaseSource = {
 
   async getRoutes(filters = {}) {
     const sb = await this._getClient();
-    let query = sb.from('routes').select('*');
-    if (filters.difficulty) query = query.eq('difficulty', filters.difficulty);
-    const { data, error } = await query;
+    const { data, error } = await sb.from('routes').select('*');
     if (error) throw new Error(`[api-client] getRoutes 失败: ${error.message}`);
-    // 标签过滤（Supabase 数组包含）
-    if (filters.tag) return data.filter(r => (r.tags || []).some(t => t.includes(filters.tag)));
-    return data;
+    let rows = (data || []).filter((r) => r.is_visible !== false);
+    if (filters.tag) rows = rows.filter((r) => (r.tags || []).some((t) => t.includes(filters.tag)));
+    return rows;
   },
 
   async saveCheckin(data) {

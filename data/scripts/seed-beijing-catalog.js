@@ -36,7 +36,6 @@ function routeRowBase(routeData) {
     title: rest.title,
     description: rest.description ?? null,
     duration_minutes: rest.duration_minutes ?? null,
-    difficulty: rest.difficulty ?? 'easy',
     tags: rest.tags ?? [],
     cover_image: rest.cover_image ?? null,
     total_distance_km: rest.total_distance_km ?? null,
