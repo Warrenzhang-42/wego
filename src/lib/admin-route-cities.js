@@ -218,6 +218,24 @@ export function isWgs84InCityBox(lat, lng, box) {
 }
 
 /**
+ * 根据 WGS-84 坐标匹配首个覆盖该点的城市（边界为近似矩形，跨省交界可能存在歧义，以列表遍历顺序为准）。
+ * @param {number} lat
+ * @param {number} lng
+ * @returns {AdminCity & { provinceName: string; provinceCode: string } | null}
+ */
+export function resolveCityFromWgs84(lat, lng) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  for (const p of ROUTE_ADMIN_PROVINCES) {
+    for (const c of p.cities) {
+      if (isWgs84InCityBox(lat, lng, c)) {
+        return { ...c, provinceName: p.name, provinceCode: p.code };
+      }
+    }
+  }
+  return null;
+}
+
+/**
  * @param {Array<{ name?: string, lat?: unknown, lng?: unknown }>} spots
  * @param {string} cityAdcode
  * @returns {string[]} 越界景点名称

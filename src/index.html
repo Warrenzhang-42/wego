@@ -16,11 +16,11 @@
 
     <!-- ===== TOP NAV ===== -->
     <header class="top-nav">
-      <div class="nav-location">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 0.5C4.5 0.5 2.5 2.5 2.5 5C2.5 8.5 7 13.5 7 13.5C7 13.5 11.5 8.5 11.5 5C11.5 2.5 9.5 0.5 7 0.5ZM7 6.5C6.2 6.5 5.5 5.8 5.5 5C5.5 4.2 6.2 3.5 7 3.5C7.8 3.5 8.5 4.2 8.5 5C8.5 5.8 7.8 6.5 7 6.5Z" fill="#b22314"/></svg>
-        <span class="location-text">北京，中国</span>
-        <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="#666" stroke-width="1.5" stroke-linecap="round"/></svg>
-      </div>
+      <button type="button" class="nav-location" id="btn-city-picker" aria-haspopup="dialog" aria-label="选择城市，当前显示为定位或已选城市">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M7 0.5C4.5 0.5 2.5 2.5 2.5 5C2.5 8.5 7 13.5 7 13.5C7 13.5 11.5 8.5 11.5 5C11.5 2.5 9.5 0.5 7 0.5ZM7 6.5C6.2 6.5 5.5 5.8 5.5 5C5.5 4.2 6.2 3.5 7 3.5C7.8 3.5 8.5 4.2 8.5 5C8.5 5.8 7.8 6.5 7 6.5Z" fill="#b22314"/></svg>
+        <span class="location-text">定位中…</span>
+        <svg width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true"><path d="M1 1L5 5L9 1" stroke="#666" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
       <div class="nav-right">
         <button class="btn-icon" id="btn-notify" aria-label="通知">
           <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M10 2C7.2 2 5 4.2 5 7V11L3 13H17L15 11V7C15 4.2 12.8 2 10 2Z" stroke="#333" stroke-width="1.5"/><path d="M8 13C8 14.1 8.9 15 10 15C11.1 15 12 14.1 12 13" stroke="#333" stroke-width="1.5"/><circle cx="15" cy="4" r="3" fill="#FF5757"/></svg>
@@ -571,6 +571,18 @@
     <div style="height: 110px;"></div>
 
   </div><!-- #app -->
+
+  <!-- 长时间未访问 · 定位城市与已选城市不一致 -->
+  <div id="city-mismatch-backdrop" class="city-mismatch-backdrop" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="city-mismatch-title">
+    <div class="city-mismatch-sheet">
+      <h2 id="city-mismatch-title" class="city-mismatch-heading">是否切换城市？</h2>
+      <p id="city-mismatch-body" class="city-mismatch-body"></p>
+      <div class="city-mismatch-actions">
+        <button type="button" class="city-mismatch-btn city-mismatch-btn-secondary" id="city-mismatch-keep">保持当前城市</button>
+        <button type="button" class="city-mismatch-btn city-mismatch-btn-primary" id="city-mismatch-switch">切换至定位城市</button>
+      </div>
+    </div>
+  </div>
 
   <!-- ===== BOTTOM NAV (MODERN PILL) ===== -->
   <nav class="bottom-nav tab-explore" aria-label="底部导航" id="bottom-nav">

@@ -3,6 +3,11 @@
    ==================================================== */
 
 import { appendRouteCards } from './lib/route-display.js';
+import { initHomeCity } from './lib/city-preference.js';
+
+void initHomeCity().catch(err => {
+  console.warn('[app.js] 城市/定位初始化失败:', err);
+});
 
 // ---- Sprint 8: 数据库驱动路线列表 ----------------------
 (async function initDynamicRoutes() {

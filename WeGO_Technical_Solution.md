@@ -132,6 +132,16 @@ Agent 校验：停留时间(45+35+30=110min) + 步行(28min) = 138min < 240min
 - 利用 Supabase Realtime 订阅 `user_checkins` 表变更，实现多端同步刷新。
 - 下次打开地图时，前端请求该用户的打卡历史坐标，批量渲染打卡标记。
 
+### 1.6 首页城市上下文（定位、手动选择与回访提示）
+
+**目标**：顶部展示「当前浏览城市」；首访用 **WGS-84** 单次 `getCurrentPosition` 解析城市（`resolveCityFromWgs84`，与 `src/lib/admin-route-cities.js` 中运营配置的近似矩形边界一致）；拒绝或失败时落默认 **北京市（110000）**。用户可通过 `city-select.html` 手动改城并写回 `localStorage`。
+
+**契约**：`contracts/user-city-preference.schema.json` 描述 `selected_city_adcode`、`last_visit_at` 及可选的 `mismatch_snooze`（冷却对象）。
+
+**长时间未访问**：若 `Date.now() - last_visit_at` 超过 **7 天**（可配置常量 `STALE_VISIT_MS`），且定位解析城市与已选 `adcode` 不同，则展示底部 **modal sheet**（`role="dialog"`）：主按钮「切换至定位城市」并 `location.reload()` 以刷新列表；次按钮「保持当前城市」写入 snooze（同对已选/定位组合 **7 天内**不再弹）。点击遮罩或 `Escape` 与「保持」等价，避免误切城。
+
+**实现文件**：`src/lib/city-preference.js`（编排）、`src/app.js` 入口 `initHomeCity()`、`index.html` 顶部按钮与弹层 DOM。
+
 ---
 
 ## 2. 知识库架构：RAG (检索增强生成)

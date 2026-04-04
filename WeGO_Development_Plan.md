@@ -10,7 +10,7 @@
 
 | 页面 | 文件 | 状态 | 说明 |
 | :--- | :--- | :--- | :--- |
-| 首页 | `index.html` + `app.js` + `style.css` | ✅ 完成 | 轮播、分类 Chip、路线卡片、底部导航 |
+| 首页 | `index.html` + `app.js` + `style.css` | ✅ 完成 | 轮播、分类 Chip、路线卡片、底部导航、**城市选择（定位/手动/长时间未访问提示）** |
 | 路线详情 | `route-detail.html/css/js` | ✅ 完成 | 地图预览(静态图)、景点列表、全屏地图 |
 | AI 对话 | `ai-chat.html/css/js` | ✅ 完成 | 聊天气泡、知识卡片弹窗、语音/键盘输入 Mock |
 | 导游人格 | `personality.html/css/js` | ✅ 完成 | 三种人格卡片轮播选择 |
@@ -259,7 +259,13 @@ WeGO/
 }
 ```
 
-### Contract 5: 地理围栏触发信号
+### Contract 5: 用户城市偏好（本地持久化）
+
+> 权威契约：`contracts/user-city-preference.schema.json`。用于 `localStorage` 与后续服务端同步时的字段对齐。
+
+核心字段：`selected_city_adcode`（国标 adcode）、`last_visit_at`（上次会话时间戳，用于「长时间未访问」判定）、可选 `mismatch_snooze`（用户选择「保持当前城市」后的冷却）。
+
+### Contract 6: 地理围栏触发信号
 
 ```json
 {
@@ -430,6 +436,7 @@ WeGO/
 | **8.1** | 在 `api-client.js` 中实现 `getRoutes(filters)` 方法：查询路线列表，支持按 tag 等过滤；**已移除 difficulty**；仅返回 `is_visible !== false` 的路线 | 纯接口 | `api-client.js` | 返回路线列表数组 |
 | **8.2** | 修改 `index.html` + `app.js`：路线卡片区域改为 JS 动态渲染，数据来自 `getRoutes()` | 纯联调 | `index.html`, `app.js` | 首页显示数据库中的路线 |
 | **8.3** | 修改分类 Chip 点击逻辑：点击分类标签时调用 `getRoutes({ tag })` 重新加载 | 纯联调 | `app.js` | 点击"非遗"只显示非遗路线 |
+| **8.4** | 首页城市：`contracts/user-city-preference.schema.json`；`admin-route-cities.js` 增加 `resolveCityFromWgs84`；`city-preference.js` 持久化与 7 天未访问弹窗；`city-select.html` 手动选城；`index.html` 顶部入口与底部 sheet | 联调 | 上述文件 + `style.css` | 首访按定位或默认北京；超时回访且定位城市≠已选时弹出确认；手动选城可写回 |
 
 ---
 

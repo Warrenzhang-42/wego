@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>选择城市 · WeGO</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="city-select.css" />
+</head>
+<body class="city-select-body">
+  <div id="city-select-app" class="cs-app">
+    <header class="cs-header">
+      <button type="button" class="cs-close" id="cs-close" aria-label="关闭">×</button>
+      <div class="cs-search-bar" role="search">
+        <svg class="cs-search-ico" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="5" stroke="#aaa" stroke-width="1.5"/><path d="M11 11L14 14" stroke="#aaa" stroke-width="1.5" stroke-linecap="round"/></svg>
+        <input type="search" id="cs-search-input" class="cs-search-input" placeholder="搜索城市/区县" autocomplete="off" enterkeyhint="search" />
+      </div>
+    </header>
+
+    <div class="cs-tab-row" role="tablist" aria-label="城市范围">
+      <span class="cs-tab cs-tab--active" role="tab" aria-selected="true">国内(含港澳台)</span>
+    </div>
+
+    <div class="cs-body">
+      <main class="cs-scroll" id="cs-scroll" aria-label="城市列表">
+        <div id="cs-anchor-top" class="cs-anchor"></div>
+
+        <div class="cs-panel cs-hide-on-search" id="cs-panel-main">
+          <section class="cs-section">
+            <h2 class="cs-sec-title">定位/历史访问城市</h2>
+            <div class="cs-grid" id="cs-loc-history"></div>
+          </section>
+
+          <section class="cs-section" id="cs-district-section">
+            <div class="cs-sec-head">
+              <h2 class="cs-sec-title" id="cs-district-heading">所选城市的相关市/区/县</h2>
+              <button type="button" class="cs-expand" id="cs-district-expand" hidden>
+                <span id="cs-expand-label">展开</span>
+                <svg class="cs-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </button>
+            </div>
+            <div class="cs-district-wrap" id="cs-district-wrap">
+              <div class="cs-grid cs-grid--tight" id="cs-district-grid"></div>
+            </div>
+          </section>
+
+          <section class="cs-section">
+            <h2 class="cs-sec-title">国内热门城市</h2>
+            <div class="cs-grid" id="cs-popular"></div>
+          </section>
+
+          <section class="cs-section">
+            <h2 class="cs-sec-title cs-sec-title--muted">按字母选择</h2>
+            <div id="cs-letter-groups"></div>
+          </section>
+        </div>
+
+        <div class="cs-panel cs-search-panel" id="cs-search-panel" hidden>
+          <p class="cs-search-empty" id="cs-search-empty" hidden>未找到匹配城市</p>
+          <div class="cs-grid" id="cs-search-grid"></div>
+        </div>
+      </main>
+
+      <nav class="cs-rail" id="cs-rail" aria-label="字母索引">
+        <button type="button" class="cs-rail-item" data-jump="top">顶部</button>
+      </nav>
+    </div>
+  </div>
+  <script type="module" src="city-select.js"></script>
+</body>
+</html>

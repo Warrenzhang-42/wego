@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "user-city-preference",
+  "title": "UserCityPreference",
+  "description": "首页城市选择与本地持久化结构；坐标为 WGS-84，城市边界为运营配置的近似矩形（与 admin-route-cities 一致）。",
+  "type": "object",
+  "required": ["selected_city_adcode", "last_visit_at", "location_permission"],
+  "properties": {
+    "selected_city_adcode": {
+      "type": "string",
+      "description": "国标行政区划 adcode，与 ROUTE_ADMIN_PROVINCES 中城市一致",
+      "pattern": "^[0-9]{6}$"
+    },
+    "last_visit_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "用户上次离开首页会话前写入的访问时间（ISO 8601），用于「长时间未访问」判定"
+    },
+    "location_permission": {
+      "type": "string",
+      "enum": ["unknown", "granted", "denied", "unsupported"],
+      "description": "浏览器定位权限状态（仅客户端提示用，非安全边界）"
+    },
+    "mismatch_snooze": {
+      "type": "object",
+      "description": "用户选择「暂不切换」后的冷却，避免同一场景反复打扰",
+      "properties": {
+        "until": { "type": "string", "format": "date-time" },
+        "saved_adcode": { "type": "string", "pattern": "^[0-9]{6}$" },
+        "detected_adcode": { "type": "string", "pattern": "^[0-9]{6}$" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

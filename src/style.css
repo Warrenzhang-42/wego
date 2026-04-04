@@ -121,12 +121,95 @@ input { font-family: inherit; }
   cursor: pointer;
   transition: background 0.18s;
   box-shadow: inset 0 0 0 1px var(--clr-ghost-border);
+  -webkit-tap-highlight-color: transparent;
 }
-.nav-location:hover { background: var(--clr-primary-light); }
+.nav-location:hover,
+.nav-location:focus-visible {
+  background: var(--clr-primary-light);
+  outline: none;
+}
+.nav-location:active { transform: scale(0.98); }
 .location-text {
   font-size: 13.5px;
   font-weight: 700;
   color: var(--clr-text-h);
+  max-width: 42vw;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---- 城市不一致底部确认（长时间未访问） ------------------ */
+.city-mismatch-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  background: rgba(15, 18, 28, 0.45);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px;
+  animation: cityMismatchIn 0.22s ease-out;
+}
+.city-mismatch-backdrop[hidden] {
+  display: none !important;
+}
+@keyframes cityMismatchIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.city-mismatch-sheet {
+  width: 100%;
+  max-width: 400px;
+  background: var(--clr-surface-container-lowest);
+  border-radius: var(--radius-lg) var(--radius-lg) 12px 12px;
+  padding: 20px 18px 18px;
+  box-shadow: var(--shadow-elevated);
+  animation: citySheetUp 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes citySheetUp {
+  from { transform: translateY(24px); opacity: 0.85; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.city-mismatch-heading {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--clr-text-h);
+  margin-bottom: 10px;
+}
+.city-mismatch-body {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--clr-text-b);
+  margin-bottom: 18px;
+}
+.city-mismatch-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.city-mismatch-btn {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 700;
+  font-family: var(--font-body);
+  transition: transform 0.1s, opacity 0.15s;
+}
+.city-mismatch-btn:active { transform: scale(0.98); }
+.city-mismatch-btn-primary {
+  background: var(--clr-primary);
+  color: var(--clr-on-primary);
+  box-shadow: 0 4px 14px rgba(178, 35, 20, 0.35);
+}
+.city-mismatch-btn-secondary {
+  background: var(--clr-surface-container-low);
+  color: var(--clr-text-h);
+  box-shadow: inset 0 0 0 1px var(--clr-ghost-border);
 }
 .nav-right {
   display: flex;
