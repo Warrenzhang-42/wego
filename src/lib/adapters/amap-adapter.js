@@ -23,6 +23,40 @@ const DASHILAN_CENTER = { lng: 116.393245, lat: 39.896134 };
 const DEFAULT_ZOOM    = 17;
 const AMAP_SDK_URL    = 'https://webapi.amap.com/maps?v=2.0&plugin=AMap.Walking%2CAMap.Geolocation';
 
+/** 多段步行规划之间最小间隔（ms），降低 CUQPS / QPS 触发概率 */
+const DEFAULT_WALKING_SEGMENT_DELAY_MS = 550;
+/** 限流错误时最大重试次数（含首次请求） */
+const DEFAULT_WALKING_PLAN_MAX_RETRIES = 4;
+/** 限流重试基础等待（ms），实际为 base * 2^attempt */
+const DEFAULT_WALKING_PLAN_RETRY_BASE_MS = 700;
+
+/** @param {number} ms */
+function delay(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+/**
+ * 判断是否高德步行规划 QPS/并发类限流（含 CUQPS_HAS_EXCEEDED_THE_LIMIT）
+ * @param {string} status
+ * @param {object|undefined|null} result
+ * @returns {boolean}
+ */
+function isWalkingRateLimitError(status, result) {
+  const info = result && (result.info || result.message);
+  const blob = `${status || ''} ${String(info || '')}`;
+  if (/CUQPS|QPS|配额|限流|EXCEED|OVER_LIMIT|TOO_MANY/i.test(blob)) return true;
+  try {
+    if (result && typeof result === 'object' && JSON.stringify(result).match(/CUQPS|QPS|EXCEED/i)) {
+      return true;
+    }
+  } catch (e) {
+    /* ignore */
+  }
+  return false;
+}
+
 /* ============================================================
    工具函数
    ============================================================ */
@@ -34,13 +68,41 @@ const AMAP_SDK_URL    = 'https://webapi.amap.com/maps?v=2.0&plugin=AMap.Walking%
  * @returns {Promise<void>}
  */
 /**
- * 从高德步行规划 result 中解析 [lng,lat] 路径（兼容 routes[0].path / steps[].path）
+ * 解析高德「lng,lat;lng,lat」折线串 → [lng,lat][]
+ * @param {string} s
+ * @returns {Array<[number, number]>}
+ */
+function parseSemicolonLngLatString(s) {
+  const out = [];
+  if (typeof s !== 'string' || !s.trim()) return out;
+  s.split(';').forEach((chunk) => {
+    const t = chunk.trim();
+    if (!t) return;
+    const parts = t.split(',');
+    if (parts.length < 2) return;
+    const lng = parseFloat(parts[0]);
+    const lat = parseFloat(parts[1]);
+    if (!Number.isFinite(lng) || !Number.isFinite(lat)) return;
+    const last = out[out.length - 1];
+    if (last && last[0] === lng && last[1] === lat) return;
+    out.push([lng, lat]);
+  });
+  return out;
+}
+
+/**
+ * 从高德步行规划 result 中解析 [lng,lat] 路径
+ * 兼容：routes[0].path（数组或折线串）、routes[0].paths、steps[].path、steps[].polyline（JS API 2.0 常见）
  * @param {object|null} result
  * @returns {Array<[number, number]>|null}
  */
 function extractWalkingLngLatPath(result) {
-  if (!result || !result.routes || !result.routes.length) return null;
-  const route = result.routes[0];
+  if (!result) return null;
+  const routes = result.routes;
+  const route =
+    (Array.isArray(routes) && routes.length && routes[0]) || result.route || null;
+  if (!route) return null;
+
   const out = [];
 
   const pushPt = (pt) => {
@@ -60,33 +122,57 @@ function extractWalkingLngLatPath(result) {
     out.push([lng, lat]);
   };
 
+  const appendParsedString = (str) => {
+    parseSemicolonLngLatString(str).forEach((pair) => pushPt({ lng: pair[0], lat: pair[1] }));
+  };
+
+  if (typeof route.path === 'string' && route.path.trim()) {
+    appendParsedString(route.path);
+    if (out.length >= 2) return out;
+    out.length = 0;
+  }
+
   if (Array.isArray(route.path) && route.path.length) {
     route.path.forEach(pushPt);
-    return out.length ? out : null;
+    if (out.length >= 2) return out;
+    out.length = 0;
+  }
+
+  const paths = route.paths;
+  if (Array.isArray(paths)) {
+    for (let pi = 0; pi < paths.length; pi++) {
+      const seg = paths[pi];
+      if (!seg) continue;
+      if (typeof seg === 'string') appendParsedString(seg);
+      else if (Array.isArray(seg)) seg.forEach(pushPt);
+      else if (seg.path) {
+        if (typeof seg.path === 'string') appendParsedString(seg.path);
+        else if (Array.isArray(seg.path)) seg.path.forEach(pushPt);
+      }
+    }
+    if (out.length >= 2) return out;
+    out.length = 0;
   }
 
   const steps = route.steps || [];
   for (let i = 0; i < steps.length; i++) {
-    const p = steps[i].path;
+    const step = steps[i];
+    if (!step) continue;
+    if (typeof step.polyline === 'string' && step.polyline.trim()) {
+      appendParsedString(step.polyline);
+      continue;
+    }
+    const p = step.path;
     if (!p) continue;
     if (typeof p === 'string') {
-      p.split(';').forEach((chunk) => {
-        const t = chunk.trim();
-        if (!t) return;
-        const parts = t.split(',');
-        if (parts.length >= 2) {
-          const lng = parseFloat(parts[0]);
-          const lat = parseFloat(parts[1]);
-          if (Number.isFinite(lng) && Number.isFinite(lat)) pushPt({ lng, lat });
-        }
-      });
+      appendParsedString(p);
       continue;
     }
     if (Array.isArray(p)) {
       p.forEach(pushPt);
     }
   }
-  return out.length ? out : null;
+  return out.length >= 2 ? out : null;
 }
 
 /**
@@ -144,14 +230,37 @@ function loadAmapSDK(apiKey, securityCode) {
    ============================================================ */
 export class AMapAdapter extends WeGOMap {
   /**
+   * 全页面串行执行步行规划，避免多标签页/多组件同时 search 叠加触发 CUQPS
+   * @type {Promise<unknown>}
+   */
+  static _walkingPlanChain = Promise.resolve();
+
+  /**
+   * @param {() => Promise<unknown>} task
+   * @returns {Promise<unknown>}
+   */
+  static _runWalkingPlanExclusive(task) {
+    const next = AMapAdapter._walkingPlanChain.then(
+      () => task(),
+      () => task()
+    );
+    AMapAdapter._walkingPlanChain = next.catch(() => {});
+    return next;
+  }
+
+  /**
    * @param {HTMLElement} container
    * @param {{
    *   key: string,
    *   securityJsCode: string,
    *   center?: { lng: number, lat: number },
    *   zoom?: number,
-   *   coordinateInput?: 'WGS84' | 'GCJ02'
-   * }} options  coordinateInput 默认 WGS84（与 DB 一致）；若为 GCJ02 则不再做转换
+   *   coordinateInput?: 'WGS84' | 'GCJ02',
+   *   walkingSegmentDelayMs?: number,
+   *   walkingPlanMaxRetries?: number,
+   *   walkingPlanRetryBaseMs?: number
+   * }} options  coordinateInput 默认 WGS84（与 DB 一致）；若为 GCJ02 则不再做转换。
+   * walkingSegmentDelayMs：段与段之间间隔，缓解 QPS；walkingPlanMaxRetries / walkingPlanRetryBaseMs：限流重试。
    */
   constructor(container, options = {}) {
     super(container, options);
@@ -329,10 +438,16 @@ export class AMapAdapter extends WeGOMap {
 
     markerContent.appendChild(dot);
 
+    const pointer = document.createElement('div');
+    pointer.className = 'wego-marker-pointer';
+    pointer.setAttribute('aria-hidden', 'true');
+    markerContent.appendChild(pointer);
+
+    /* bottom-center 锚在内容盒底边中点：三角尖端对准经纬度，勿再用 (-16,-16) 否则与路线端点错位 */
     const marker = new window.AMap.Marker({
       position:  [g.lng, g.lat],
       content:   markerContent,
-      offset:    new window.AMap.Pixel(-16, -16),
+      offset:    new window.AMap.Pixel(0, 0),
       anchor:    'bottom-center',
     });
 
@@ -404,7 +519,15 @@ export class AMapAdapter extends WeGOMap {
     if (!Array.isArray(coords) || coords.length < 2) {
       throw new Error('[AMapAdapter] drawRoute() 需要至少 2 个坐标点');
     }
+    return AMapAdapter._runWalkingPlanExclusive(() => this._drawRouteInternal(coords, style));
+  }
 
+  /**
+   * 实际绘制逻辑；由 drawRoute 经 _runWalkingPlanExclusive 串行调度，降低 CUQPS 风险
+   * @param {Array<{lat:number,lng:number}>} coords
+   * @param {object} style
+   */
+  async _drawRouteInternal(coords, style = {}) {
     /** 与标记一致：WGS→GCJ 后再请求步行规划，折线与圆点同一坐标系 */
     const gcjCoords = coords.map((c) => {
       const g = this._gcjFromInput(c.lat, c.lng);
@@ -416,6 +539,13 @@ export class AMapAdapter extends WeGOMap {
       weight  = 5,
       opacity = 0.85,
     } = style;
+
+    const segmentDelay =
+      this.options.walkingSegmentDelayMs ?? DEFAULT_WALKING_SEGMENT_DELAY_MS;
+    const maxRetries =
+      this.options.walkingPlanMaxRetries ?? DEFAULT_WALKING_PLAN_MAX_RETRIES;
+    const retryBaseMs =
+      this.options.walkingPlanRetryBaseMs ?? DEFAULT_WALKING_PLAN_RETRY_BASE_MS;
 
     this._clearRoutePolylines();
 
@@ -448,7 +578,7 @@ export class AMapAdapter extends WeGOMap {
     }
     this._walking = walking;
 
-    const planSegment = (origin, destination) =>
+    const planSegmentOnce = (origin, destination) =>
       new Promise((resolve) => {
         walking.search(
           [origin.lng, origin.lat],
@@ -462,18 +592,51 @@ export class AMapAdapter extends WeGOMap {
               /* ignore */
             }
             if (status === 'complete' && result && result.routes && result.routes.length) {
-              resolve(result);
+              resolve({ ok: true, result });
               return;
             }
             const info = result && (result.info || result.message || result);
-            console.warn(
-              `[AMapAdapter] 步行路线规划失败（${status}）${info ? ` detail:${String(info)}` : ''}，该段将用直线连接`,
-              result || ''
-            );
-            resolve(null);
+            resolve({
+              ok:             false,
+              status,
+              result,
+              info,
+              rateLimited:    isWalkingRateLimitError(status, result),
+            });
           }
         );
       });
+
+    const planSegment = async (origin, destination) => {
+      for (let attempt = 0; attempt < maxRetries; attempt++) {
+        if (attempt > 0) {
+          const wait = retryBaseMs * (2 ** (attempt - 1));
+          console.warn(
+            `[AMapAdapter] 步行规划限流/失败，${wait}ms 后重试 (${attempt + 1}/${maxRetries})`
+          );
+          await delay(wait);
+        }
+        const outcome = await planSegmentOnce(origin, destination);
+        if (outcome.ok) return outcome.result;
+        if (!outcome.rateLimited) {
+          const info = outcome.info;
+          console.warn(
+            `[AMapAdapter] 步行路线规划失败（${outcome.status}）${info ? ` detail:${String(info)}` : ''}，该段将用直线连接`,
+            outcome.result || ''
+          );
+          return null;
+        }
+        if (attempt === maxRetries - 1) {
+          const info = outcome.info;
+          console.warn(
+            `[AMapAdapter] 步行路线规划限流重试耗尽（${outcome.status}）${info ? ` detail:${String(info)}` : ''}，该段将用直线连接`,
+            outcome.result || ''
+          );
+          return null;
+        }
+      }
+      return null;
+    };
 
     const drawPolylinePath = (pathLngLat) => {
       const line = new window.AMap.Polyline({
@@ -527,6 +690,9 @@ export class AMapAdapter extends WeGOMap {
 
     let anyApiOk = false;
     for (let i = 0; i < gcjCoords.length - 1; i++) {
+      if (i > 0) {
+        await delay(segmentDelay);
+      }
       const result = await planSegment(gcjCoords[i], gcjCoords[i + 1]);
       const rawPath = result ? extractWalkingLngLatPath(result) : null;
       if (rawPath && rawPath.length >= 2) anyApiOk = true;

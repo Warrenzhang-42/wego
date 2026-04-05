@@ -126,6 +126,11 @@ export class MapboxAdapter extends WeGOMap {
 
     el.appendChild(dot);
 
+    const pointer = document.createElement('div');
+    pointer.className = 'wego-marker-pointer';
+    pointer.setAttribute('aria-hidden', 'true');
+    el.appendChild(pointer);
+
     if (opts.onClick) {
       el.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -133,7 +138,7 @@ export class MapboxAdapter extends WeGOMap {
       });
     }
 
-    const marker = new mapboxgl.Marker(el)
+    const marker = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
       .setLngLat([lng, lat])
       .addTo(this.map);
 
