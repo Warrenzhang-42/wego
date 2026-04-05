@@ -47,9 +47,15 @@
         <!-- 降级显示 -->
         <img class="rd-map-photo-inline rd-map-fallback" src="assets/maps/dashilan-street-overlay.png" alt="" aria-hidden="true" style="display:none;" />
       </div>
-      <div id="ac-route-outside-banner" class="ac-route-outside-banner" role="status" aria-live="polite" aria-hidden="true">
-        <span class="ac-route-outside-text">您不在当前路线区域内</span>
-        <button type="button" class="ac-route-recenter-btn" id="ac-route-recenter-btn">回到路线区域</button>
+      <div id="ac-route-outside-banner" class="ac-route-outside-stack" role="status" aria-live="polite" aria-hidden="true">
+        <button type="button" class="ac-route-recenter-btn" id="ac-route-recenter-btn" aria-label="您不在当前路线区域内，回到路线区域" title="您不在当前路线区域内。点按将地图移回路线范围">
+          <!-- 高德式「定位」：外环 + 四向刻度 + 中心实心圆（与地图 SDK 默认样式一致） -->
+          <svg class="ac-route-recenter-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="12" cy="12" r="7" stroke="currentColor" stroke-width="1.5" fill="none"/>
+            <path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            <circle cx="12" cy="12" r="2.5" fill="currentColor"/>
+          </svg>
+        </button>
       </div>
     </div>
 

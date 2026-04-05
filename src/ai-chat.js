@@ -171,15 +171,16 @@ function applyUserLocationToMap(pos) {
 
   const recenterRouteBtn = document.getElementById('ac-route-recenter-btn');
   if (recenterRouteBtn) {
-    recenterRouteBtn.addEventListener('click', () => {
+    recenterRouteBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
       if (!mapAdapter || !routeViewBounds) return;
       try {
         mapAdapter.fitBounds(routeViewBounds);
         if (mapAdapter._map && typeof mapAdapter._map.resize === 'function') {
           setTimeout(() => mapAdapter._map.resize(), 80);
         }
-      } catch (e) {
-        console.warn('[ai-chat] fitBounds 失败:', e);
+      } catch (err) {
+        console.warn('[ai-chat] fitBounds 失败:', err);
       }
     });
   }
