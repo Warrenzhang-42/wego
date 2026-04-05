@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wego.local/contracts/map-engine-setting.schema.json",
+  "title": "MapEngineSetting",
+  "description": "app_public_settings 中 setting_key=map_engine 时 setting_value 的合法取值，与 MapAdapterFactory.create(provider) 一致",
+  "type": "string",
+  "enum": ["amap", "mapbox", "bmap"]
+}

@@ -711,7 +711,15 @@ let userMarker = null;
     if (!mapContainer) return;
 
     const config = window.__WEGO_MAP_CONFIG__ || {};
-    const provider = config.provider || 'amap';
+    let provider = config.provider || 'amap';
+    try {
+      provider = await apiClient.getMapEngine();
+      window.__WEGO_MAP_CONFIG__ = window.__WEGO_MAP_CONFIG__ || {};
+      window.__WEGO_MAP_CONFIG__.provider = provider;
+    } catch (e) {
+      console.warn('[ai-chat] 读取后台地图引擎失败，使用高德:', e);
+      provider = 'amap';
+    }
     const activeRouteId = window.__WEGO_ACTIVE_ROUTE_ID__ || 'e4e20790-a521-4f0e-947b-1172a1e1b7f1';
 
     try {

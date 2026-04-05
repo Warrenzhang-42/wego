@@ -56,7 +56,7 @@ import { apiClient }         from './lib/api-client.js';
   /* ---- 初始化地图 (多引擎驱动) ------------------------ */
   async function initMap(spots) {
     const config = window.__WEGO_MAP_CONFIG__ || {};
-    const provider = config.provider || 'amap';
+    const provider = config.provider || 'amap'; // 由 main() 从后台 getMapEngine() 写入
 
     // 检查是否有足够的配置进行初始化
     if (!config.apiKey && !config.key) {
@@ -142,28 +142,6 @@ import { apiClient }         from './lib/api-client.js';
     }
   }
 
-  /* ---- 导出切换引擎方法 ---------------------------- */
-  window.switchMapEngine = async (provider) => {
-    if (!currentSpots || !currentSpots.length) return;
-
-    console.log(`[route-detail] 正在切换引擎记录为: ${provider}`);
-
-    if (mapAdapter) {
-      try {
-        mapAdapter.destroy();
-      } catch (e) {
-        console.warn('[route-detail] 销毁旧地图实例:', e);
-      }
-      mapAdapter = null;
-    }
-    if (mapContainer) mapContainer.innerHTML = '';
-
-    window.__WEGO_MAP_CONFIG__.provider = provider;
-    await initMap(currentSpots);
-    await restoreCheckins(currentSpots);
-  };
-
-  // 全局变量保存当前景点数据以供切换使用
   let currentSpots = [];
 
   /* ---- Fullscreen --------------------------------- */
@@ -385,13 +363,21 @@ import { apiClient }         from './lib/api-client.js';
 
   /* ---- 主入口 —— 加载数据 → 渲染 → 初始化地图 ---------- */
   async function main() {
+    window.__WEGO_MAP_CONFIG__ = window.__WEGO_MAP_CONFIG__ || {};
+    try {
+      window.__WEGO_MAP_CONFIG__.provider = await apiClient.getMapEngine();
+    } catch (e) {
+      console.warn('[route-detail] 读取后台地图引擎失败，使用高德:', e);
+      window.__WEGO_MAP_CONFIG__.provider = 'amap';
+    }
+
     const routeData = await loadRouteData();
     let spots = normalizeSpots(routeData?.spots);
     if (spots.length === 0) {
       spots = getFallbackSpots();
     }
 
-    currentSpots = spots; // 保存到全局，供切换引擎使用
+    currentSpots = spots;
     buildSpotList(spots);
     bindSpotToggleEvents();
     bindCheckinButtons(spots);

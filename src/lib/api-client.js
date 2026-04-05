@@ -24,6 +24,15 @@ const _hasSupabase = Boolean(_cfg.supabaseUrl && _cfg.supabaseAnonKey);
 // 本地 JSON 数据文件的根路径（相对于 src/）
 const _LOCAL_DATA_ROOT = '../data/routes/';
 
+/** @param {unknown} raw */
+function _normalizeMapEngine(raw) {
+  const v = String(raw == null ? 'amap' : raw)
+    .toLowerCase()
+    .trim();
+  if (v === 'amap' || v === 'mapbox' || v === 'bmap') return v;
+  return 'amap';
+}
+
 // 已知路线 ID 到文件名的映射（LocalFirst 模式）
 const _ROUTE_FILE_MAP = {
   'e4e20790-a521-4f0e-947b-1172a1e1b7f1': 'dashilan.json',
@@ -118,6 +127,14 @@ const _localSource = {
 
   async getHomeCarousel(_cityAdcode) {
     return { items: null, configKey: null, mode: 'local' };
+  },
+
+  /**
+   * 地图引擎：本地模式固定高德，与后台默认一致
+   * @returns {Promise<'amap'|'mapbox'|'bmap'>}
+   */
+  async getMapEngine() {
+    return 'amap';
   },
 };
 
@@ -234,6 +251,21 @@ const _supabaseSource = {
       configKey: 'general',
       mode: 'general',
     };
+  },
+
+  /**
+   * 地图引擎：读取 app_public_settings.map_engine，缺省或非法值回落 amap（高德）
+   * @returns {Promise<'amap'|'mapbox'|'bmap'>}
+   */
+  async getMapEngine() {
+    const sb = await this._getClient();
+    const { data, error } = await sb
+      .from('app_public_settings')
+      .select('setting_value')
+      .eq('setting_key', 'map_engine')
+      .maybeSingle();
+    if (error) throw new Error(`[api-client] getMapEngine 失败: ${error.message}`);
+    return _normalizeMapEngine(data?.setting_value);
   },
 };
 
