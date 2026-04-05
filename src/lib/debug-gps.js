@@ -5,6 +5,57 @@
 import { eventBus } from './event-bus.js';
 import { geofenceManager } from './geofence-manager.js';
 
+const SIMULATE_SPOT_TIMEOUT_MS = 120000;
+const SIMULATE_GAP_MS = 600;
+
+/**
+ * 按 sort_order 依次将坐标设到每个景点中心，触发 geofence:enter → AI 讲解；
+ * 需已打开 ai-chat 且本地 Agent (8000) 可用。
+ * @returns {Promise<void>}
+ */
+export async function simulateAllGeofencesSequential() {
+  let spots = geofenceManager.spots || [];
+  if (spots.length === 0) {
+    await new Promise((r) => setTimeout(r, 800));
+    spots = geofenceManager.spots || [];
+  }
+  if (spots.length === 0) {
+    console.warn('[debug-gps] simulateAll: 景点列表为空，请等 initWithRoute 完成后再试');
+    return;
+  }
+
+  geofenceManager.resetForSimulation();
+  console.log(`[debug-gps] 开始串行模拟 ${spots.length} 个景点…`);
+
+  for (let i = 0; i < spots.length; i++) {
+    const spot = spots[i];
+    console.log(`[debug-gps] (${i + 1}/${spots.length}) 定位到: ${spot.name}`);
+    geofenceManager.forceUpdate(spot.lat, spot.lng);
+
+    await new Promise((resolve) => {
+      const timer = setTimeout(() => {
+        eventBus.off('geofence:narration:done', onDone);
+        console.warn(`[debug-gps] 「${spot.name}」讲解等待超时 (${SIMULATE_SPOT_TIMEOUT_MS}ms)，继续下一景点`);
+        resolve();
+      }, SIMULATE_SPOT_TIMEOUT_MS);
+
+      function onDone() {
+        clearTimeout(timer);
+        eventBus.off('geofence:narration:done', onDone);
+        resolve();
+      }
+
+      eventBus.once('geofence:narration:done', onDone);
+    });
+
+    if (i < spots.length - 1) {
+      await new Promise((r) => setTimeout(r, SIMULATE_GAP_MS));
+    }
+  }
+
+  console.log('[debug-gps] 串行模拟全部景点已完成（请对照聊天区与 geofence_narration 数据）');
+}
+
 class DebugGPSTool {
   constructor() {
     this.el = null;
@@ -41,6 +92,12 @@ class DebugGPSTool {
                        transition: opacity 0.2s;">
           模拟定位到此
         </button>
+        <button id="debug-simulate-all" type="button"
+                style="width: 100%; margin-top: 8px; background: #2d6a4f; border: none; color: white;
+                       padding: 8px; border-radius: 6px; cursor: pointer; font-weight: 600;
+                       font-size: 11px;">
+          串行模拟全部景点
+        </button>
         <div style="margin-top: 8px; font-size: 9px; color: #666; text-align: center;">杨梅竹斜街: 39.8961, 116.3925</div>
       </div>
     `;
@@ -55,6 +112,20 @@ class DebugGPSTool {
         geofenceManager.forceUpdate(lat, lng);
       }
     };
+
+    const simBtn = document.getElementById('debug-simulate-all');
+    if (simBtn) {
+      simBtn.onclick = async () => {
+        simBtn.disabled = true;
+        simBtn.textContent = '模拟运行中…';
+        try {
+          await simulateAllGeofencesSequential();
+        } finally {
+          simBtn.disabled = false;
+          simBtn.textContent = '串行模拟全部景点';
+        }
+      };
+    }
 
     document.getElementById('debug-close').onclick = () => {
       this.el.style.display = 'none';
@@ -77,3 +148,5 @@ if (document.readyState === 'loading') {
 } else {
   new DebugGPSTool();
 }
+
+window.__WEGO_simulateAllGeofences = simulateAllGeofencesSequential;

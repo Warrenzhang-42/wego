@@ -109,6 +109,15 @@ class GeofenceManager {
       },
     });
   }
+
+  /**
+   * 调试：清空围栏占用与触发冷却，便于重复跑「串行模拟全部景点」
+   */
+  resetForSimulation() {
+    this.cooldowns.clear();
+    this.activeFences.clear();
+    console.log('[geofence-manager] 已 resetForSimulation（冷却与 activeFences 已清空）');
+  }
 }
 
 export const geofenceManager = new GeofenceManager();

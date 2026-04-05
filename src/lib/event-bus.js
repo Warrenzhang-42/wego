@@ -30,6 +30,19 @@ class EventBus {
   }
 
   /**
+   * Subscribe once — 回调执行后自动取消订阅（用于串行等待异步流程）
+   * @param {string} event
+   * @param {Function} callback
+   */
+  once(event, callback) {
+    const wrapper = (data) => {
+      this.off(event, wrapper);
+      callback(data);
+    };
+    this.on(event, wrapper);
+  }
+
+  /**
    * Emit an event
    * @param {string} event - Event name
    * @param {*} data - Data to pass to callbacks

@@ -860,39 +860,37 @@ function applyUserLocationToMap(pos) {
     });
 
     window.eventBus.on('geofence:enter', async (spot) => {
-      // Avoid triggering multiple times if already loading or if user is busy with another query
-      if (chatClient) {
-        console.log(`[ai-chat] 监测到进入景点: ${spot.name}, 正在获取主动导游建议...`);
-        
-        const loadingTempId = chatMessages.length;
-        chatMessages.push({ 
-          sender: 'ai', 
-          text: `嘿！发现您离【${spot.name}】很近了，我来给您讲讲这里的道道...`, 
-          loading: true 
+      if (!chatClient) return;
+
+      console.log(`[ai-chat] 监测到进入景点: ${spot.name}, 正在获取主动导游建议...`);
+
+      const loadingTempId = chatMessages.length;
+      chatMessages.push({
+        sender: 'ai',
+        text: `嘿！发现您离【${spot.name}】很近了，我来给您讲讲这里的道道...`,
+        loading: true
+      });
+      renderMessages();
+
+      try {
+        const aiData = await chatClient.sendMessage(`我在${spot.name}附近，介绍一下这里的精彩之处。`, null, null, {
+          trigger_type: 'geofence',
+          spot_id: spot.id
         });
-        renderMessages();
 
-        try {
-          const aiData = await chatClient.sendMessage(`我在${spot.name}附近，介绍一下这里的精彩之处。`, null, null, {
-            trigger_type: 'geofence',
-            spot_id: spot.id
-          });
-
-          // Replace the "thinking" bubble with real content
-          const aiMsg = {
-            sender: 'ai',
-            text: aiData.content || aiData.text || '',
-            inserts: aiData.inserts || []
-          };
-          chatMessages[loadingTempId] = aiMsg;
-          
-          // Sprint 7: 开始语音播报
-          playAudioNarration(aiMsg.text);
-        } catch (e) {
-          console.error('[ai-chat] 主动触发失败:', e);
-          chatMessages[loadingTempId] = { sender: 'ai', text: `哎哟，到了${spot.name}了，可我这会儿突然断网了。` };
-        }
+        const aiMsg = {
+          sender: 'ai',
+          text: aiData.content || aiData.text || '',
+          inserts: aiData.inserts || []
+        };
+        chatMessages[loadingTempId] = aiMsg;
+        playAudioNarration(aiMsg.text);
+      } catch (e) {
+        console.error('[ai-chat] 主动触发失败:', e);
+        chatMessages[loadingTempId] = { sender: 'ai', text: `哎哟，到了${spot.name}了，可我这会儿突然断网了。` };
+      } finally {
         renderMessages();
+        window.eventBus.emit('geofence:narration:done', { spot });
       }
     });
   }
