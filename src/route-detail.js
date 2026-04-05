@@ -11,6 +11,8 @@ import { apiClient }         from './lib/api-client.js';
 
   /* ---- 地图适配器实例 --------------------------------- */
   let mapAdapter = null;
+  /** 与 fitBounds 一致，用于展开地图后重新框选整条路线 */
+  let routeViewBounds = null;
 
   /* ---- Elements ----------------------------------- */
   const app            = document.getElementById('app');
@@ -117,10 +119,11 @@ import { apiClient }         from './lib/api-client.js';
         if (spots.length >= 1) {
           const lats = spots.map(s => s.lat);
           const lngs = spots.map(s => s.lng);
-          mapAdapter.fitBounds({
+          routeViewBounds = {
             sw: { lat: Math.min(...lats) - 0.001, lng: Math.min(...lngs) - 0.001 },
             ne: { lat: Math.max(...lats) + 0.001, lng: Math.max(...lngs) + 0.001 },
-          });
+          };
+          mapAdapter.fitBounds(routeViewBounds);
         }
       } catch (boundsErr) {
         console.warn('[route-detail] fitBounds 跳过:', boundsErr);
@@ -182,7 +185,16 @@ import { apiClient }         from './lib/api-client.js';
     }
     // 展开地图时触发 resize 让高德重新计算容器尺寸
     if (expanded && mapAdapter && mapAdapter._map) {
-      setTimeout(() => mapAdapter._map.resize(), 300);
+      setTimeout(() => {
+        try {
+          mapAdapter._map.resize();
+          if (routeViewBounds && typeof mapAdapter.fitBounds === 'function') {
+            mapAdapter.fitBounds(routeViewBounds);
+          }
+        } catch (e) {
+          /* ignore */
+        }
+      }, 300);
     }
     if (expanded) {
       window.scrollTo({ top: 0, behavior: 'smooth' });

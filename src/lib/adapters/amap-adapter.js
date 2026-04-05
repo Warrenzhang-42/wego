@@ -405,8 +405,37 @@ export class AMapAdapter extends WeGOMap {
   addMarker(lng, lat, opts = {}) {
     if (!this._map) throw new Error('[AMapAdapter] 地图未初始化，请先调用 init()');
 
-    const { icon, label, onClick, index, checkedIn, terminal } = opts;
+    const { icon, label, onClick, index, checkedIn, terminal, isUser } = opts;
     const g = this._gcjFromInput(lat, lng);
+
+    if (isUser) {
+      const wrap = document.createElement('div');
+      wrap.className = 'wego-user-marker';
+      const rotate = document.createElement('div');
+      rotate.className = 'wego-user-marker-rotate is-heading-unknown';
+      const arrow = document.createElement('div');
+      arrow.className = 'wego-user-marker-arrow';
+      arrow.setAttribute('aria-hidden', 'true');
+      arrow.innerHTML =
+        '<svg width="24" height="22" viewBox="0 0 24 22" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+        '<path d="M12 2L21 18H3L12 2Z" fill="#2563eb" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/>' +
+        '</svg>';
+      rotate.appendChild(arrow);
+      const disc = document.createElement('div');
+      disc.className = 'wego-user-marker-disc';
+      wrap.appendChild(rotate);
+      wrap.appendChild(disc);
+      const marker = new window.AMap.Marker({
+        position: [g.lng, g.lat],
+        content:  wrap,
+        offset:   new window.AMap.Pixel(0, 0),
+        anchor:   'bottom-center',
+        zIndex:   150,
+      });
+      if (onClick) marker.on('click', () => onClick({ lng, lat, ...opts }));
+      marker.setMap(this._map);
+      return marker;
+    }
 
     // 构建自定义标记 HTML（与 WeGO 视觉风格保持一致）
     const markerContent = document.createElement('div');
@@ -727,6 +756,39 @@ export class AMapAdapter extends WeGOMap {
     } else {
       console.log('[AMapAdapter] drawRoute ✅ 已合并步行路网', gcjCoords.length - 1, '段（GCJ，与标记一致）');
     }
+  }
+
+  /**
+   * 将 WGS-84（或 options.coordinateInput 约定）经纬度同步到已有 Marker（GCJ 展示）
+   * @param {AMap.Marker} marker
+   * @param {number} lng
+   * @param {number} lat
+   */
+  setMarkerWgs84Position(marker, lng, lat) {
+    if (!this._map || !marker || typeof marker.setPosition !== 'function') return;
+    const gcj = this._gcjFromInput(lat, lng);
+    marker.setPosition([gcj.lng, gcj.lat]);
+  }
+
+  /**
+   * 更新「用户位置」标记朝向（度，顺时针自正北；无效时弱化显示）
+   * @param {AMap.Marker} marker
+   * @param {number|null|undefined} headingDeg
+   */
+  updateUserMarkerHeading(marker, headingDeg) {
+    if (!marker || typeof marker.getContent !== 'function') return;
+    const root = marker.getContent();
+    if (!root || typeof root.querySelector !== 'function') return;
+    const rot = root.querySelector('.wego-user-marker-rotate');
+    if (!rot) return;
+    const h = Number(headingDeg);
+    if (!Number.isFinite(h)) {
+      rot.classList.add('is-heading-unknown');
+      rot.style.transform = 'rotate(0deg)';
+      return;
+    }
+    rot.classList.remove('is-heading-unknown');
+    rot.style.transform = `rotate(${h}deg)`;
   }
 
   /* ----------------------------------------------------------

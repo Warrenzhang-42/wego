@@ -6,6 +6,54 @@ import { apiClient }         from './lib/api-client.js';
 let mapAdapter = null;
 let currentSpots = [];
 let userMarker = null;
+/** 与 fitBounds 一致（WGS-84，与 Geolocation 一致） */
+let routeViewBounds = null;
+let lastGpsPosition = null;
+
+const ROUTE_BOUNDS_PAD = 0.001;
+
+function boundsFromLatLngArrays(lats, lngs, pad = ROUTE_BOUNDS_PAD) {
+  if (!lats.length || !lngs.length) return null;
+  return {
+    sw: { lat: Math.min(...lats) - pad, lng: Math.min(...lngs) - pad },
+    ne: { lat: Math.max(...lats) + pad, lng: Math.max(...lngs) + pad },
+  };
+}
+
+function isWgsOutsideRouteArea(lat, lng, b) {
+  if (!b || !b.sw || !b.ne) return false;
+  return lat < b.sw.lat || lat > b.ne.lat || lng < b.sw.lng || lng > b.ne.lng;
+}
+
+function updateOutsideBanner(visible) {
+  const el = document.getElementById('ac-route-outside-banner');
+  if (!el) return;
+  el.classList.toggle('is-visible', !!visible);
+  el.setAttribute('aria-hidden', visible ? 'false' : 'true');
+}
+
+function syncRouteOutsideUi(pos) {
+  if (!pos || !routeViewBounds) {
+    updateOutsideBanner(false);
+    return;
+  }
+  updateOutsideBanner(isWgsOutsideRouteArea(pos.lat, pos.lng, routeViewBounds));
+}
+
+function applyUserLocationToMap(pos) {
+  if (!mapAdapter || !pos || !Number.isFinite(pos.lat) || !Number.isFinite(pos.lng)) return;
+  if (!userMarker) {
+    userMarker = mapAdapter.addMarker(pos.lng, pos.lat, { isUser: true });
+  } else if (typeof mapAdapter.setMarkerWgs84Position === 'function') {
+    mapAdapter.setMarkerWgs84Position(userMarker, pos.lng, pos.lat);
+  } else if (typeof userMarker.setPosition === 'function') {
+    userMarker.setPosition([pos.lng, pos.lat]);
+  }
+  if (typeof mapAdapter.updateUserMarkerHeading === 'function') {
+    mapAdapter.updateUserMarkerHeading(userMarker, pos.heading);
+  }
+  syncRouteOutsideUi(pos);
+}
 
   const params = new URLSearchParams(window.location.search);
   const isConsult = params.get('consult') === '1';
@@ -103,10 +151,37 @@ let userMarker = null;
     if (expanded) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+    if (expanded && mapAdapter && mapAdapter._map) {
+      setTimeout(() => {
+        try {
+          mapAdapter._map.resize();
+          if (routeViewBounds && typeof mapAdapter.fitBounds === 'function') {
+            mapAdapter.fitBounds(routeViewBounds);
+          }
+        } catch (e) {
+          /* ignore */
+        }
+      }, 300);
+    }
   };
 
   if (fullscreenBtn) {
     fullscreenBtn.addEventListener('click', togglePanelFullscreen);
+  }
+
+  const recenterRouteBtn = document.getElementById('ac-route-recenter-btn');
+  if (recenterRouteBtn) {
+    recenterRouteBtn.addEventListener('click', () => {
+      if (!mapAdapter || !routeViewBounds) return;
+      try {
+        mapAdapter.fitBounds(routeViewBounds);
+        if (mapAdapter._map && typeof mapAdapter._map.resize === 'function') {
+          setTimeout(() => mapAdapter._map.resize(), 80);
+        }
+      } catch (e) {
+        console.warn('[ai-chat] fitBounds 失败:', e);
+      }
+    });
   }
 
   /* 结束旅程：长按约 0.8s 后进入收获页（短按无效；问问导游 consult=1 时按钮已隐藏） */
@@ -392,10 +467,9 @@ let userMarker = null;
       // 3. 自动调整视野包含所有景点
       const lats = route.waypoints.map(w => w.lat);
       const lngs = route.waypoints.map(w => w.lng);
-      mapAdapter.fitBounds({
-        sw: { lat: Math.min(...lats) - 0.001, lng: Math.min(...lngs) - 0.001 },
-        ne: { lat: Math.max(...lats) + 0.001, lng: Math.max(...lngs) + 0.001 }
-      });
+      routeViewBounds = boundsFromLatLngArrays(lats, lngs, ROUTE_BOUNDS_PAD);
+      if (routeViewBounds) mapAdapter.fitBounds(routeViewBounds);
+      if (lastGpsPosition) applyUserLocationToMap(lastGpsPosition);
       console.log('[ai-chat] ✅ 路线已绘制到地图');
     } catch (err) {
       console.error('[ai-chat] 地图绘制失败:', err);
@@ -729,7 +803,7 @@ let userMarker = null;
 
       // 2. 初始化地图
       mapAdapter = MapAdapterFactory.create(provider, mapContainer, {
-        apiKey:         config.apiKey,
+        apiKey:         config.apiKey || config.key,
         securityJsCode: config.securityJsCode,
         mapOptions: {
           zoom: 17
@@ -748,15 +822,23 @@ let userMarker = null;
       });
 
       const coords = currentSpots.map(s => ({ lat: s.lat, lng: s.lng }));
-      await mapAdapter.drawRoute(coords);
+      try {
+        if (coords.length >= 2) {
+          await mapAdapter.drawRoute(coords);
+        } else if (coords.length === 1) {
+          mapAdapter.setCenter(coords[0].lng, coords[0].lat, 17);
+        }
+      } catch (routeErr) {
+        console.warn('[ai-chat] 路线绘制跳过（底图与标记仍可用）:', routeErr);
+      }
 
       // 4. 初次视野调整
       const lats = currentSpots.map(s => s.lat);
       const lngs = currentSpots.map(s => s.lng);
-      mapAdapter.fitBounds({
-        sw: { lat: Math.min(...lats) - 0.001, lng: Math.min(...lngs) - 0.001 },
-        ne: { lat: Math.max(...lats) + 0.001, lng: Math.max(...lngs) + 0.001 },
-      });
+      routeViewBounds = boundsFromLatLngArrays(lats, lngs, ROUTE_BOUNDS_PAD);
+      if (routeViewBounds) mapAdapter.fitBounds(routeViewBounds);
+
+      if (lastGpsPosition) applyUserLocationToMap(lastGpsPosition);
 
       console.log(`[ai-chat] ✅ 地图与路线 (${activeRouteId}) 同步完成`);
 
@@ -771,22 +853,9 @@ let userMarker = null;
 
   // --- Geofence Integration (Sprint 5) ---
   if (window.eventBus) {
-    // 监听地理位置更新，实现“自动跟随”视野 (Sprint 6.4)
-    window.eventBus.on('location:update', (pos) => {
-      if (mapAdapter) {
-        // 1. 更新或创建用户位置标记
-        if (!userMarker) {
-          userMarker = mapAdapter.addMarker(pos.lng, pos.lat, {
-            label: '我',
-            isUser: true // 适配器内部可据此切换样式
-          });
-        } else {
-          userMarker.setPosition([pos.lng, pos.lat]);
-        }
-
-        // 2. 自动跟随：将地图中心设置为当前位置
-        mapAdapter.setCenter(pos.lng, pos.lat);
-      }
+    window.eventBus.on('gps:update', (pos) => {
+      lastGpsPosition = pos;
+      applyUserLocationToMap(pos);
     });
 
     window.eventBus.on('geofence:enter', async (spot) => {

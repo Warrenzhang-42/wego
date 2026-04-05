@@ -36,19 +36,27 @@ class GeofenceManager {
     }
 
     navigator.geolocation.watchPosition(
-      (pos) => this.handleUpdate(pos.coords.latitude, pos.coords.longitude),
+      (pos) => this.handlePosition(pos),
       (err) => console.warn('[geofence-manager] 定位失败:', err.message),
       { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
     );
   }
 
   /**
-   * Main location logic
+   * 浏览器定位回调：经纬度为 WGS-84；heading 可能为空（静止或部分设备不支持）
+   * @param {GeolocationPosition} position
    */
-  handleUpdate(lat, lng) {
-    this.currentPosition = { lat, lng };
-    // Emit globally for map or debug tool
+  handlePosition(position) {
+    const c = position.coords;
+    const lat = c.latitude;
+    const lng = c.longitude;
+    const headingRaw = c.heading;
+    const heading =
+      headingRaw != null && Number.isFinite(Number(headingRaw)) ? Number(headingRaw) : null;
+
+    this.currentPosition = { lat, lng, heading, accuracy: c.accuracy };
     eventBus.emit('gps:update', this.currentPosition);
+    eventBus.emit('location:update', this.currentPosition);
 
     this.spots.forEach((spot) => {
       const dist = haversineDistance(lat, lng, spot.lat, spot.lng);
@@ -90,9 +98,16 @@ class GeofenceManager {
   /**
    * Manual trigger for debug / Mock
    */
-  forceUpdate(lat, lng) {
+  forceUpdate(lat, lng, heading = null) {
     console.log(`[geofence-manager] 手动地理位置更新: ${lat}, ${lng}`);
-    this.handleUpdate(lat, lng);
+    this.handlePosition({
+      coords: {
+        latitude:  lat,
+        longitude: lng,
+        heading,
+        accuracy:  10,
+      },
+    });
   }
 }
 
