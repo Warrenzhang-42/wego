@@ -50,7 +50,8 @@ import { apiClient }         from './lib/api-client.js';
         lat: typeof s.lat === 'number' && !Number.isNaN(s.lat) ? s.lat : parseFloat(s.lat),
         lng: typeof s.lng === 'number' && !Number.isNaN(s.lng) ? s.lng : parseFloat(s.lng),
       }))
-      .filter((s) => Number.isFinite(s.lat) && Number.isFinite(s.lng));
+      .filter((s) => Number.isFinite(s.lat) && Number.isFinite(s.lng))
+      .sort((a, b) => (Number(a.sort_order) || 0) - (Number(b.sort_order) || 0));
   }
 
   /* ---- 初始化地图 (多引擎驱动) ------------------------ */
@@ -84,12 +85,15 @@ import { apiClient }         from './lib/api-client.js';
 
       await mapAdapter.init();
 
-      // 1. 添加各景点标记
+      // 1. 添加各景点标记（顺序已按 sort_order；首末点标注起/终，与列表序号一致）
+      const lastIdx = spots.length - 1;
       spots.forEach((spot, idx) => {
+        const terminal = idx === 0 ? 'start' : idx === lastIdx && lastIdx > 0 ? 'end' : undefined;
         mapAdapter.addMarker(spot.lng, spot.lat, {
           index:   idx,
           label:   (idx + 1).toString(), // 序号数字
           title:   spot.name,            // 景点名标签
+          terminal,
           onClick: () => {
             const card = document.getElementById(`spot-card-${idx}`);
             if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
