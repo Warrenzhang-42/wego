@@ -141,9 +141,8 @@
   <script type="module" src="lib/geofence-manager.js"></script>
   <script type="module" src="lib/debug-gps.js"></script>
   
-  <!-- App Logic -->
+  <!-- App Logic：WeGOChatClient 需先于 ai-chat 模块执行 -->
   <script src="lib/chat-client.js"></script>
-  <script src="ai-chat.js"></script>
 
   <!-- Map Integration (Sprint 6) -->
   <script>
@@ -174,5 +173,8 @@
 
     initTour();
   </script>
+
+  <!-- ES 模块（含 import），须 type="module"；放在 initTour 之后以保证 __WEGO_ACTIVE_ROUTE_ID__ 已设置 -->
+  <script type="module" src="ai-chat.js"></script>
 </body>
 </html>

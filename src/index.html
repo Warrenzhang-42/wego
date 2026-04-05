@@ -44,101 +44,10 @@
       </form>
     </div>
 
-    <!-- ===== HERO CAROUSEL ===== -->
+    <!-- ===== HERO CAROUSEL（内容由 app.js + lib/home-carousel.js 按城市/通用配置注入） ===== -->
     <div class="carousel-wrapper">
-      <div class="carousel-track" id="carousel-track">
-        <!-- Slide 0 · 仅图片 -->
-        <div class="carousel-slide slide-image-only">
-          <div class="slide-img-wrap">
-            <img src="assets/hero-ai-personalized-routes.png" alt="跟我来，AI个性化专家路线，跟我走省心不用做攻略" class="slide-img" />
-          </div>
-        </div>
-        <!-- Slide 1 -->
-        <div class="carousel-slide">
-          <div class="slide-img-wrap">
-            <img src="assets/knowledge-mount-symbolism.png" alt="摩洛哥古城" class="slide-img" />
-            <div class="slide-overlay"></div>
-          </div>
-          <div class="slide-content">
-            <h2 class="slide-title">摩洛哥蓝色古城</h2>
-            <p class="slide-desc">穿梭在蔚蓝巷弄间，感受柏柏尔人的千年文化</p>
-            <div class="slide-meta">
-              <div class="route-heat">
-                <span class="heat-label">热度</span>
-                <div class="heat-dots">
-                  <span class="heat-dot hot"></span>
-                  <span class="heat-dot hot"></span>
-                  <span class="heat-dot hot"></span>
-                  <span class="heat-dot hot"></span>
-                  <span class="heat-dot hot"></span>
-                </div>
-                <span class="heat-num">28.4k</span>
-              </div>
-              <span class="slide-meta-item">🕐 3小时路线</span>
-            </div>
-            <button class="slide-cta-btn" id="slide1-cta">立即体验 →</button>
-          </div>
-        </div>
-        <!-- Slide 2 -->
-        <div class="carousel-slide">
-          <div class="slide-img-wrap">
-            <img src="assets/knowledge-ich-1.png" alt="圣托里尼海岛" class="slide-img" />
-            <div class="slide-overlay"></div>
-          </div>
-          <div class="slide-content">
-            <h2 class="slide-title">圣托里尼海岛之旅</h2>
-            <p class="slide-desc">碧海与白墙间，邂逅爱琴海最浪漫的黄昏时刻</p>
-            <div class="slide-meta">
-              <div class="route-heat">
-                <span class="heat-label">热度</span>
-                <div class="heat-dots">
-                  <span class="heat-dot hot"></span>
-                  <span class="heat-dot hot"></span>
-                  <span class="heat-dot hot"></span>
-                  <span class="heat-dot hot"></span>
-                  <span class="heat-dot half"></span>
-                </div>
-                <span class="heat-num">15.2k</span>
-              </div>
-              <span class="slide-meta-item">🕐 4小时路线</span>
-            </div>
-            <button class="slide-cta-btn" id="slide2-cta">立即体验 →</button>
-          </div>
-        </div>
-        <!-- Slide 3 -->
-        <div class="carousel-slide">
-          <div class="slide-img-wrap">
-            <img src="assets/knowledge-ich-2.png" alt="吴哥窟" class="slide-img" />
-            <div class="slide-overlay"></div>
-          </div>
-          <div class="slide-content">
-            <h2 class="slide-title">吴哥窟的神秘晨光</h2>
-            <p class="slide-desc">在晨雾中揭开高棉文明的神秘面纱，穿越千年时光</p>
-            <div class="slide-meta">
-              <div class="route-heat">
-                <span class="heat-label">热度</span>
-                <div class="heat-dots">
-                  <span class="heat-dot hot"></span>
-                  <span class="heat-dot hot"></span>
-                  <span class="heat-dot hot"></span>
-                  <span class="heat-dot hot"></span>
-                  <span class="heat-dot hot"></span>
-                </div>
-                <span class="heat-num">42.1k</span>
-              </div>
-              <span class="slide-meta-item">🕐 5小时路线</span>
-            </div>
-            <button class="slide-cta-btn" id="slide3-cta">立即体验 →</button>
-          </div>
-        </div>
-      </div>
-      <!-- Dots -->
-      <div class="carousel-dots" id="carousel-dots">
-        <button class="dot active" data-idx="0" aria-label="幻灯片1"></button>
-        <button class="dot" data-idx="1" aria-label="幻灯片2"></button>
-        <button class="dot" data-idx="2" aria-label="幻灯片3"></button>
-        <button class="dot" data-idx="3" aria-label="幻灯片4"></button>
-      </div>
+      <div class="carousel-track" id="carousel-track" aria-busy="true"></div>
+      <div class="carousel-dots" id="carousel-dots"></div>
     </div>
 
     <!-- ===== QUICK CATEGORY CHIPS ===== -->

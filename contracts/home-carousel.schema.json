@@ -1,0 +1,37 @@
+{
+  "$id": "home-carousel",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "HomeCarouselConfig",
+  "description": "首页轮播配置：管理端写入 home_carousel_configs.items；前台解析后渲染",
+  "type": "object",
+  "required": ["items"],
+  "properties": {
+    "items": {
+      "type": "array",
+      "description": "按顺序展示的轮播项",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "required": ["type", "image_url"],
+            "additionalProperties": false,
+            "properties": {
+              "type": { "const": "image" },
+              "image_url": { "type": "string", "minLength": 1 },
+              "alt": { "type": "string" }
+            }
+          },
+          {
+            "type": "object",
+            "required": ["type", "route_id"],
+            "additionalProperties": false,
+            "properties": {
+              "type": { "const": "route" },
+              "route_id": { "type": "string", "format": "uuid" }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

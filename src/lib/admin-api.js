@@ -290,11 +290,260 @@ async function uploadCoverImage(file, routeId) {
 }
 
 /**
+ * 轮播配置：config_key 为 general 或 city:六位 adcode
+ */
+async function getCarouselConfig(configKey) {
+  const sb = await _getClient();
+  const { data, error } = await sb
+    .from('home_carousel_configs')
+    .select('*')
+    .eq('config_key', configKey)
+    .maybeSingle();
+  if (error) throw new Error(`[admin-api] getCarouselConfig 失败: ${error.message}`);
+  return data || null;
+}
+
+/**
+ * @returns {Promise<{ config_key: string, items: unknown[], updated_at?: string }[]>}
+ */
+async function listCarouselConfigs() {
+  const sb = await _getClient();
+  const { data, error } = await sb
+    .from('home_carousel_configs')
+    .select('config_key, items, updated_at')
+    .order('config_key', { ascending: true });
+  if (error) throw new Error(`[admin-api] listCarouselConfigs 失败: ${error.message}`);
+  return data || [];
+}
+
+async function upsertCarouselConfig(configKey, items) {
+  const sb = await _getClient();
+  const { data, error } = await sb
+    .from('home_carousel_configs')
+    .upsert(
+      { config_key: configKey, items },
+      { onConflict: 'config_key' }
+    )
+    .select()
+    .single();
+  if (error) throw new Error(`[admin-api] upsertCarouselConfig 失败: ${error.message}`);
+  return data;
+}
+
+async function deleteCarouselConfig(configKey) {
+  const sb = await _getClient();
+  const { error } = await sb.from('home_carousel_configs').delete().eq('config_key', configKey);
+  if (error) throw new Error(`[admin-api] deleteCarouselConfig 失败: ${error.message}`);
+  return { config_key: configKey };
+}
+
+/**
+ * 删除「有 city: 行但未加入任何地区组合」的孤儿配置，与从地区移除城市行为一致（首页回退通用轮播）。
+ */
+async function reconcileOrphanCityCarouselConfigs() {
+  const rows = await listCarouselConfigs();
+  const groups = await listCarouselCityGroups();
+  const used = new Set();
+  for (const g of groups) {
+    for (const ad of g.city_adcodes || []) used.add(ad);
+  }
+  for (const r of rows) {
+    const key = r.config_key;
+    if (!key || !key.startsWith('city:')) continue;
+    const ad = key.replace(/^city:/, '');
+    if (!used.has(ad)) await deleteCarouselConfig(key);
+  }
+}
+
+/**
+ * @returns {Promise<{ id: string, name: string, created_at?: string, city_adcodes: string[] }[]>}
+ */
+async function listCarouselCityGroups() {
+  const sb = await _getClient();
+  const { data: groups, error: e1 } = await sb
+    .from('home_carousel_city_groups')
+    .select('id, name, created_at')
+    .order('created_at', { ascending: true });
+  if (e1) throw new Error(`[admin-api] listCarouselCityGroups 失败: ${e1.message}`);
+  const { data: members, error: e2 } = await sb
+    .from('home_carousel_city_group_members')
+    .select('group_id, city_adcode');
+  if (e2) throw new Error(`[admin-api] listCarouselCityGroups 失败: ${e2.message}`);
+  const map = new Map();
+  for (const g of groups || []) {
+    map.set(g.id, { id: g.id, name: g.name || '', created_at: g.created_at, city_adcodes: [] });
+  }
+  for (const m of members || []) {
+    const row = map.get(m.group_id);
+    if (row) row.city_adcodes.push(m.city_adcode);
+  }
+  for (const g of map.values()) {
+    g.city_adcodes.sort();
+  }
+  return [...map.values()];
+}
+
+/**
+ * 新建组合：若某城已有 city: 行，取首个非空 items 作为整组初始内容并同步到所有成员。
+ * @param {string} name
+ * @param {string[]} cityAdcodes
+ */
+async function createCarouselCityGroup(name, cityAdcodes) {
+  const uniq = [...new Set((cityAdcodes || []).filter(Boolean))];
+  if (!uniq.length) throw new Error('[admin-api] 创建组合至少需要选择一个城市');
+  const sb = await _getClient();
+  const { data: taken, error: e0 } = await sb
+    .from('home_carousel_city_group_members')
+    .select('city_adcode')
+    .in('city_adcode', uniq);
+  if (e0) throw new Error(`[admin-api] createCarouselCityGroup 失败: ${e0.message}`);
+  if (taken && taken.length) {
+    const list = taken.map((r) => r.city_adcode).join(', ');
+    throw new Error(`[admin-api] 以下城市已在其他组合中：${list}`);
+  }
+  let items = [];
+  for (const ad of uniq) {
+    const row = await getCarouselConfig(`city:${ad}`);
+    if (row && Array.isArray(row.items) && row.items.length) {
+      items = JSON.parse(JSON.stringify(row.items));
+      break;
+    }
+  }
+  const { data: grp, error: eg } = await sb
+    .from('home_carousel_city_groups')
+    .insert({ name: name != null ? String(name) : '' })
+    .select()
+    .single();
+  if (eg) throw new Error(`[admin-api] createCarouselCityGroup 失败: ${eg.message}`);
+  const memRows = uniq.map((city_adcode) => ({ group_id: grp.id, city_adcode }));
+  const { error: em } = await sb.from('home_carousel_city_group_members').insert(memRows);
+  if (em) {
+    await sb.from('home_carousel_city_groups').delete().eq('id', grp.id);
+    throw new Error(`[admin-api] createCarouselCityGroup 失败: ${em.message}`);
+  }
+  for (const ad of uniq) {
+    await upsertCarouselConfig(`city:${ad}`, items);
+  }
+  return grp;
+}
+
+async function updateCarouselCityGroupName(groupId, name) {
+  const sb = await _getClient();
+  const { error } = await sb
+    .from('home_carousel_city_groups')
+    .update({ name: name != null ? String(name) : '' })
+    .eq('id', groupId);
+  if (error) throw new Error(`[admin-api] updateCarouselCityGroupName 失败: ${error.message}`);
+}
+
+/**
+ * 将同一套 items 写入组合内全部城市的 config 行。
+ * @param {string} groupId
+ * @param {unknown[]} items
+ */
+async function saveCarouselCityGroupItems(groupId, items) {
+  const sb = await _getClient();
+  const { data: mems, error } = await sb
+    .from('home_carousel_city_group_members')
+    .select('city_adcode')
+    .eq('group_id', groupId);
+  if (error) throw new Error(`[admin-api] saveCarouselCityGroupItems 失败: ${error.message}`);
+  if (!mems || !mems.length) throw new Error('[admin-api] 该组合内没有城市，无法保存');
+  const payload = JSON.parse(JSON.stringify(items || []));
+  for (const m of mems) {
+    await upsertCarouselConfig(`city:${m.city_adcode}`, payload);
+  }
+}
+
+/**
+ * 向组合追加城市：轮播内容与现有成员保持一致（取任一成员当前 items）。
+ */
+async function addCityToCarouselGroup(groupId, cityAdcode) {
+  if (!cityAdcode) throw new Error('[admin-api] 未选择城市');
+  const sb = await _getClient();
+  const { data: clash } = await sb
+    .from('home_carousel_city_group_members')
+    .select('group_id')
+    .eq('city_adcode', cityAdcode)
+    .maybeSingle();
+  if (clash && clash.group_id === groupId) return;
+  if (clash && clash.group_id && clash.group_id !== groupId) {
+    throw new Error(`[admin-api] 城市 ${cityAdcode} 已属于其他组合`);
+  }
+  const { data: mems } = await sb
+    .from('home_carousel_city_group_members')
+    .select('city_adcode')
+    .eq('group_id', groupId);
+  let items = [];
+  if (mems && mems.length) {
+    const first = mems[0].city_adcode;
+    const row = await getCarouselConfig(`city:${first}`);
+    items = row && Array.isArray(row.items) ? JSON.parse(JSON.stringify(row.items)) : [];
+  }
+  const { error } = await sb
+    .from('home_carousel_city_group_members')
+    .insert({ group_id: groupId, city_adcode: cityAdcode });
+  if (error) throw new Error(`[admin-api] addCityToCarouselGroup 失败: ${error.message}`);
+  await upsertCarouselConfig(`city:${cityAdcode}`, items);
+}
+
+/**
+ * 从组合移除城市并删除该城的地区轮播覆盖（首页回退通用轮播）。
+ */
+async function removeCityFromCarouselGroup(groupId, cityAdcode) {
+  const sb = await _getClient();
+  const { error } = await sb
+    .from('home_carousel_city_group_members')
+    .delete()
+    .eq('group_id', groupId)
+    .eq('city_adcode', cityAdcode);
+  if (error) throw new Error(`[admin-api] removeCityFromCarouselGroup 失败: ${error.message}`);
+  await deleteCarouselConfig(`city:${cityAdcode}`);
+  const { data: left } = await sb
+    .from('home_carousel_city_group_members')
+    .select('city_adcode')
+    .eq('group_id', groupId);
+  if (!left || !left.length) {
+    await sb.from('home_carousel_city_groups').delete().eq('id', groupId);
+  }
+}
+
+/**
+ * 删除整个组合并移除各成员城市的地区轮播覆盖。
+ */
+async function deleteCarouselCityGroup(groupId) {
+  const sb = await _getClient();
+  const { data: mems } = await sb
+    .from('home_carousel_city_group_members')
+    .select('city_adcode')
+    .eq('group_id', groupId);
+  const { error } = await sb.from('home_carousel_city_groups').delete().eq('id', groupId);
+  if (error) throw new Error(`[admin-api] deleteCarouselCityGroup 失败: ${error.message}`);
+  for (const m of mems || []) {
+    await deleteCarouselConfig(`city:${m.city_adcode}`);
+  }
+}
+
+/**
+ * 轮播图上传至 Storage，路径独立于路线封面。
+ */
+async function uploadCarouselImage(file) {
+  const sb = await _getClient();
+  const ext = file.name.split('.').pop() || 'jpg';
+  const path = `carousel/banners/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+
+  const { data, error: uploadError } = await sb.storage
+    .from('images')
+    .upload(path, file, { cacheControl: '3600', upsert: false });
+
+  if (uploadError) throw new Error(`[admin-api] uploadCarouselImage 上传失败: ${uploadError.message}`);
+
+  const { data: urlData } = sb.storage.from('images').getPublicUrl(data.path);
+  return urlData.publicUrl;
+}
+
+/**
  * 上传景点配图到 Supabase Storage（缩略图或图集），返回公开 URL。
- * @param {File} file
- * @param {string} [routeId]
- * @param {string} [spotId]
- * @param {'thumb'|'gallery'} kind
  */
 async function uploadSpotImage(file, routeId, spotId, kind) {
   const sb = await _getClient();
@@ -330,4 +579,17 @@ export const adminApi = {
   deleteSpot,
   uploadCoverImage,
   uploadSpotImage,
+  getCarouselConfig,
+  listCarouselConfigs,
+  upsertCarouselConfig,
+  deleteCarouselConfig,
+  listCarouselCityGroups,
+  createCarouselCityGroup,
+  updateCarouselCityGroupName,
+  saveCarouselCityGroupItems,
+  addCityToCarouselGroup,
+  removeCityFromCarouselGroup,
+  deleteCarouselCityGroup,
+  reconcileOrphanCityCarouselConfigs,
+  uploadCarouselImage,
 };

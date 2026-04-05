@@ -26,6 +26,7 @@ test('contracts/*.schema.json 均可解析', () => {
     'contracts/route-plan-response.schema.json',
     'contracts/route-ingestion.schema.json',
     'contracts/route-upload.schema.json',
+    'contracts/home-carousel.schema.json',
   ];
   for (const n of names) {
     const j = readJson(n);

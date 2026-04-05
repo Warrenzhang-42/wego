@@ -115,7 +115,12 @@ const _localSource = {
     const key = 'wego_checkins';
     return JSON.parse(localStorage.getItem(key) || '[]');
   },
+
+  async getHomeCarousel(_cityAdcode) {
+    return { items: null, configKey: null, mode: 'local' };
+  },
 };
+
 
 /* ============================================================
    Supabase 数据源实现（需配置 window.__WEGO_API_CONFIG__）
@@ -194,6 +199,41 @@ const _supabaseSource = {
     const { data, error } = await query;
     if (error) throw new Error(`[api-client] getCheckins 失败: ${error.message}`);
     return data;
+  },
+
+  /**
+   * 首页轮播：若存在 city:{adcode} 行则仅用该行（含空数组，不再回落 general）；否则用 general。
+   * @param {string} cityAdcode 六位国标城市码
+   */
+  async getHomeCarousel(cityAdcode) {
+    const sb = await this._getClient();
+    const ad = String(cityAdcode || '000000').replace(/\D/g, '');
+    const adcode = ad.length >= 6 ? ad.slice(-6) : ad.padStart(6, '0');
+    const cityKey = `city:${adcode}`;
+    const { data: cityRow, error: cityErr } = await sb
+      .from('home_carousel_configs')
+      .select('items')
+      .eq('config_key', cityKey)
+      .maybeSingle();
+    if (cityErr) throw new Error(`[api-client] getHomeCarousel 失败: ${cityErr.message}`);
+    if (cityRow) {
+      return {
+        items: Array.isArray(cityRow.items) ? cityRow.items : [],
+        configKey: cityKey,
+        mode: 'city',
+      };
+    }
+    const { data: genRow, error: genErr } = await sb
+      .from('home_carousel_configs')
+      .select('items')
+      .eq('config_key', 'general')
+      .maybeSingle();
+    if (genErr) throw new Error(`[api-client] getHomeCarousel 失败: ${genErr.message}`);
+    return {
+      items: genRow && Array.isArray(genRow.items) ? genRow.items : [],
+      configKey: 'general',
+      mode: 'general',
+    };
   },
 };
 

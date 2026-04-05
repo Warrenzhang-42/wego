@@ -10,7 +10,7 @@
 
 | 页面 | 文件 | 状态 | 说明 |
 | :--- | :--- | :--- | :--- |
-| 首页 | `index.html` + `app.js` + `style.css` | ✅ 完成 | 轮播、分类 Chip、路线卡片、底部导航、**城市选择（定位/手动/长时间未访问提示）** |
+| 首页 | `index.html` + `app.js` + `style.css` | ✅ 完成 | 轮播（**Supabase 配置 + 按城市覆盖**）、分类 Chip、路线卡片、底部导航、**城市选择（定位/手动/长时间未访问提示）** |
 | 路线详情 | `route-detail.html/css/js` | ✅ 完成 | 地图预览(静态图)、景点列表、全屏地图 |
 | AI 对话 | `ai-chat.html/css/js` | ✅ 完成 | 聊天气泡、知识卡片弹窗、语音/键盘输入 Mock |
 | 导游人格 | `personality.html/css/js` | ✅ 完成 | 三种人格卡片轮播选择 |
@@ -70,7 +70,8 @@ WeGO/
 │   ├── spot.schema.json
 │   ├── chat-message.schema.json
 │   ├── checkin.schema.json
-│   └── knowledge-chunk.schema.json
+│   ├── knowledge-chunk.schema.json
+│   └── home-carousel.schema.json # 首页轮播（管理端写入 items[]）
 │
 └── tests/                        # 测试
     ├── contracts/                # 契约验证测试
@@ -472,6 +473,7 @@ WeGO/
 | **10.4** | 新建 `admin-routes.html`：路线管理主页面，含顶部工具栏（搜索/过滤）、路线列表表格（带展开行查看景点）、分页控件 | 页面 | `admin-routes.html` | 页面可正常打开，列表加载正常，展开行显示景点 |
 | **10.5** | 在 `admin-routes.html` 中实现编辑/删除模态框：路线（含发布/草稿状态、可见性）、游玩点（rich_content、spot_type、坐标参照、彩蛋）、删除确认 | 交互 | `admin-routes.html`（内联 JS） | 保存/发布/删除流程可用 |
 | **10.6** | 验收测试：页面加载、CRUD、发布版本、heat 只读、跨域与迁移 008/009 已执行 | 测试 | 全部文件 | 验收通过，无关键 JS 报错 |
+| **10.7** | **轮播页管理**：`server/migrations/011_home_carousel_configs.sql`；`contracts/home-carousel.schema.json`；`api-client.getHomeCarousel` + `lib/home-carousel.js` 动态挂载首页轮播；`admin-carousel-panel.js` + `adminApi` 读写/上传；支持通用与按城市覆盖（存在 `city:` 行则不再使用 `general`） | 全栈 | 迁移、契约、`src/lib/*`、`admin-routes.html` | 后台可配置图片/路线轮播；前台按当前城市解析；无表时本地兜底静态图 |
 
 ---
 

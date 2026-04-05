@@ -24,6 +24,7 @@ let uploadState = {
 let currentDestroy = null;
 let viewListEl = null;
 let viewUploadEl = null;
+let viewCarouselEl = null;
 let tabBtns = [];
 
 function getEls() {
@@ -41,8 +42,11 @@ function setTitle(text) {
 
 function setViewVisibility(view) {
   const isList = view === 'list';
+  const isUpload = view === 'upload';
+  const isCarousel = view === 'carousel';
   if (viewListEl) viewListEl.hidden = !isList;
-  if (viewUploadEl) viewUploadEl.hidden = isList;
+  if (viewUploadEl) viewUploadEl.hidden = !isUpload;
+  if (viewCarouselEl) viewCarouselEl.hidden = !isCarousel;
   tabBtns.forEach((btn) => {
     btn.classList.toggle('active', btn.getAttribute('data-admin-view') === view);
   });
@@ -173,7 +177,7 @@ function resetUploadFlow() {
 /** 供组件取消、深链返回列表使用 */
 export function applyAdminView(view) {
   if (view === 'list') {
-    if (location.hash === '#route-upload') {
+    if (location.hash === '#route-upload' || location.hash === '#carousel') {
       history.replaceState(null, '', location.pathname + location.search);
     }
     setViewVisibility('list');
@@ -183,6 +187,11 @@ export function applyAdminView(view) {
     else {
       setViewVisibility('upload');
       navigateUpload();
+    }
+  } else if (view === 'carousel') {
+    if (location.hash !== '#carousel') location.hash = 'carousel';
+    else {
+      setViewVisibility('carousel');
     }
   }
 }
@@ -205,6 +214,8 @@ function onHashChange() {
   if (location.hash === '#route-upload') {
     setViewVisibility('upload');
     navigateUpload();
+  } else if (location.hash === '#carousel') {
+    setViewVisibility('carousel');
   } else {
     setViewVisibility('list');
     resetUploadFlow();
@@ -214,13 +225,14 @@ function onHashChange() {
 export function initAdminRouteUploadPanel() {
   viewListEl = document.getElementById('admin-view-list');
   viewUploadEl = document.getElementById('admin-view-upload');
+  viewCarouselEl = document.getElementById('admin-view-carousel');
   tabBtns = Array.from(document.querySelectorAll('[data-admin-view]'));
   wireBackButtonOnce();
 
   tabBtns.forEach((btn) => {
     btn.addEventListener('click', () => {
       const v = btn.getAttribute('data-admin-view');
-      if (v === 'list' || v === 'upload') applyAdminView(v);
+      if (v === 'list' || v === 'upload' || v === 'carousel') applyAdminView(v);
     });
   });
 

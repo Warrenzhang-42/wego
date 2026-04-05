@@ -3,11 +3,17 @@
    ==================================================== */
 
 import { appendRouteCards } from './lib/route-display.js';
-import { initHomeCity } from './lib/city-preference.js';
+import { initHomeCity, getSelectedAdcode } from './lib/city-preference.js';
+import { loadAndMountHomeCarousel } from './lib/home-carousel.js';
 
-void initHomeCity().catch(err => {
-  console.warn('[app.js] 城市/定位初始化失败:', err);
-});
+void (async () => {
+  try {
+    await initHomeCity();
+    await loadAndMountHomeCarousel(getSelectedAdcode());
+  } catch (err) {
+    console.warn('[app.js] 城市/轮播初始化失败:', err);
+  }
+})();
 
 // ---- Sprint 8: 数据库驱动路线列表 ----------------------
 (async function initDynamicRoutes() {
@@ -219,91 +225,7 @@ void initHomeCity().catch(err => {
   }
 })();
 
-// ---- Carousel ----------------------------------------
-(function initCarousel() {
-  const track   = document.getElementById('carousel-track');
-  const dots    = document.querySelectorAll('.carousel-dots .dot');
-  const slides  = document.querySelectorAll('.carousel-slide');
-  let current   = 0;
-  let autoTimer = null;
-  let startX    = 0;
-  let isDragging = false;
-
-  function goTo(idx) {
-    current = (idx + slides.length) % slides.length;
-    track.style.transform = `translateX(-${current * 100}%)`;
-    dots.forEach((d, i) => d.classList.toggle('active', i === current));
-    // Trigger subtle zoom on active slide
-    slides.forEach((s, i) => s.classList.toggle('active', i === current));
-  }
-
-  function next() { goTo(current + 1); }
-
-  function startAuto() {
-    clearInterval(autoTimer);
-    autoTimer = setInterval(next, 4000);
-  }
-
-  // Dot click
-  dots.forEach(d => {
-    d.addEventListener('click', () => {
-      goTo(parseInt(d.dataset.idx, 10));
-      startAuto();
-    });
-  });
-
-  // Swipe support
-  track.addEventListener('touchstart', e => {
-    startX = e.touches[0].clientX;
-    isDragging = true;
-    clearInterval(autoTimer);
-  }, { passive: true });
-
-  track.addEventListener('touchend', e => {
-    if (!isDragging) return;
-    const diff = startX - e.changedTouches[0].clientX;
-    if (Math.abs(diff) > 40) diff > 0 ? next() : goTo(current - 1);
-    isDragging = false;
-    startAuto();
-  }, { passive: true });
-
-  track.addEventListener('touchcancel', () => {
-    isDragging = false;
-    startAuto();
-  }, { passive: true });
-
-  // Mouse drag（桌面）：必须在 document 上结束拖拽，否则在轨道外松开鼠标时 isDragging
-  // 无法复位，可能干扰后续交互；滑动判断仍以起点在轮轨内为准。
-  function onCarouselMouseUp(e) {
-    if (!isDragging) return;
-    if (track.contains(e.target)) {
-      const diff = startX - e.clientX;
-      if (Math.abs(diff) > 40) diff > 0 ? next() : goTo(current - 1);
-    }
-    isDragging = false;
-    startAuto();
-  }
-  track.addEventListener('mousedown', e => {
-    startX = e.clientX;
-    isDragging = true;
-    clearInterval(autoTimer);
-  });
-  document.addEventListener('mouseup', onCarouselMouseUp);
-
-  // CTA click
-  document.querySelectorAll('.slide-cta-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      sessionStorage.setItem('wegoRouteDetailReferrer', 'index.html');
-      window.location.href = 'route-detail.html?from=index';
-    });
-  });
-
-  goTo(0);
-  startAuto();
-})();
-
-
+// ---- Carousel：由 home-carousel.js 在 initHomeCity 之后挂载 ----
 
 
 // ---- Category Chips 已由 Sprint 8 initDynamicRoutes() 统一管理 ----

@@ -19,6 +19,8 @@
     "migrate:006": "node data/scripts/run-sql-migration.js server/migrations/006_route_ingestion_jobs.sql",
     "migrate:007": "node data/scripts/run-sql-migration.js server/migrations/007_route_drafts.sql",
     "migrate:010": "node data/scripts/run-sql-migration.js server/migrations/010_routes_city_adcode.sql",
+    "migrate:011": "node data/scripts/run-sql-migration.js server/migrations/011_home_carousel_configs.sql",
+    "migrate:013": "node data/scripts/run-sql-migration.js server/migrations/013_home_carousel_city_groups.sql",
     "migrate:route-upload": "npm run migrate:006 && npm run migrate:007",
     "deploy:route-ingest": "supabase functions deploy route-ingest"
   },
