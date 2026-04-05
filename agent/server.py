@@ -6,6 +6,10 @@ import asyncio
 from pydantic import BaseModel
 from typing import Optional, Dict
 
+from llm_settings import load_dotenv_wego
+
+load_dotenv_wego()
+
 from graph import chat_with_agent
 from tools.upload_route import upload_route
 from tools.confirm_route_upload import confirm_route_upload
