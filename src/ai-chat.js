@@ -126,6 +126,8 @@ function applyUserLocationToMap(pos) {
     }
   };
 
+  window.KNOWLEDGE_DETAILS = KNOWLEDGE_DETAILS;
+
   // Back button functionality
   const backBtn = document.getElementById('ac-back-btn');
   if (backBtn) {
@@ -339,11 +341,15 @@ function applyUserLocationToMap(pos) {
       const detailId = insert.detail_id || '';
       const hasDetail = Boolean(detailId && (window.KNOWLEDGE_DETAILS?.[detailId]));
       
-      const title = insert.title || (hasDetail ? window.KNOWLEDGE_DETAILS[detailId].title : '为您推荐');
-      const summary = insert.summary || (hasDetail ? window.KNOWLEDGE_DETAILS[detailId].summary : '');
+      const kd = hasDetail ? window.KNOWLEDGE_DETAILS[detailId] : null;
+      const title = insert.title || (kd ? kd.title : '为您推荐');
+      const summary = insert.summary || (kd ? (kd.intro || kd.summary || '') : '');
       
       return `
-        <button class="ac-rich-card ac-knowledge-card" ${detailId ? `data-knowledge-id="${escapeHtml(detailId)}"` : ''}>
+        <button type="button" class="ac-rich-card ac-knowledge-card"
+          ${detailId ? `data-knowledge-id="${escapeHtml(detailId)}"` : ''}
+          data-knowledge-title="${escapeHtml(title)}"
+          data-knowledge-summary="${escapeHtml(summary)}">
           <div class="ac-card-badge">📚 知识点</div>
           <div class="ac-card-title">${escapeHtml(title)}</div>
           <div class="ac-card-desc">${escapeHtml(summary)}</div>
@@ -525,8 +531,15 @@ function applyUserLocationToMap(pos) {
     }, 50);
   }
 
-  function openKnowledgeDetail(knowledgeId) {
-    const data = KNOWLEDGE_DETAILS[knowledgeId];
+  function openKnowledgeDetail(knowledgeId, fallback) {
+    let data = knowledgeId ? KNOWLEDGE_DETAILS[knowledgeId] : null;
+    if (!data && fallback && (fallback.title || fallback.summary)) {
+      data = {
+        title: fallback.title || '知识点',
+        intro: fallback.summary || '',
+        sections: []
+      };
+    }
     if (!data) return;
 
     const existed = document.querySelector('.ac-knowledge-modal');
@@ -572,12 +585,14 @@ function applyUserLocationToMap(pos) {
           <img src="${escapeHtml(c.src || '')}" alt="${escapeHtml(c.alt || data.title || '知识点配图')}" loading="lazy" />
         </div>
       `;
-    } else {
+    } else if (data.cover) {
       coverBlocks = `
         <div class="ac-kd-cover-wrap">
-          <img src="${escapeHtml(data.cover || '')}" alt="${escapeHtml(data.coverAlt || data.title || '知识点封面')}" loading="lazy" />
+          <img src="${escapeHtml(data.cover)}" alt="${escapeHtml(data.coverAlt || data.title || '知识点封面')}" loading="lazy" />
         </div>
       `;
+    } else {
+      coverBlocks = '';
     }
 
     const modal = document.createElement('div');
@@ -772,7 +787,11 @@ function applyUserLocationToMap(pos) {
     chatContainer.addEventListener('click', (e) => {
       const knowledgeBtn = e.target.closest('.ac-knowledge-card');
       if (knowledgeBtn) {
-        openKnowledgeDetail(knowledgeBtn.getAttribute('data-knowledge-id'));
+        const id = knowledgeBtn.getAttribute('data-knowledge-id');
+        openKnowledgeDetail(id, {
+          title: knowledgeBtn.getAttribute('data-knowledge-title') || '',
+          summary: knowledgeBtn.getAttribute('data-knowledge-summary') || ''
+        });
       }
     });
   }
