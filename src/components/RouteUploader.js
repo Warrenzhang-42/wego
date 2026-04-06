@@ -425,22 +425,13 @@ export function mountRouteUploader({ container, onGapStart, onUploaded, onCancel
      核心：提交 Payload
      ============================================================ */
   /** 与 admin（__WEGO_API_CONFIG__）、前台 MPA（__WEGO_CONFIG__）对齐 */
-  function getSupabasePublicCfg() {
+  function getBackendCfg() {
     const api = window.__WEGO_API_CONFIG__ || {};
     const pub = window.__WEGO_CONFIG__ || {};
     return {
-      supabaseUrl: pub.supabaseUrl || api.supabaseUrl || '',
-      supabaseAnonKey: pub.supabaseAnonKey || api.supabaseAnonKey || '',
+      apiBaseUrl: pub.apiBaseUrl || api.apiBaseUrl || '',
+      accessToken: localStorage.getItem('wego_access_token') || '',
     };
-  }
-
-  function getFnUrl() {
-    const { supabaseUrl } = getSupabasePublicCfg();
-    return `${supabaseUrl}/functions/v1/route-ingest`;
-  }
-
-  function getAnonKey() {
-    return getSupabasePublicCfg().supabaseAnonKey;
   }
 
   async function submitPayload(payload) {
@@ -450,12 +441,13 @@ export function mountRouteUploader({ container, onGapStart, onUploaded, onCancel
       phase = 'parsing';
       render();
 
-      const fnUrl = getFnUrl();
+      const cfg = getBackendCfg();
+      const fnUrl = `${cfg.apiBaseUrl}/api/route-ingest`;
       const res = await fetch(fnUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${getAnonKey()}`,
+          ...(cfg.accessToken ? { 'Authorization': `Bearer ${cfg.accessToken}` } : {}),
         },
         body: JSON.stringify(payload),
       });

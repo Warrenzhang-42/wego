@@ -203,21 +203,20 @@ async def route_upload_status(session_id: str):
     目前为简化实现，直接从 route_drafts 读取状态。
     """
     import os
-    supabase_url = os.getenv('SUPABASE_URL', '')
-    supabase_key = os.getenv('SUPABASE_ANON_KEY', '')
-    if not supabase_url:
-        return {'session_id': session_id, 'status': 'unknown', 'error': 'SUPABASE_URL not configured'}
+    backend_api = os.getenv('BACKEND_API_URL', 'http://127.0.0.1:8787')
+    internal_token = os.getenv('INTERNAL_API_TOKEN', '')
+    if not backend_api:
+        return {'session_id': session_id, 'status': 'unknown', 'error': 'BACKEND_API_URL not configured'}
 
     import requests as _req
     try:
         resp = _req.get(
-            f'{supabase_url}/rest/v1/route_drafts',
-            headers={'apikey': supabase_key, 'Authorization': f'Bearer {supabase_key}'},
-            params={'session_id': f'eq.{session_id}', 'select': 'status,parsed_data,gap_items'},
+            f'{backend_api}/api/internal/route-drafts/{session_id}',
+            headers={'x-internal-token': internal_token},
             timeout=5,
         )
         if resp.ok and resp.json():
-            row = resp.json()[0]
+            row = resp.json()
             return {
                 'session_id': session_id,
                 'status': row.get('status'),

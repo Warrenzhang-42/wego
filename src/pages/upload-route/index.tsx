@@ -49,16 +49,16 @@ export function UploadRoutePage() {
 
   /* ---- 阶段3：确认上传 --------- */
   async function handleConfirm(sessionId: string) {
-    const baseUrl = (window.__WEGO_CONFIG__?.supabaseUrl)
-      ? `https://${(window.__WEGO_CONFIG__ as { supabaseUrl: string }).supabaseUrl.replace('https://', '')}`
-      : '';
-    const fnUrl = `${baseUrl}/functions/v1/route-ingest/${sessionId}/confirm`;
+    const cfg = window.__WEGO_CONFIG__ as { apiBaseUrl?: string };
+    const fnUrl = `${cfg?.apiBaseUrl || ''}/api/route-ingest/${sessionId}/confirm`;
 
     const res = await fetch(fnUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${(window.__WEGO_CONFIG__ as { supabaseAnonKey?: string })?.supabaseAnonKey || ''}`,
+        ...(localStorage.getItem('wego_access_token')
+          ? { 'Authorization': `Bearer ${localStorage.getItem('wego_access_token')}` }
+          : {}),
       },
       body: JSON.stringify({ confirmed: true }),
     });

@@ -36,27 +36,25 @@ class ConfirmRouteUploadInput(BaseModel):
 
 
 # ──────────────────────────────────────────────────────────
-# Supabase 写入
+# Backend API 写入
 # ──────────────────────────────────────────────────────────
-_SUPABASE_URL = os.getenv('SUPABASE_URL', '')
-_SUPABASE_KEY = os.getenv('SUPABASE_SERVICE_KEY', os.getenv('SUPABASE_ANON_KEY', ''))
+_BACKEND_API_URL = os.getenv('BACKEND_API_URL', 'http://127.0.0.1:8787')
+_INTERNAL_API_TOKEN = os.getenv('INTERNAL_API_TOKEN', '')
 
 
 def _get_draft(session_id: str) -> Optional[dict]:
-    """从 route_drafts 读取草稿。"""
-    if not _SUPABASE_URL:
+    """从 backend route_drafts 读取草稿。"""
+    if not _BACKEND_API_URL:
         return None
-    headers = {'apikey': _SUPABASE_KEY, 'Authorization': f'Bearer {_SUPABASE_KEY}'}
+    headers = {'x-internal-token': _INTERNAL_API_TOKEN}
     try:
         resp = requests.get(
-            f'{_SUPABASE_URL}/rest/v1/route_drafts',
+            f'{_BACKEND_API_URL}/api/internal/route-drafts/{session_id}',
             headers=headers,
-            params={'session_id': f'eq.{session_id}', 'select': '*'},
             timeout=5,
         )
         if resp.ok:
-            rows = resp.json()
-            return rows[0] if rows else None
+            return resp.json()
     except Exception:
         pass
     return None
@@ -67,95 +65,21 @@ def _upsert_routes_and_spots(route_data: dict, ingestion_job_id: str = None) -> 
     将路线数据写入 routes + spots 表（upsert）。
     返回写入报告 { route_id, spot_ids, errors }。
     """
-    if not _SUPABASE_URL:
-        return {'route_id': None, 'spot_ids': [], 'errors': ['SUPABASE_URL 未配置']}
-
-    headers = {
-        'apikey': _SUPABASE_KEY,
-        'Authorization': f'Bearer {_SUPABASE_KEY}',
-        'Content-Type': 'application/json',
-        'Prefer': 'return=representation',
-    }
-
-    route_id = None
-    spot_ids = []
-    errors = []
-
-    # 1. Upsert routes
-    route_payload = {
-        'title': route_data.get('route_name') or route_data.get('title', '未命名'),
-        'description': route_data.get('description', ''),
-        'duration_minutes': route_data.get('duration_minutes'),
-        'tags': route_data.get('tags', []) or [],
-        'cover_image': route_data.get('cover_image'),
-        'total_distance_km': route_data.get('total_distance_km'),
-        'is_visible': route_data.get('is_visible', True),
-        'updated_at': 'now()',
-    }
-    if route_data.get('heat_level') is not None:
-        route_payload['heat_level'] = route_data['heat_level']
-    if route_data.get('id'):
-        route_payload['id'] = route_data['id']
-
+    if not _BACKEND_API_URL:
+        return {'route_id': None, 'spot_ids': [], 'errors': ['BACKEND_API_URL 未配置']}
+    headers = {'x-internal-token': _INTERNAL_API_TOKEN, 'Content-Type': 'application/json'}
     try:
         resp = requests.post(
-            f'{_SUPABASE_URL}/rest/v1/routes',
-            headers={**headers, 'Prefer': 'return=representation'},
-            json=route_payload,
+            f'{_BACKEND_API_URL}/api/internal/routes/import',
+            headers=headers,
+            json=route_data,
             timeout=5,
         )
         if resp.ok:
-            created = resp.json()
-            route_id = (created[0] if isinstance(created, list) else created).get('id')
-        else:
-            errors.append(f'routes upsert 失败: {resp.status_code} {resp.text}')
+            return resp.json()
+        return {'route_id': None, 'spot_ids': [], 'errors': [f'route import 失败: {resp.status_code} {resp.text}']}
     except Exception as e:
-        errors.append(f'routes upsert 异常: {e}')
-
-    # 2. Upsert spots（按 sort_order）
-    spots = route_data.get('spots', [])
-    for idx, spot in enumerate(spots):
-        if not spot.get('name'):
-            continue
-        spot_payload = {
-            'route_id': route_id,
-            'name': spot.get('name', ''),
-            'subtitle': spot.get('subtitle', ''),
-            'short_desc': spot.get('short_desc', ''),
-            'detail': spot.get('detail', ''),
-            'rich_content': spot.get('rich_content') or spot.get('detail', ''),
-            'tags': spot.get('tags', []),
-            'thumb': spot.get('thumb', ''),
-            'photos': spot.get('photos', []),
-            'lat': spot.get('lat'),
-            'lng': spot.get('lng'),
-            'geofence_radius_m': spot.get('geofence_radius_m', 30),
-            'estimated_stay_min': spot.get('estimated_stay_min'),
-            'sort_order': spot.get('sort_order', idx),
-            'is_visible': spot.get('is_visible', True),
-            'is_easter_egg': spot.get('is_easter_egg', False),
-            'spot_type': spot.get('spot_type', 'attraction'),
-        }
-        if spot.get('id'):
-            spot_payload['id'] = spot['id']
-        try:
-            resp = requests.post(
-                f'{_SUPABASE_URL}/rest/v1/spots',
-                headers={**headers, 'Prefer': 'return=representation'},
-                json=spot_payload,
-                timeout=5,
-            )
-            if resp.ok:
-                created = resp.json()
-                sid = (created[0] if isinstance(created, list) else created).get('id')
-                if sid:
-                    spot_ids.append(sid)
-            else:
-                errors.append(f'spot[{idx}] upsert 失败: {resp.status_code}')
-        except Exception as e:
-            errors.append(f'spot[{idx}] upsert 异常: {e}')
-
-    return {'route_id': route_id, 'spot_ids': spot_ids, 'errors': errors}
+        return {'route_id': None, 'spot_ids': [], 'errors': [f'route import 异常: {e}']}
 
 
 # ──────────────────────────────────────────────────────────
@@ -226,17 +150,16 @@ def confirm_route_upload(session_id: str, confirmed: bool, overrides: list[dict]
         import_report = _upsert_routes_and_spots(final_route)
 
         # 更新草稿状态
-        if _SUPABASE_URL:
-            headers = {'apikey': _SUPABASE_KEY, 'Authorization': f'Bearer {_SUPABASE_KEY}'}
+        if _BACKEND_API_URL:
+            headers = {'x-internal-token': _INTERNAL_API_TOKEN, 'Content-Type': 'application/json'}
             requests.patch(
-                f'{_SUPABASE_URL}/rest/v1/route_drafts',
+                f'{_BACKEND_API_URL}/api/internal/route-drafts/{session_id}',
                 headers=headers,
                 json={
                     'status': 'confirmed',
                     'confirmed_data': final_route,
-                    'confirmed_at': 'now()',
+                    'confirmed_at': __import__('datetime').datetime.utcnow().isoformat(),
                 },
-                params={'session_id': f'eq.{session_id}'},
                 timeout=5,
             )
 

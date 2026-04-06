@@ -17,20 +17,16 @@ def search_knowledge(query: str, lat: float = None, lng: float = None, radius_m:
         radius_m: Optional search radius in meters.
         spot_id: Optional ID of the specific spot to search for.
     """
-    supabase_url = os.getenv("SUPABASE_URL")
-    supabase_key = os.getenv("SUPABASE_ANON_KEY")
+    backend_url = os.getenv("BACKEND_API_URL", "http://127.0.0.1:8787")
+    access_token = os.getenv("AGENT_ACCESS_TOKEN", "")
     
-    if not supabase_url or not supabase_key:
-        return "本地知识库无响应：缺少 Supabase 配置。"
+    if not backend_url:
+        return "本地知识库无响应：缺少 BACKEND_API_URL 配置。"
         
     try:
-        # Calls the Edge Function created in Sprint 3
-        # In a real environment, this might be `/functions/v1/knowledge-search`
-        # or we could make a direct RPC call if `match_knowledge` exists.
-        # Here we mock the behavior or call the Edge Function if running.
-        url = f"{supabase_url}/functions/v1/knowledge-search"
+        url = f"{backend_url}/api/knowledge/search"
         headers = {
-            "Authorization": f"Bearer {supabase_key}",
+            "Authorization": f"Bearer {access_token}",
             "Content-Type": "application/json"
         }
         payload = {"query": query, "spot_id": spot_id}

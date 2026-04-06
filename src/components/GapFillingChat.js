@@ -404,8 +404,8 @@ export function mountGapFillingChat({ container, sessionId, gaps = [], onComplet
     try {
       const api = window.__WEGO_API_CONFIG__ || {};
       const pub = window.__WEGO_CONFIG__ || {};
-      const base = pub.supabaseUrl || api.supabaseUrl || '';
-      const fnUrl = `${base}/functions/v1/route-ingest/${sessionId}/gap-reply`;
+      const base = pub.apiBaseUrl || api.apiBaseUrl || '';
+      const fnUrl = `${base}/api/route-ingest/${sessionId}/gap-reply`;
 
       accumulatedOverrides = accumulatedOverrides.filter(o => o.field !== gap.field);
       accumulatedOverrides.push({ field: gap.field, value: text });
@@ -414,7 +414,9 @@ export function mountGapFillingChat({ container, sessionId, gaps = [], onComplet
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${pub.supabaseAnonKey || api.supabaseAnonKey || ''}`,
+          ...(localStorage.getItem('wego_access_token')
+            ? { 'Authorization': `Bearer ${localStorage.getItem('wego_access_token')}` }
+            : {}),
         },
         body: JSON.stringify({ overrides: accumulatedOverrides }),
       });

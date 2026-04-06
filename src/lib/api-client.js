@@ -4,7 +4,7 @@
  *
  * LocalFirst 模式：
  *   - 优先读取本地 JSON 文件（开发/无网络场景）
- *   - 若配置了 SUPABASE_URL，则透明切换到真实 Supabase 数据库
+ *   - 若配置了 apiBaseUrl，则透明切换到自建后端
  *   - 上层调用代码无需任何改动
  *
  * 使用示例：
@@ -19,7 +19,8 @@
    配置检测 — 自动选择数据源
    ============================================================ */
 const _cfg = window.__WEGO_API_CONFIG__ || {};
-const _hasSupabase = Boolean(_cfg.supabaseUrl && _cfg.supabaseAnonKey);
+const _hasBackend = Boolean(_cfg.apiBaseUrl);
+const _token = () => localStorage.getItem('wego_access_token') || '';
 
 // 本地 JSON 数据文件的根路径（相对于 src/）
 const _LOCAL_DATA_ROOT = '../data/routes/';
@@ -140,46 +141,29 @@ const _localSource = {
 
 
 /* ============================================================
-   Supabase 数据源实现（需配置 window.__WEGO_API_CONFIG__）
+   Backend 数据源实现（需配置 window.__WEGO_API_CONFIG__.apiBaseUrl）
    ============================================================ */
-const _supabaseSource = {
-  _client: null,
-
-  async _getClient() {
-    if (this._client) return this._client;
-
-    // 动态加载 Supabase JS SDK
-    if (!window.supabase) {
-      await new Promise((resolve, reject) => {
-        const s = document.createElement('script');
-        s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
-        s.onload = resolve;
-        s.onerror = () => reject(new Error('Supabase SDK 加载失败'));
-        document.head.appendChild(s);
-      });
+const _backendSource = {
+  async _request(path, opts = {}) {
+    const headers = {
+      'Content-Type': 'application/json',
+      ...(opts.headers || {}),
+    };
+    const token = _token();
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const res = await fetch(`${_cfg.apiBaseUrl}${path}`, { ...opts, headers });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`[api-client] ${path} 失败: ${res.status} ${text}`);
     }
-
-    this._client = window.supabase.createClient(_cfg.supabaseUrl, _cfg.supabaseAnonKey);
-    return this._client;
+    return res.json();
   },
-
   async getRoute(id) {
-    const sb = await this._getClient();
-    const { data, error } = await sb.from('routes').select('*').eq('id', id).single();
-    if (error) throw new Error(`[api-client] getRoute 失败: ${error.message}`);
-    if (data && data.is_visible === false) throw new Error(`[api-client] 路线不可见`);
-    return data;
+    return this._request(`/api/routes/${id}`);
   },
 
   async getSpots(routeId) {
-    const sb = await this._getClient();
-    const { data, error } = await sb
-      .from('spots')
-      .select('*')
-      .eq('route_id', routeId)
-      .order('sort_order', { ascending: true });
-    if (error) throw new Error(`[api-client] getSpots 失败: ${error.message}`);
-    return (data || []).filter((s) => s.is_visible !== false && !s.is_easter_egg);
+    return this._request(`/api/routes/${routeId}/spots`);
   },
 
   async getRouteWithSpots(id) {
@@ -188,34 +172,30 @@ const _supabaseSource = {
   },
 
   async getRoutes(filters = {}) {
-    const sb = await this._getClient();
-    const { data, error } = await sb.from('routes').select('*');
-    if (error) throw new Error(`[api-client] getRoutes 失败: ${error.message}`);
-    let rows = (data || []).filter((r) => r.is_visible !== false);
-    if (filters.tag) rows = rows.filter((r) => (r.tags || []).some((t) => t.includes(filters.tag)));
-    return rows;
+    const q = new URLSearchParams();
+    if (filters.tag) q.set('tag', filters.tag);
+    if (filters.city_adcode) q.set('city_adcode', filters.city_adcode);
+    if (filters.search) q.set('search', filters.search);
+    return this._request(`/api/routes?${q.toString()}`);
   },
 
   async saveCheckin(data) {
-    const sb = await this._getClient();
-    const { data: record, error } = await sb.from('user_checkins').insert({
-      spot_id:    data.spot_id,
-      lat:        data.lat,
-      lng:        data.lng,
-      photos:     data.photos     || [],
-      ai_summary: data.ai_summary || null,
-    }).select().single();
-    if (error) throw new Error(`[api-client] saveCheckin 失败: ${error.message}`);
-    return record;
+    return this._request('/api/checkins', {
+      method: 'POST',
+      body: JSON.stringify({
+        spot_id: data.spot_id,
+        lat: data.lat,
+        lng: data.lng,
+        photos: data.photos || [],
+        ai_summary: data.ai_summary || null,
+      }),
+    });
   },
 
   async getCheckins(userId) {
-    const sb = await this._getClient();
-    let query = sb.from('user_checkins').select('*').order('created_at', { ascending: false });
-    if (userId) query = query.eq('user_id', userId);
-    const { data, error } = await query;
-    if (error) throw new Error(`[api-client] getCheckins 失败: ${error.message}`);
-    return data;
+    const rows = await this._request('/api/checkins');
+    if (userId) return rows.filter((r) => r.user_id === userId);
+    return rows;
   },
 
   /**
@@ -223,34 +203,9 @@ const _supabaseSource = {
    * @param {string} cityAdcode 六位国标城市码
    */
   async getHomeCarousel(cityAdcode) {
-    const sb = await this._getClient();
-    const ad = String(cityAdcode || '000000').replace(/\D/g, '');
-    const adcode = ad.length >= 6 ? ad.slice(-6) : ad.padStart(6, '0');
-    const cityKey = `city:${adcode}`;
-    const { data: cityRow, error: cityErr } = await sb
-      .from('home_carousel_configs')
-      .select('items')
-      .eq('config_key', cityKey)
-      .maybeSingle();
-    if (cityErr) throw new Error(`[api-client] getHomeCarousel 失败: ${cityErr.message}`);
-    if (cityRow) {
-      return {
-        items: Array.isArray(cityRow.items) ? cityRow.items : [],
-        configKey: cityKey,
-        mode: 'city',
-      };
-    }
-    const { data: genRow, error: genErr } = await sb
-      .from('home_carousel_configs')
-      .select('items')
-      .eq('config_key', 'general')
-      .maybeSingle();
-    if (genErr) throw new Error(`[api-client] getHomeCarousel 失败: ${genErr.message}`);
-    return {
-      items: genRow && Array.isArray(genRow.items) ? genRow.items : [],
-      configKey: 'general',
-      mode: 'general',
-    };
+    const q = new URLSearchParams();
+    if (cityAdcode) q.set('city_adcode', String(cityAdcode));
+    return this._request(`/api/carousel?${q.toString()}`);
   },
 
   /**
@@ -258,13 +213,7 @@ const _supabaseSource = {
    * @returns {Promise<'amap'|'mapbox'|'bmap'>}
    */
   async getMapEngine() {
-    const sb = await this._getClient();
-    const { data, error } = await sb
-      .from('app_public_settings')
-      .select('setting_value')
-      .eq('setting_key', 'map_engine')
-      .maybeSingle();
-    if (error) throw new Error(`[api-client] getMapEngine 失败: ${error.message}`);
+    const data = await this._request('/api/settings/map-engine');
     return _normalizeMapEngine(data?.setting_value);
   },
 };
@@ -272,9 +221,9 @@ const _supabaseSource = {
 /* ============================================================
    导出：apiClient — 自动选择数据源，接口统一
    ============================================================ */
-export const apiClient = _hasSupabase ? _supabaseSource : _localSource;
+export const apiClient = _hasBackend ? _backendSource : _localSource;
 
 // 暴露当前模式，便于调试
-apiClient.mode = _hasSupabase ? 'supabase' : 'local';
+apiClient.mode = _hasBackend ? 'backend' : 'local';
 
 console.log(`[api-client] 数据源模式: ${apiClient.mode}`);

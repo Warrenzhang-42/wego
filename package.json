@@ -22,7 +22,10 @@
     "migrate:011": "node data/scripts/run-sql-migration.js server/migrations/011_home_carousel_configs.sql",
     "migrate:013": "node data/scripts/run-sql-migration.js server/migrations/013_home_carousel_city_groups.sql",
     "migrate:route-upload": "npm run migrate:006 && npm run migrate:007",
-    "deploy:route-ingest": "supabase functions deploy route-ingest"
+    "deploy:route-ingest": "supabase functions deploy route-ingest",
+    "backend:dev": "node backend/src/server.js",
+    "backend:migrate": "node backend/scripts/migrate.js",
+    "backend:seed": "node backend/scripts/seed.js"
   },
   "keywords": [],
   "author": "",
@@ -32,12 +35,17 @@
     "@supabase/supabase-js": "^2.101.1",
     "ajv": "^8.18.0",
     "ajv-formats": "^3.0.1",
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
     "dotenv": "^17.3.1",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.2",
+    "pg": "^8.16.3",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
     "chai": "^6.2.2",
-    "pg": "^8.20.0",
     "vite": "^8.0.3"
   }
 }

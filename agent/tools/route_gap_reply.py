@@ -13,29 +13,25 @@ import requests
 
 from .route_merge import apply_overrides_to_parsed, collect_gaps_for_route, gaps_to_json
 
-_SUPABASE_URL = os.getenv('SUPABASE_URL', '')
-_SUPABASE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY', '') or os.getenv(
-    'SUPABASE_SERVICE_KEY', ''
-) or os.getenv('SUPABASE_ANON_KEY', '')
+_BACKEND_API_URL = os.getenv('BACKEND_API_URL', 'http://127.0.0.1:8787')
+_INTERNAL_API_TOKEN = os.getenv('INTERNAL_API_TOKEN', '')
 
 
 def _headers() -> dict:
-    return {'apikey': _SUPABASE_KEY, 'Authorization': f'Bearer {_SUPABASE_KEY}'}
+    return {'x-internal-token': _INTERNAL_API_TOKEN, 'Content-Type': 'application/json'}
 
 
 def _get_draft(session_id: str) -> Optional[dict]:
-    if not _SUPABASE_URL or not _SUPABASE_KEY:
+    if not _BACKEND_API_URL:
         return None
     try:
         r = requests.get(
-            f'{_SUPABASE_URL}/rest/v1/route_drafts',
+            f'{_BACKEND_API_URL}/api/internal/route-drafts/{session_id}',
             headers=_headers(),
-            params={'session_id': f'eq.{session_id}', 'select': '*'},
             timeout=10,
         )
         if r.ok:
-            rows = r.json()
-            return rows[0] if rows else None
+            return r.json()
     except Exception:
         pass
     return None
@@ -44,9 +40,8 @@ def _get_draft(session_id: str) -> Optional[dict]:
 def _patch_draft(session_id: str, body: dict) -> bool:
     try:
         r = requests.patch(
-            f'{_SUPABASE_URL}/rest/v1/route_drafts',
-            headers={**_headers(), 'Content-Type': 'application/json'},
-            params={'session_id': f'eq.{session_id}'},
+            f'{_BACKEND_API_URL}/api/internal/route-drafts/{session_id}',
+            headers=_headers(),
             json=body,
             timeout=10,
         )
@@ -84,7 +79,7 @@ def process_gap_reply(session_id: str, overrides: list[dict]) -> dict[str, Any]:
         },
     )
     if not ok:
-        return {'status': 'error', 'error': '更新草稿失败（Supabase）'}
+        return {'status': 'error', 'error': '更新草稿失败（Backend API）'}
 
     ack = '已记录你的补充。'
     if merged_list:

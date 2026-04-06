@@ -9,8 +9,8 @@ import { mountRoutePreview } from './components/RoutePreview.js';
 function getIngestConfig() {
   const cfg = window.__WEGO_API_CONFIG__ || {};
   return {
-    supabaseUrl: cfg.supabaseUrl || '',
-    supabaseAnonKey: cfg.supabaseAnonKey || '',
+    apiBaseUrl: cfg.apiBaseUrl || '',
+    accessToken: localStorage.getItem('wego_access_token') || '',
   };
 }
 
@@ -143,13 +143,13 @@ function onGapComplete(sessionId, route) {
 }
 
 async function onConfirm(sessionId) {
-  const { supabaseUrl, supabaseAnonKey } = getIngestConfig();
-  const fnUrl = `${supabaseUrl}/functions/v1/route-ingest/${sessionId}/confirm`;
+  const { apiBaseUrl, accessToken } = getIngestConfig();
+  const fnUrl = `${apiBaseUrl}/api/route-ingest/${sessionId}/confirm`;
   const res = await fetch(fnUrl, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${supabaseAnonKey || ''}`,
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
     },
     body: JSON.stringify({ confirmed: true }),
   });
