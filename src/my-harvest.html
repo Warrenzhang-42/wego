@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>我的收获 · WeGO</title>
+  <meta name="description" content="旅程收获与打卡记录" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Serif+SC:wght@600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="trip-end.css" />
+  <link rel="stylesheet" href="my-harvest.css" />
+</head>
+<body>
+  <div id="app" class="te-app-container mh-app">
+    <header class="mh-top-bar">
+      <a class="mh-back" href="ai-chat.html" id="mh-back-link" aria-label="返回聊天">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <path d="M13 4L7 10L13 16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+      <span class="mh-top-spacer" aria-hidden="true"></span>
+      <span class="mh-top-spacer" aria-hidden="true"></span>
+    </header>
+
+    <div class="te-scroll-area" id="te-scroll-area">
+<!-- Trip Map Section -->
+<div class="te-section">
+  <h2 class="te-section-title">我的旅程</h2>
+  <div class="te-map-card">
+    <div class="te-map-canvas">
+      <svg id="te-map-svg" viewBox="0 0 390 280" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+        <rect width="390" height="280" fill="#EFF1F0"/>
+        <!-- Streets -->
+        <g stroke="#D8DCE0" stroke-width="9" stroke-linecap="round">
+          <line x1="0" y1="55" x2="390" y2="55"/>
+          <line x1="0" y1="100" x2="390" y2="108"/>
+          <line x1="0" y1="155" x2="390" y2="150"/>
+          <line x1="0" y1="210" x2="390" y2="205"/>
+          <line x1="0" y1="260" x2="390" y2="260"/>
+          <line x1="60" y1="0" x2="65" y2="280"/>
+          <line x1="140" y1="0" x2="145" y2="280"/>
+          <line x1="220" y1="0" x2="215" y2="280"/>
+          <line x1="300" y1="0" x2="298" y2="280"/>
+          <line x1="360" y1="0" x2="360" y2="280"/>
+        </g>
+        <g stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" opacity="0.6">
+          <line x1="0" y1="55" x2="390" y2="55"/>
+          <line x1="0" y1="100" x2="390" y2="108"/>
+          <line x1="0" y1="155" x2="390" y2="150"/>
+          <line x1="0" y1="210" x2="390" y2="205"/>
+          <line x1="0" y1="260" x2="390" y2="260"/>
+          <line x1="60" y1="0" x2="65" y2="280"/>
+          <line x1="140" y1="0" x2="145" y2="280"/>
+          <line x1="220" y1="0" x2="215" y2="280"/>
+          <line x1="300" y1="0" x2="298" y2="280"/>
+          <line x1="360" y1="0" x2="360" y2="280"/>
+        </g>
+        <!-- Buildings -->
+        <g fill="#E2E5E3" stroke="#D0D4D2" stroke-width="0.5">
+          <rect x="70" y="5" width="65" height="44" rx="3"/>
+          <rect x="150" y="5" width="60" height="44" rx="3"/>
+          <rect x="225" y="5" width="68" height="44" rx="3"/>
+          <rect x="305" y="5" width="45" height="44" rx="3"/>
+          <rect x="70" y="65" width="65" height="37" rx="3"/>
+          <rect x="150" y="65" width="60" height="30" rx="3"/>
+          <rect x="155" y="75" width="50" height="38" rx="3"/>
+          <rect x="225" y="65" width="68" height="38" rx="3"/>
+          <rect x="305" y="65" width="45" height="38" rx="3"/>
+          <rect x="5" y="115" width="50" height="33" rx="3"/>
+          <rect x="70" y="115" width="65" height="33" rx="3"/>
+          <rect x="150" y="115" width="60" height="28" rx="3"/>
+          <rect x="225" y="118" width="68" height="25" rx="3"/>
+          <rect x="305" y="115" width="45" height="33" rx="3"/>
+          <rect x="5" y="160" width="50" height="43" rx="3"/>
+          <rect x="70" y="160" width="65" height="43" rx="3"/>
+          <rect x="150" y="160" width="60" height="43" rx="3"/>
+          <rect x="225" y="160" width="68" height="43" rx="3"/>
+          <rect x="305" y="160" width="45" height="43" rx="3"/>
+          <rect x="5" y="215" width="50" height="40" rx="3"/>
+          <rect x="70" y="215" width="65" height="40" rx="3"/>
+          <rect x="150" y="215" width="60" height="40" rx="3"/>
+          <rect x="225" y="215" width="68" height="40" rx="3"/>
+          <rect x="305" y="215" width="45" height="40" rx="3"/>
+        </g>
+
+        <!-- Route Path (solid for completed, dashed for incomplete) -->
+        <!-- Completed segments: spot1 → spot2 → spot3 → spot4 area -->
+        <path d="M 298 35 L 298 55 L 298 100 L 298 108 L 216 108 L 143 108 L 143 155 L 143 150 L 64 150 L 64 205 L 64 210 L 143 210 L 215 210"
+          stroke="#b22314" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.9"/>
+        <!-- Incomplete segment -->
+        <path d="M 215 210 L 215 155 L 215 150 L 298 150 L 298 100"
+          stroke="#B0B8C0" stroke-width="3.5" stroke-dasharray="8 5" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.5"/>
+
+        <!-- Start marker -->
+        <circle cx="298" cy="35" r="14" fill="#60A5FA" stroke="white" stroke-width="2"/>
+        <path d="M292 35 L296 39 L305 30" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+
+        <!-- End marker -->
+        <circle cx="64" cy="210" r="11" fill="#1E3A8A" stroke="white" stroke-width="2"/>
+        <text x="64" y="214" text-anchor="middle" font-size="11" font-weight="800" fill="white" font-family="Manrope, sans-serif">B</text>
+
+        <!-- ===== COLLECTIBLE MARKERS ===== -->
+
+        <!-- 景点 Markers (Circle) - Green for completed, Gray for uncompleted -->
+        <!-- Spot 1: Completed -->
+        <circle cx="298" cy="108" r="14" fill="#b22314" stroke="white" stroke-width="2"/>
+        <text x="298" y="113" text-anchor="middle" font-size="12" fill="white" font-weight="800" font-family="Manrope, sans-serif">1</text>
+        <!-- Spot 2: Completed -->
+        <circle cx="143" cy="108" r="14" fill="#b22314" stroke="white" stroke-width="2"/>
+        <text x="143" y="113" text-anchor="middle" font-size="12" fill="white" font-weight="800" font-family="Manrope, sans-serif">2</text>
+        <!-- Spot 3: Completed -->
+        <circle cx="64" cy="150" r="14" fill="#b22314" stroke="white" stroke-width="2"/>
+        <text x="64" y="155" text-anchor="middle" font-size="12" fill="white" font-weight="800" font-family="Manrope, sans-serif">3</text>
+        <!-- Spot 4: NOT completed (gray) -->
+        <circle cx="215" cy="210" r="14" fill="#B0B8C0" stroke="white" stroke-width="2"/>
+        <text x="215" y="215" text-anchor="middle" font-size="12" fill="white" font-weight="800" font-family="Manrope, sans-serif">4</text>
+
+        <!-- 知识点 Markers (Diamond shape) - Blue -->
+        <!-- K1: near spot 1 area, completed -->
+        <g transform="translate(340, 75)">
+          <rect x="-10" y="-10" width="20" height="20" rx="3" fill="#3B82F6" stroke="white" stroke-width="2" transform="rotate(45)"/>
+          <text x="0" y="5" text-anchor="middle" font-size="11" fill="white" font-weight="800" font-family="Manrope, sans-serif">1</text>
+        </g>
+        <!-- K2: near spot 2 area, completed -->
+        <g transform="translate(105, 130)">
+          <rect x="-10" y="-10" width="20" height="20" rx="3" fill="#3B82F6" stroke="white" stroke-width="2" transform="rotate(45)"/>
+          <text x="0" y="5" text-anchor="middle" font-size="11" fill="white" font-weight="800" font-family="Manrope, sans-serif">2</text>
+        </g>
+
+        <!-- 活动 Markers (Rounded square) - Orange -->
+        <!-- A1: along route, completed -->
+        <g transform="translate(220, 108)">
+          <rect x="-12" y="-12" width="24" height="24" rx="6" fill="#FF9800" stroke="white" stroke-width="2"/>
+          <text x="0" y="5" text-anchor="middle" font-size="11" fill="white" font-weight="800" font-family="Manrope, sans-serif">1</text>
+        </g>
+
+        <!-- 商店 Markers (Hexagon-ish / wider rounded rect) - Purple -->
+        <!-- S1: near spot 3, completed -->
+        <g transform="translate(30, 180)">
+          <rect x="-12" y="-10" width="24" height="20" rx="5" fill="#7C5CBF" stroke="white" stroke-width="2"/>
+          <text x="0" y="4" text-anchor="middle" font-size="10" fill="white" font-weight="800" font-family="Manrope, sans-serif">1</text>
+        </g>
+        <!-- S2: near end area, not completed (gray) -->
+        <g transform="translate(170, 235)">
+          <rect x="-12" y="-10" width="24" height="20" rx="5" fill="#B0B8C0" stroke="white" stroke-width="2"/>
+          <text x="0" y="4" text-anchor="middle" font-size="10" fill="white" font-weight="800" font-family="Manrope, sans-serif">2</text>
+        </g>
+      </svg>
+    </div>
+
+    <!-- Map Legend -->
+    <div class="te-map-legend">
+      <div class="te-legend-item">
+        <span class="te-legend-dot" style="background:#b22314;border-radius:50%;"></span>
+        <span>景点</span>
+      </div>
+      <div class="te-legend-item">
+        <span class="te-legend-dot te-legend-diamond" style="background:#3B82F6;"></span>
+        <span>知识点</span>
+      </div>
+      <div class="te-legend-item">
+        <span class="te-legend-dot" style="background:#FF9800;border-radius:4px;"></span>
+        <span>活动</span>
+      </div>
+      <div class="te-legend-item">
+        <span class="te-legend-dot" style="background:#7C5CBF;border-radius:3px;width:14px;"></span>
+        <span>商店</span>
+      </div>
+      <div class="te-legend-item">
+        <span class="te-legend-dot" style="background:#B0B8C0;border-radius:50%;"></span>
+        <span>未完成</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Trip Stats -->
+  <div class="te-trip-stats">
+    <div class="te-trip-stat">
+      <span class="te-stat-value">2.4km</span>
+      <span class="te-stat-label">总距离</span>
+    </div>
+    <div class="te-trip-stat-divider"></div>
+    <div class="te-trip-stat">
+      <span class="te-stat-value">58min</span>
+      <span class="te-stat-label">持续时间</span>
+    </div>
+    <div class="te-trip-stat-divider"></div>
+    <div class="te-trip-stat">
+      <span class="te-stat-value">75.8%</span>
+      <span class="te-stat-label">线路完成度</span>
+    </div>
+  </div>
+</div>
+
+<!-- My Collectibles Section -->
+<div class="te-section te-harvest-section">
+  <div class="te-harvest-sticky-sentinel" aria-hidden="true"></div>
+  <div class="te-harvest-sticky">
+    <h2 class="te-section-title te-harvest-section-title">我的收获</h2>
+
+    <div class="te-harvest-tabs" role="tablist" aria-label="收获类型">
+    <button type="button" class="te-harvest-tab is-active" role="tab" aria-selected="true" data-type="all" id="te-tab-all">
+      <span class="te-harvest-tab-icon">🗂️</span>
+      <span class="te-harvest-tab-text">全部</span>
+      <span class="te-harvest-tab-num">13/20</span>
+    </button>
+    <button type="button" class="te-harvest-tab" role="tab" aria-selected="false" data-type="spot" id="te-tab-spot">
+      <span class="te-harvest-tab-icon">📍</span>
+      <span class="te-harvest-tab-text">景点</span>
+      <span class="te-harvest-tab-num">3/4</span>
+    </button>
+    <button type="button" class="te-harvest-tab" role="tab" aria-selected="false" data-type="story" id="te-tab-story">
+      <span class="te-harvest-tab-icon">📖</span>
+      <span class="te-harvest-tab-text">故事</span>
+      <span class="te-harvest-tab-num">0/1</span>
+    </button>
+    <button type="button" class="te-harvest-tab" role="tab" aria-selected="false" data-type="egg" id="te-tab-egg">
+      <span class="te-harvest-tab-icon">🥚</span>
+      <span class="te-harvest-tab-text">彩蛋</span>
+      <span class="te-harvest-tab-num">7/10</span>
+    </button>
+    <button type="button" class="te-harvest-tab" role="tab" aria-selected="false" data-type="knowledge" id="te-tab-knowledge">
+      <span class="te-harvest-tab-icon">💡</span>
+      <span class="te-harvest-tab-text">知识</span>
+      <span class="te-harvest-tab-num">2/2</span>
+    </button>
+    <button type="button" class="te-harvest-tab" role="tab" aria-selected="false" data-type="activity" id="te-tab-activity">
+      <span class="te-harvest-tab-icon">🎯</span>
+      <span class="te-harvest-tab-text">活动</span>
+      <span class="te-harvest-tab-num">1/3</span>
+    </button>
+  </div>
+  </div>
+
+  <div class="te-harvest-cards" id="te-harvest-cards">
+    <!-- 景点（路线详情页风格：白底 + 左侧强调线） -->
+    <article class="te-reward-card" data-type="spot" id="te-card-spot-first">
+      <div class="te-reward-card-head">
+        <div class="te-reward-card-row">
+          <h3 class="te-reward-title">
+            <span class="te-reward-title-emoji" aria-hidden="true">📍</span>
+            <span class="te-reward-title-type">景点</span>
+            <span class="te-reward-title-sep" aria-hidden="true">｜</span>
+            <span class="te-reward-title-text">青云阁及二层模范咖啡</span>
+          </h3>
+          <div class="te-reward-meta">
+            <span class="te-reward-badge te-reward-badge--ok">已打卡</span>
+          </div>
+        </div>
+      </div>
+      <p class="te-reward-desc">清末民初北京「四大商场」之一的青云阁旧址，青砖拱券与「青雲閣」石匾仍在；二楼「模范咖啡」窗景对着杨梅竹斜街，适合走累了慢坐、看瓦顶与人流。</p>
+    </article>
+    <article class="te-reward-card" data-type="spot">
+      <div class="te-reward-card-head">
+        <div class="te-reward-card-row">
+          <h3 class="te-reward-title">
+            <span class="te-reward-title-emoji" aria-hidden="true">📍</span>
+            <span class="te-reward-title-type">景点</span>
+            <span class="te-reward-title-sep" aria-hidden="true">｜</span>
+            <span class="te-reward-title-text">张忠强兔儿爷非遗传承店</span>
+          </h3>
+          <div class="te-reward-meta">
+            <span class="te-reward-badge te-reward-badge--ok">已打卡</span>
+          </div>
+        </div>
+      </div>
+      <p class="te-reward-desc">杨梅竹斜街上的非遗工作室，满墙彩塑兔儿爷与报道剪贴一眼能认出「京味中秋」；可与店员聊聊开胎、修坯、彩绘，部分时段开放 DIY（以现场为准）。</p>
+    </article>
+    <article class="te-reward-card" data-type="spot">
+      <div class="te-reward-card-head">
+        <div class="te-reward-card-row">
+          <h3 class="te-reward-title">
+            <span class="te-reward-title-emoji" aria-hidden="true">📍</span>
+            <span class="te-reward-title-type">景点</span>
+            <span class="te-reward-title-sep" aria-hidden="true">｜</span>
+            <span class="te-reward-title-text">乾坤空间文创</span>
+          </h3>
+          <div class="te-reward-meta">
+            <span class="te-reward-badge te-reward-badge--ok">已打卡</span>
+          </div>
+        </div>
+      </div>
+      <p class="te-reward-desc">像小型美术馆的胡同文创空间：刺绣、书画与胡同主题插画、帆布袋，动线迂回，适合慢慢淘与「对纹样」。</p>
+    </article>
+    <article class="te-reward-card" data-type="spot">
+      <div class="te-reward-card-head">
+        <div class="te-reward-card-row">
+          <h3 class="te-reward-title">
+            <span class="te-reward-title-emoji" aria-hidden="true">📍</span>
+            <span class="te-reward-title-type">景点</span>
+            <span class="te-reward-title-sep" aria-hidden="true">｜</span>
+            <span class="te-reward-title-text">将将堂印章</span>
+          </h3>
+          <div class="te-reward-meta">
+            <span class="te-reward-badge te-reward-badge--muted">未打卡</span>
+          </div>
+        </div>
+      </div>
+      <p class="te-reward-desc">专注篆刻与钤印体验的工作室型空间：一方石、一盒印泥，能把旅行记忆压进纸里带走；行前建议确认开放与是否需预约。</p>
+    </article>
+
+    <!-- 故事 -->
+    <article class="te-reward-card" data-type="story" id="te-card-story-first">
+      <div class="te-reward-card-head">
+        <div class="te-reward-card-row">
+          <h3 class="te-reward-title">
+            <span class="te-reward-title-emoji" aria-hidden="true">📖</span>
+            <span class="te-reward-title-type">故事</span>
+            <span class="te-reward-title-sep" aria-hidden="true">｜</span>
+            <span class="te-reward-title-text">杨梅竹斜街：从青云阁到钤印</span>
+          </h3>
+          <div class="te-reward-meta">
+            <span class="te-reward-badge te-reward-badge--muted">未打卡</span>
+          </div>
+        </div>
+      </div>
+      <p class="te-reward-desc">串起老商场旧址、兔儿爷非遗、铃木食堂一顿暖饭与将将堂一方印，走完全程后解锁完整叙事与隐藏旁白。</p>
+    </article>
+
+    <!-- 彩蛋 -->
+    <article class="te-reward-card" data-type="egg" id="te-card-egg-first">
+      <div class="te-reward-card-head">
+        <div class="te-reward-card-row">
+          <h3 class="te-reward-title">
+            <span class="te-reward-title-emoji" aria-hidden="true">🥚</span>
+            <span class="te-reward-title-type">彩蛋</span>
+            <span class="te-reward-title-sep" aria-hidden="true">｜</span>
+            <span class="te-reward-title-text">模范咖啡拱窗彩蛋</span>
+          </h3>
+          <div class="te-reward-meta">
+            <span class="te-reward-badge te-reward-badge--ok">已打卡</span>
+          </div>
+        </div>
+      </div>
+      <p class="te-reward-desc">在青云阁二层「模范咖啡」经典拱窗前完成取景打卡，与路线详情页同款暖红窗格视角。</p>
+    </article>
+    <article class="te-reward-card" data-type="egg">
+      <div class="te-reward-card-head">
+        <div class="te-reward-card-row">
+          <h3 class="te-reward-title">
+            <span class="te-reward-title-emoji" aria-hidden="true">🥚</span>
+            <span class="te-reward-title-type">彩蛋</span>
+            <span class="te-reward-title-sep" aria-hidden="true">｜</span>
+            <span class="te-reward-title-text">兔儿爷店语音彩蛋</span>
+          </h3>
+          <div class="te-reward-meta">
+            <span class="te-reward-badge te-reward-badge--ok">已打卡</span>
+          </div>
+        </div>
+      </div>
+      <p class="te-reward-desc">在张忠强兔儿爷店附近触发小 go 的加长解说：非遗传承、坐骑寓意与「庙小乾坤大」的胡同梗。</p>
+    </article>
+    <article class="te-reward-card" data-type="egg">
+      <div class="te-reward-card-head">
+        <div class="te-reward-card-row">
+          <h3 class="te-reward-title">
+            <span class="te-reward-title-emoji" aria-hidden="true">🥚</span>
+            <span class="te-reward-title-type">彩蛋</span>
+            <span class="te-reward-title-sep" aria-hidden="true">｜</span>
+            <span class="te-reward-title-text">还有 8 枚彩蛋等你发现</span>
+          </h3>
+          <div class="te-reward-meta">
+            <span class="te-reward-badge te-reward-badge--muted">未打卡</span>
+          </div>
+        </div>
+      </div>
+      <p class="te-reward-desc">铃木食堂夜灯、乾坤空间木门「藏」字海报、将将堂钤印台面等点位还可继续探索收集。</p>
+    </article>
+
+    <!-- 知识（聊天页知识点卡片：浅绿底） -->
+    <article class="te-reward-card" data-type="knowledge" id="te-card-knowledge-first">
+      <div class="te-reward-card-head">
+        <div class="te-reward-card-row">
+          <h3 class="te-reward-title">
+            <span class="te-reward-title-emoji" aria-hidden="true">💡</span>
+            <span class="te-reward-title-type">知识</span>
+            <span class="te-reward-title-sep" aria-hidden="true">｜</span>
+            <span class="te-reward-title-text">兔儿爷的历史与非遗传承</span>
+          </h3>
+          <div class="te-reward-meta">
+            <span class="te-reward-badge te-reward-badge--ok">已打卡</span>
+          </div>
+        </div>
+      </div>
+      <p class="te-reward-desc">兔儿爷源于老北京中秋祭月与赏玩，明代以后逐渐从礼仪器物变为节庆玩具与「记忆北京」的符号；张忠强等传承人把泥塑彩绘带进当代展览与课堂。</p>
+      <p class="te-reward-desc te-reward-desc--secondary">补充：传统形象常见披甲胄、背护旗，坐骑如虎、象、麒麟各有不同寓意，与聊天页「兔儿爷历史脉络」卡片一致。</p>
+    </article>
+    <article class="te-reward-card" data-type="knowledge">
+      <div class="te-reward-card-head">
+        <div class="te-reward-card-row">
+          <h3 class="te-reward-title">
+            <span class="te-reward-title-emoji" aria-hidden="true">💡</span>
+            <span class="te-reward-title-type">知识</span>
+            <span class="te-reward-title-sep" aria-hidden="true">｜</span>
+            <span class="te-reward-title-text">青云阁与清末民初「商场」</span>
+          </h3>
+          <div class="te-reward-meta">
+            <span class="te-reward-badge te-reward-badge--ok">已打卡</span>
+          </div>
+        </div>
+      </div>
+      <p class="te-reward-desc">青云阁曾是大栅栏片区重要的综合性商场，砖砌立面与拱券见证了清末民初商业空间如何从「赶集」走向多层店铺与休闲消费。</p>
+    </article>
+
+    <!-- 活动 -->
+    <article class="te-reward-card" data-type="activity" id="te-card-activity-first">
+      <div class="te-reward-card-head">
+        <div class="te-reward-card-row">
+          <h3 class="te-reward-title">
+            <span class="te-reward-title-emoji" aria-hidden="true">🎯</span>
+            <span class="te-reward-title-type">活动</span>
+            <span class="te-reward-title-sep" aria-hidden="true">｜</span>
+            <span class="te-reward-title-text">AI 语音导览挑战</span>
+          </h3>
+          <div class="te-reward-meta">
+            <span class="te-reward-badge te-reward-badge--ok">已打卡</span>
+          </div>
+        </div>
+      </div>
+      <p class="te-reward-desc">与小 go 完成杨梅竹斜街沿线问答（兔儿爷典故、坐骑寓意、青云阁背景等），与 AI 聊天体验连贯。</p>
+    </article>
+    <article class="te-reward-card" data-type="activity">
+      <div class="te-reward-card-head">
+        <div class="te-reward-card-row">
+          <h3 class="te-reward-title">
+            <span class="te-reward-title-emoji" aria-hidden="true">🎯</span>
+            <span class="te-reward-title-type">活动</span>
+            <span class="te-reward-title-sep" aria-hidden="true">｜</span>
+            <span class="te-reward-title-text">胡同摄影打卡</span>
+          </h3>
+          <div class="te-reward-meta">
+            <span class="te-reward-badge te-reward-badge--muted">未打卡</span>
+          </div>
+        </div>
+      </div>
+      <p class="te-reward-desc">在青云阁拱窗、兔儿爷店彩塑墙、乾坤空间门头三处拍摄并上传即可完成（对应路线详情中的高出片点位）。</p>
+    </article>
+    <article class="te-reward-card" data-type="activity">
+      <div class="te-reward-card-head">
+        <div class="te-reward-card-row">
+          <h3 class="te-reward-title">
+            <span class="te-reward-title-emoji" aria-hidden="true">🎯</span>
+            <span class="te-reward-title-type">活动</span>
+            <span class="te-reward-title-sep" aria-hidden="true">｜</span>
+            <span class="te-reward-title-text">将将堂钤印体验</span>
+          </h3>
+          <div class="te-reward-meta">
+            <span class="te-reward-badge te-reward-badge--muted">未打卡</span>
+          </div>
+        </div>
+      </div>
+      <p class="te-reward-desc">到访将将堂完成钤印或篆刻体验，盖齐指定纹样即可结算（与未打卡景点「将将堂印章」一致）。</p>
+    </article>
+  </div>
+</div>
+    </div>
+  </div>
+
+  <script src="trip-end.js"></script>
+  <script src="my-harvest.js"></script>
+</body>
+</html>

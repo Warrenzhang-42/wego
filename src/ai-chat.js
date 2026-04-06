@@ -234,6 +234,19 @@ function applyUserLocationToMap(pos) {
     endTourBtn.addEventListener('contextmenu', (e) => e.preventDefault());
   }
 
+  /* 收获：进入与结果页同构的「我的收获」独立页（问问导游 consult=1 时顶栏已隐藏该按钮） */
+  const rewardBtn = document.getElementById('ac-reward-btn');
+  if (rewardBtn && !isConsult) {
+    rewardBtn.addEventListener('click', () => {
+      try {
+        sessionStorage.setItem('wego_chat_return_query', window.location.search || '');
+      } catch (e) {
+        /* ignore */
+      }
+      window.location.href = 'my-harvest.html';
+    });
+  }
+
   // Handle "Change Guide"
   const changeGuideBtn = document.querySelector('.ac-change-guide');
   if (changeGuideBtn) {

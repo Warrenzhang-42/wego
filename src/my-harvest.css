@@ -1,0 +1,46 @@
+/* WeGO — 我的收获独立页（与 trip-end 收获区同构，顶栏返回聊天） */
+
+.mh-app {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.mh-app .te-scroll-area {
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+}
+
+.mh-top-bar {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: 48px 1fr 48px;
+  align-items: center;
+  min-height: 48px;
+  padding: 6px 8px;
+  padding-left: max(8px, env(safe-area-inset-left, 0px));
+  padding-right: max(8px, env(safe-area-inset-right, 0px));
+  background: var(--clr-surface-container-lowest, #fff);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.mh-back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: -6px;
+  border-radius: 12px;
+  color: var(--clr-text-h, #1a1a1a);
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mh-back:active {
+  opacity: 0.72;
+}
+
+.mh-top-spacer {
+  display: block;
+}
