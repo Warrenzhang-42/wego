@@ -841,6 +841,6 @@ app.post('/api/knowledge/search', requireAuth, async (req, res) => {
   }
 });
 
-app.listen(config.port, () => {
-  console.log(`[backend] listening on :${config.port}`);
+app.listen(config.port, config.listenHost, () => {
+  console.log(`[backend] listening on http://${config.listenHost}:${config.port}`);
 });

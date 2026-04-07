@@ -65,7 +65,7 @@
     </nav>
   </div>
   <nav class="admin-header__nav">
-    <a href="http://127.0.0.1:5173/" target="_blank">返回前台</a>
+    <a id="wego-admin-to-frontend" href="http://127.0.0.1:5173/" target="_blank">返回前台</a>
     <span class="admin-header__mode">SERVICE ROLE</span>
   </nav>
 </header>
@@ -693,7 +693,7 @@
      ================================================================ -->
 <script>
 window.__WEGO_API_CONFIG__ = {
-  apiBaseUrl: 'http://127.0.0.1:8787',
+  apiBaseUrl: 'http://' + location.hostname + ':8787',
   /** 调用 route-ingest Edge Function（与前台 ingest 一致，需 anon JWT） */
   apiAudience: 'wego-admin',
 };
@@ -703,6 +703,10 @@ window.__WEGO_MAP_CONFIG__ = {
   apiKey: '4a12d15f179304ca919becb35e7f6b69',
   securityJsCode: 'da808ff5520aa962794be908a765bbe1',
 };
+(function () {
+  var el = document.getElementById('wego-admin-to-frontend');
+  if (el) el.href = 'http://' + location.hostname + ':5173/';
+})();
 </script>
 
 <!-- ================================================================

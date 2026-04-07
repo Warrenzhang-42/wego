@@ -3,7 +3,8 @@ const { readFileSync, existsSync } = require('fs');
 const { resolve } = require('path');
 
 const APP_DIR = __dirname;
-const HOST = '127.0.0.1';
+/** 局域网调试设 `ADMIN_HOST=0.0.0.0`（见 npm run admin:dev:lan） */
+const HOST = process.env.ADMIN_HOST || '127.0.0.1';
 const BASE_PORT = Number(process.env.ADMIN_PORT || process.env.PORT || 5174) || 5174;
 const MAX_PORT_TRIES = 40;
 

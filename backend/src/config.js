@@ -7,6 +7,8 @@ function toInt(value, fallback) {
 
 const config = {
   port: toInt(process.env.BACKEND_PORT, 8787),
+  /** 默认 0.0.0.0 便于同 WiFi 设备访问；仅本机可设 BACKEND_HOST=127.0.0.1 */
+  listenHost: process.env.BACKEND_HOST || '0.0.0.0',
   jwtSecret: process.env.JWT_SECRET || 'change-me-in-production',
   jwtRefreshSecret: process.env.JWT_REFRESH_SECRET || 'change-me-refresh-secret',
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '2h',
