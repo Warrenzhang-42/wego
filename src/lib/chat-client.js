@@ -6,8 +6,8 @@
 window.WeGOChatClient = (function () {
   'use strict';
 
-  const STREAM_URL = 'http://localhost:8000/chat/stream';
-  const FALLBACK_URL = 'http://localhost:8000/chat';
+  const STREAM_URL = '/chat/stream';
+  const FALLBACK_URL = '/chat';
 
   function parseSseText(text) {
     let assembled = '';
@@ -100,7 +100,7 @@ window.WeGOChatClient = (function () {
         const errorData = {
           role: 'ai',
           content:
-            '抱歉，本地 Agent 服务好像没开启 (需执行: cd agent && uvicorn server:app --host 0.0.0.0 --port 8000)。',
+            '抱歉，对话服务暂时不可用。请确认 Agent 已启动，且 Nginx 已将 /chat 反代到 Agent（生产环境勿直连 localhost:8000）。',
           inserts: [],
         };
         if (this.eventBus) this.eventBus.emit('chat:receive', errorData);
