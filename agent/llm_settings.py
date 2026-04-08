@@ -8,7 +8,10 @@ from pathlib import Path
 _DEFAULT_BASE = "https://api.openai.com/v1"
 
 # scnet 等平台偶发「模型名与路由不一致」时，按顺序尝试备用 model id（与官方模型列表一致）
-_DEFAULT_SCNET_FALLBACKS = "MiniMax-M2,DeepSeek-V3.2"
+_DEFAULT_GATEWAY_FALLBACKS = {
+    "scnet.cn": "MiniMax-M2,DeepSeek-V3.2",
+    "gmi-serving.com": "MiniMax-M2,DeepSeek-V3.2",
+}
 
 
 def load_dotenv_wego() -> None:
@@ -50,8 +53,11 @@ def model_candidates_from_env() -> list[str]:
     primary = (os.getenv("OPENAI_API_MODEL") or "gpt-4o-mini").strip()
     raw_fb = (os.getenv("OPENAI_API_MODEL_FALLBACKS") or "").strip()
     base = (os.getenv("OPENAI_API_BASE") or "").lower()
-    if not raw_fb and "scnet.cn" in base:
-        raw_fb = _DEFAULT_SCNET_FALLBACKS
+    if not raw_fb:
+        for host, default_fallbacks in _DEFAULT_GATEWAY_FALLBACKS.items():
+            if host in base:
+                raw_fb = default_fallbacks
+                break
     fallbacks = [x.strip() for x in raw_fb.split(",") if x.strip()]
     out: list[str] = []
     for m in [primary] + fallbacks:

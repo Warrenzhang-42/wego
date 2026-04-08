@@ -751,6 +751,41 @@ let currentPage = 1;
 const PAGE_SIZE = 20;
 let pendingDeleteRouteId = null;
 let pendingDeleteSpotId = null;
+const ADMIN_EMAIL_KEY = 'wego_admin_email';
+const DEFAULT_ADMIN_EMAIL = 'admin@wego.local';
+const DEFAULT_ADMIN_PASSWORD = 'ChangeMe123!';
+
+async function ensureAdminSession() {
+  const existing = localStorage.getItem('wego_access_token');
+  if (existing) return;
+  const apiBase = (window.__WEGO_API_CONFIG__ && window.__WEGO_API_CONFIG__.apiBaseUrl) || '';
+  if (!apiBase) throw new Error('缺少 apiBaseUrl，无法登录后台');
+
+  const cachedEmail = localStorage.getItem(ADMIN_EMAIL_KEY) || DEFAULT_ADMIN_EMAIL;
+  const rawEmail = window.prompt('请输入后台管理员邮箱', cachedEmail);
+  if (rawEmail === null) throw new Error('已取消登录');
+  const email = (String(rawEmail).trim() || cachedEmail).toLowerCase();
+
+  const rawPassword = window.prompt(`请输入 ${email} 的密码（默认 ${DEFAULT_ADMIN_PASSWORD}）`, '');
+  if (rawPassword === null) throw new Error('已取消登录');
+  const password = String(rawPassword).trim() || DEFAULT_ADMIN_PASSWORD;
+
+  const res = await fetch(`${apiBase}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(`登录失败：${res.status} ${txt}`);
+  }
+  const data = await res.json();
+  if (!data || !data.access_token) throw new Error('登录响应缺少 access_token');
+
+  localStorage.setItem('wego_access_token', data.access_token);
+  if (data.refresh_token) localStorage.setItem('wego_refresh_token', data.refresh_token);
+  localStorage.setItem(ADMIN_EMAIL_KEY, email);
+}
 
 /* ============================================================
    Cover Image Picker — 双模式（URL / 本地上传）
@@ -1174,7 +1209,7 @@ async function handleSpotPhotoFiles(files) {
 /* ============================================================
    Bootstrap
    ============================================================ */
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   initAdminCityFilterSelect();
   initRouteProvinceCitySelectors();
   bindToolbarEvents();
@@ -1186,6 +1221,13 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('btn-publish-route').addEventListener('click', publishRouteAction);
   document.getElementById('btn-save-spot').addEventListener('click', () => saveSpot(true));
   document.getElementById('btn-new-route').addEventListener('click', createNewRoute);
+  try {
+    await ensureAdminSession();
+  } catch (err) {
+    console.error('[admin-auth]', err);
+    alert(`后台登录未完成：${err?.message || err}`);
+    return;
+  }
   loadRoutes();
   initAdminRouteUploadPanel();
   initAdminCarouselPanel();

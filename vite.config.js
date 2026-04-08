@@ -4,6 +4,7 @@ const { defineConfig } = require('vite');
 
 const repoRoot = __dirname;
 const dataRoot = path.join(repoRoot, 'data');
+const agentBaseUrl = (process.env.AGENT_BASE_URL || 'http://127.0.0.1:8000').replace(/\/+$/, '');
 
 /**
  * dev 命令使用 root = src，页面 URL 应为 /ai-chat.html，而不是 /src/ai-chat.html。
@@ -28,6 +29,16 @@ module.exports = defineConfig({
     },
     fs: {
       allow: [path.resolve(__dirname, 'src'), dataRoot],
+    },
+    /**
+     * 本地开发直开 Vite 时，/chat 同源请求需转发到 Agent。
+     * 生产环境仍由 Nginx 反代，不受此配置影响。
+     */
+    proxy: {
+      '/chat': {
+        target: agentBaseUrl,
+        changeOrigin: true,
+      },
     },
   },
   plugins: [

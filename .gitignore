@@ -22,3 +22,14 @@ Thumbs.db
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Runtime/local generated assets
+storage/
+
+# Local archives (too large for GitHub)
+wego.zip
+
+# Python virtual env and cache
+agent/.venv/
+**/__pycache__/
+*.pyc

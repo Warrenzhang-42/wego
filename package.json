@@ -26,9 +26,9 @@
     "migrate:013": "node data/scripts/run-sql-migration.js server/migrations/013_home_carousel_city_groups.sql",
     "migrate:route-upload": "npm run migrate:006 && npm run migrate:007",
     "deploy:route-ingest": "supabase functions deploy route-ingest",
-    "backend:dev": "node backend/src/server.js",
-    "backend:migrate": "node backend/scripts/migrate.js",
-    "backend:seed": "node backend/scripts/seed.js"
+    "backend:dev": "node -r dotenv/config backend/src/server.js",
+    "backend:migrate": "node -r dotenv/config backend/scripts/migrate.js",
+    "backend:seed": "node -r dotenv/config backend/scripts/seed.js"
   },
   "keywords": [],
   "author": "",
