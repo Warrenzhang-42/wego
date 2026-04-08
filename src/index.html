@@ -520,12 +520,8 @@
     </button>
   </nav>
 
-  <!-- Supabase 配置（Sprint 2.7）— anon key 仅有 SELECT 权限，可安全暴露 -->
-  <script>
-    window.__WEGO_API_CONFIG__ = {
-      apiBaseUrl:      'http://' + location.hostname + ':8787',
-    };
-  </script>
+  <!-- API 根路径：本地 8787 / 生产同源 -->
+  <script src="lib/wego-api-base-url.js"></script>
   <script type="module" src="app.js"></script>
 </body>
 </html>

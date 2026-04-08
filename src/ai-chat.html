@@ -137,12 +137,7 @@
   <!-- 上传路线入口（ai-chat.html — Sprint 11.6.5） -->
   <div id="ur-chat-entry-root" style="display:none;"></div>
 
-  <!-- Supabase：与路线详情页一致，便于读取后台 map_engine 等配置 -->
-  <script>
-    window.__WEGO_API_CONFIG__ = {
-      apiBaseUrl:      'http://' + location.hostname + ':8787',
-    };
-  </script>
+  <script src="lib/wego-api-base-url.js"></script>
 
   <!-- Infrastructure (Sprint 5) -->
   <script type="module" src="lib/geo-utils.js"></script>

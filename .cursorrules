@@ -36,3 +36,9 @@
 
 ## 六、 AI 与记忆基建（索引）
 - 本机 **OpenClaw / 向量记忆 / 网络与维护命令** 的单一事实来源：`docs/openclaw-and-cursor-memory-runbook.md`（不含密钥，可检索）。
+
+## 七、 本地开发固定端口（不得随意变更）
+- 前台（`src/`）固定：`5173`
+- 后台管理（admin）固定：`5174`
+- 后端 API（healthz / routes / spots）固定：`8787`
+- 除非用户明确授权并同步更新 runbook/compose/env，否则后续开发默认严格沿用以上端口。

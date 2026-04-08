@@ -691,12 +691,11 @@
 <!-- ================================================================
      CONFIG INJECTION — 直接使用 .env 中的真实凭证
      ================================================================ -->
+<script src="lib/wego-api-base-url.js"></script>
 <script>
-window.__WEGO_API_CONFIG__ = {
-  apiBaseUrl: 'http://' + location.hostname + ':8787',
-  /** 调用 route-ingest Edge Function（与前台 ingest 一致，需 anon JWT） */
-  apiAudience: 'wego-admin',
-};
+window.__WEGO_API_CONFIG__ = window.__WEGO_API_CONFIG__ || {};
+/** 调用 route-ingest Edge Function（与前台 ingest 一致，需 anon JWT） */
+window.__WEGO_API_CONFIG__.apiAudience = 'wego-admin';
 /** 与前台 route-detail 一致；地图选点依赖高德 Web JS Key + 安全密钥 */
 window.__WEGO_MAP_CONFIG__ = {
   provider: 'amap',
