@@ -1,0 +1,1645 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WeGO 技术实现全景图 — 产品经理版</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ───────────── Design Tokens ───────────── */
+    :root {
+      --brand:        #6C5CE7;
+      --brand-light:  #a29bfe;
+      --brand-dark:   #4834d4;
+      --teal:         #00cec9;
+      --teal-light:   #55efc4;
+      --coral:        #fd79a8;
+      --orange:       #fdcb6e;
+      --sky:          #74b9ff;
+      --green:        #00b894;
+
+      --bg:           #0d0e1a;
+      --bg-card:      #13152a;
+      --bg-card2:     #191c35;
+      --border:       rgba(255,255,255,0.08);
+      --border-bright:rgba(108,92,231,0.4);
+
+      --txt:          #e8eaf6;
+      --txt-muted:    #8892b0;
+      --txt-dim:      #4a5580;
+
+      --radius:       16px;
+      --radius-sm:    10px;
+      --shadow:       0 8px 32px rgba(0,0,0,0.5);
+    }
+
+    /* ───────────── Reset ───────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', 'Noto Sans SC', sans-serif;
+      background: var(--bg);
+      color: var(--txt);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ───────────── Animated Background ───────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 50% at 10% 15%, rgba(108,92,231,0.12) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 40% at 90% 80%, rgba(0,206,201,0.08) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 60% at 50% 50%, rgba(253,121,168,0.04) 0%, transparent 60%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ───────────── Layout ───────────── */
+    .page { position: relative; z-index: 1; max-width: 1200px; margin: 0 auto; padding: 0 24px 80px; }
+
+    /* ───────────── Hero ───────────── */
+    .hero {
+      text-align: center;
+      padding: 72px 24px 48px;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(108,92,231,0.15);
+      border: 1px solid rgba(108,92,231,0.35);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 13px;
+      color: var(--brand-light);
+      margin-bottom: 24px;
+    }
+    .hero-badge .dot {
+      width: 7px; height: 7px;
+      background: var(--brand-light);
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+    .hero h1 {
+      font-size: clamp(32px, 5vw, 56px);
+      font-weight: 700;
+      line-height: 1.15;
+      background: linear-gradient(135deg, #fff 0%, var(--brand-light) 50%, var(--teal) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 16px;
+    }
+    .hero p {
+      font-size: 17px;
+      color: var(--txt-muted);
+      max-width: 560px;
+      margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* ───────────── Section ───────────── */
+    .section {
+      margin-top: 72px;
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 32px;
+    }
+    .section-icon {
+      width: 48px; height: 48px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      flex-shrink: 0;
+    }
+    .section-header h2 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--txt);
+    }
+    .section-header p {
+      font-size: 14px;
+      color: var(--txt-muted);
+      margin-top: 4px;
+      line-height: 1.5;
+    }
+
+    /* ───────────── Card ───────────── */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      transition: border-color 0.3s, transform 0.3s, box-shadow 0.3s;
+    }
+    .card:hover {
+      border-color: var(--border-bright);
+      transform: translateY(-3px);
+      box-shadow: var(--shadow);
+    }
+
+    /* ───────────── Grid ───────────── */
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    @media (max-width: 900px) { .grid-3, .grid-4 { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 600px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
+
+    /* ───────────── Architecture Diagram ───────────── */
+    .arch-diagram {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .arch-diagram::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 40% at 50% 0%, rgba(108,92,231,0.07) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .arch-layers {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .arch-layer {
+      border-radius: var(--radius-sm);
+      padding: 18px 20px;
+      position: relative;
+    }
+    .arch-layer-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      opacity: 0.7;
+    }
+    .arch-layer-modules {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .arch-module {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .arch-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--txt-dim);
+      font-size: 20px;
+      padding: 4px 0;
+    }
+
+    .layer-frontend { background: rgba(108,92,231,0.08); border: 1px solid rgba(108,92,231,0.2); }
+    .layer-edge     { background: rgba(0,206,201,0.06); border: 1px solid rgba(0,206,201,0.2); }
+    .layer-backend  { background: rgba(253,121,168,0.06); border: 1px solid rgba(253,121,168,0.2); }
+    .layer-ai       { background: rgba(253,203,110,0.06); border: 1px solid rgba(253,203,110,0.2); }
+    .layer-data     { background: rgba(116,185,255,0.06); border: 1px solid rgba(116,185,255,0.2); }
+
+    .layer-frontend .arch-layer-label { color: var(--brand-light); }
+    .layer-edge .arch-layer-label     { color: var(--teal); }
+    .layer-backend .arch-layer-label  { color: var(--coral); }
+    .layer-ai .arch-layer-label       { color: var(--orange); }
+    .layer-data .arch-layer-label     { color: var(--sky); }
+
+    /* ───────────── Flow Steps ───────────── */
+    .flow {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .flow-step {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      padding: 20px 0;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+    .flow-step:last-child { border-bottom: none; }
+    .flow-num {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+    .flow-content h4 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .flow-content p {
+      font-size: 13px;
+      color: var(--txt-muted);
+      line-height: 1.6;
+    }
+    .flow-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+
+    /* ───────────── Tool Cards ───────────── */
+    .tool-card {
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 18px;
+      transition: all 0.3s;
+    }
+    .tool-card:hover {
+      border-color: var(--border-bright);
+      transform: translateY(-2px);
+    }
+    .tool-card-name {
+      font-size: 13px;
+      font-weight: 700;
+      font-family: 'Courier New', monospace;
+      margin-bottom: 6px;
+      color: var(--brand-light);
+    }
+    .tool-card-desc {
+      font-size: 12px;
+      color: var(--txt-muted);
+      line-height: 1.55;
+    }
+    .tool-card-src {
+      margin-top: 8px;
+      font-size: 11px;
+      color: var(--txt-dim);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* ───────────── Data Flow ───────────── */
+    .dataflow {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+    .df-node {
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      text-align: center;
+      min-width: 110px;
+      flex-shrink: 0;
+    }
+    .df-node-icon { font-size: 22px; margin-bottom: 6px; }
+    .df-node-label { font-size: 12px; color: var(--txt-muted); }
+    .df-node-name { font-size: 13px; font-weight: 600; margin-top: 4px; }
+    .df-arrow {
+      color: var(--txt-dim);
+      font-size: 18px;
+      padding: 0 6px;
+      flex-shrink: 0;
+    }
+
+    /* ───────────── DB Table Preview ───────────── */
+    .db-table {
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .db-table-head {
+      background: rgba(116,185,255,0.1);
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--sky);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .db-row {
+      display: flex;
+      align-items: center;
+      padding: 8px 16px;
+      border-top: 1px solid var(--border);
+      gap: 12px;
+    }
+    .db-row:nth-child(even) { background: rgba(255,255,255,0.02); }
+    .db-field { font-size: 12px; font-family: monospace; color: var(--brand-light); min-width: 140px; }
+    .db-type { font-size: 11px; color: var(--orange); min-width: 90px; }
+    .db-desc { font-size: 12px; color: var(--txt-muted); flex: 1; }
+
+    /* ───────────── Highlight Box ───────────── */
+    .highlight-box {
+      background: linear-gradient(135deg, rgba(108,92,231,0.1) 0%, rgba(0,206,201,0.06) 100%);
+      border: 1px solid rgba(108,92,231,0.3);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+    }
+    .highlight-box h3 {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .highlight-box p, .highlight-box li {
+      font-size: 14px;
+      color: var(--txt-muted);
+      line-height: 1.7;
+    }
+    .highlight-box ul { padding-left: 20px; }
+    .highlight-box li { margin-bottom: 6px; }
+
+    /* ───────────── Comparison Table ───────────── */
+    .compare-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .compare-table th {
+      background: rgba(255,255,255,0.04);
+      color: var(--txt-muted);
+      padding: 10px 16px;
+      text-align: left;
+      font-weight: 600;
+      font-size: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .compare-table td {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--txt);
+      vertical-align: top;
+    }
+    .compare-table tr:last-child td { border-bottom: none; }
+    .compare-table tr:hover td { background: rgba(255,255,255,0.02); }
+    .tag-winner {
+      background: rgba(0,184,148,0.15);
+      color: var(--green);
+      border-radius: 100px;
+      padding: 2px 8px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    /* ───────────── Phase Timeline ───────────── */
+    .phase-timeline {
+      display: flex;
+      gap: 16px;
+    }
+    .phase-item {
+      flex: 1;
+      border-radius: var(--radius-sm);
+      padding: 20px;
+      border: 1px solid var(--border);
+      position: relative;
+    }
+    .phase-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .phase-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .phase-list {
+      list-style: none;
+      font-size: 12px;
+      color: var(--txt-muted);
+      line-height: 1.7;
+    }
+    .phase-list li::before {
+      content: '· ';
+      color: var(--brand-light);
+    }
+    .phase-current {
+      border-color: rgba(108,92,231,0.4);
+      background: rgba(108,92,231,0.06);
+    }
+    .phase-current::before {
+      content: '▶ 当前阶段';
+      position: absolute;
+      top: -10px;
+      left: 16px;
+      background: var(--brand);
+      color: white;
+      padding: 2px 10px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    /* ───────────── QnA ───────────── */
+    .qa-item {
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      border: 1px solid var(--border);
+      margin-bottom: 12px;
+      transition: border-color 0.3s;
+    }
+    .qa-item:hover { border-color: var(--border-bright); }
+    .qa-q {
+      background: var(--bg-card2);
+      padding: 16px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .qa-q::after { content: '＋'; color: var(--brand-light); font-size: 18px; transition: transform 0.3s; }
+    .qa-item.open .qa-q::after { transform: rotate(45deg); }
+    .qa-a {
+      display: none;
+      padding: 16px 20px;
+      font-size: 13px;
+      color: var(--txt-muted);
+      line-height: 1.7;
+      background: rgba(255,255,255,0.015);
+    }
+    .qa-item.open .qa-a { display: block; }
+
+    /* ───────────── Stack Chips ───────────── */
+    .stack-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .stack-chip {
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: all 0.25s;
+      min-width: 120px;
+    }
+    .stack-chip:hover { border-color: var(--border-bright); transform: translateY(-2px); }
+    .stack-chip-label { font-size: 10px; color: var(--txt-dim); text-transform: uppercase; letter-spacing: 0.08em; }
+    .stack-chip-name { font-weight: 700; color: var(--txt); }
+
+    /* ───────────── Nav ───────────── */
+    .nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(13,14,26,0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 0;
+    }
+    .nav-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      overflow-x: auto;
+    }
+    .nav-logo {
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--brand-light);
+      white-space: nowrap;
+      margin-right: 8px;
+      flex-shrink: 0;
+    }
+    .nav-link {
+      font-size: 13px;
+      color: var(--txt-muted);
+      text-decoration: none;
+      white-space: nowrap;
+      transition: color 0.2s;
+    }
+    .nav-link:hover { color: var(--txt); }
+
+    /* ───────────── Misc ───────────── */
+    .separator {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+      margin: 60px 0;
+    }
+    .emoji { font-style: normal; }
+    .label-tag {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .tag-purple { background: rgba(108,92,231,0.2); color: var(--brand-light); }
+    .tag-teal   { background: rgba(0,206,201,0.15); color: var(--teal); }
+    .tag-coral  { background: rgba(253,121,168,0.15); color: var(--coral); }
+    .tag-orange { background: rgba(253,203,110,0.15); color: var(--orange); }
+    .tag-sky    { background: rgba(116,185,255,0.15); color: var(--sky); }
+    .tag-green  { background: rgba(0,184,148,0.15); color: var(--green); }
+
+    .text-sm { font-size: 13px; }
+    .text-xs { font-size: 11px; }
+    .text-muted { color: var(--txt-muted); }
+    .mt-12 { margin-top: 12px; }
+    .mt-20 { margin-top: 20px; }
+
+    /* ───────────── Knowledge Flow SVG-style ───────────── */
+    .knowledge-flow {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+      align-items: center;
+      gap: 0;
+      overflow-x: auto;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+    }
+    .kf-node {
+      background: var(--bg-card2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 16px 12px;
+      text-align: center;
+    }
+    .kf-icon { font-size: 24px; margin-bottom: 6px; }
+    .kf-name { font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+    .kf-desc { font-size: 11px; color: var(--txt-muted); line-height: 1.5; }
+    .kf-arrow { text-align: center; font-size: 20px; color: var(--txt-dim); padding: 0 6px; }
+
+    @media (max-width: 700px) {
+      .phase-timeline { flex-direction: column; }
+      .knowledge-flow { grid-template-columns: 1fr; gap: 8px; }
+      .kf-arrow { transform: rotate(90deg); }
+      .dataflow { flex-direction: column; align-items: center; }
+      .df-arrow { transform: rotate(90deg); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── Navigation ─── -->
+<nav class="nav" role="navigation" aria-label="页面导航">
+  <div class="nav-inner">
+    <div class="nav-logo">🗺 WeGO 技术全景</div>
+    <a class="nav-link" href="#overview">整体架构</a>
+    <a class="nav-link" href="#frontend">前端页面</a>
+    <a class="nav-link" href="#map">地图引擎</a>
+    <a class="nav-link" href="#ai-agent">AI 导览</a>
+    <a class="nav-link" href="#knowledge">知识库</a>
+    <a class="nav-link" href="#database">数据库</a>
+    <a class="nav-link" href="#geofence">地理围栏</a>
+    <a class="nav-link" href="#admin">运营后台</a>
+    <a class="nav-link" href="#roadmap">发展路线</a>
+    <a class="nav-link" href="#qa">常见疑问</a>
+  </div>
+</nav>
+
+<!-- ─── Hero ─── -->
+<header class="hero" role="banner">
+  <div class="hero-badge"><span class="dot"></span>产品经理版 · 可视化技术说明</div>
+  <h1>WeGO 是怎么跑起来的？</h1>
+  <p>一张地图，带你走进「WeGO AI 本地导览」的完整技术世界。<br/>无需编程背景，看完即懂。</p>
+</header>
+
+<main class="page" role="main">
+
+  <!-- ═══════════════ 1. 整体架构 ═══════════════ -->
+  <section class="section" id="overview">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(108,92,231,0.15)">🏗</div>
+      <div>
+        <h2>整体架构 — 三层结构（当前实际部署版）</h2>
+        <p>WeGO 已迁移到<strong>完全自建</strong>的云服务器部署，由「用户手机端」「自建后端服务」「AI 智能核心」三层构成。</p>
+      </div>
+    </div>
+
+    <!-- 架构演变说明 -->
+    <div class="highlight-box" style="background:linear-gradient(135deg,rgba(253,203,110,0.08) 0%,rgba(253,121,168,0.05) 100%);border-color:rgba(253,203,110,0.3);margin-bottom:24px">
+      <h3>📌 为什么技术文档里提到 Supabase，但实际没在用？</h3>
+      <p>WeGO 在<strong>早期规划阶段</strong>选用了 Supabase 作为一站式后端平台。但在实际部署上线后，团队改为<strong>在云服务器上自建所有服务</strong>，好处是成本更低、数据完全自主控制、不依赖第三方平台限制。</p>
+      <p style="margin-top:8px">原来计划用 Supabase 提供的功能，现在都由自己的代码实现了：</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+        <div style="background:rgba(0,0,0,0.2);border-radius:8px;padding:12px;font-size:13px">
+          <div style="color:var(--txt-dim);font-size:11px;margin-bottom:6px">❌ 原计划（Supabase）</div>
+          <div style="color:var(--txt-muted);line-height:1.8">
+            Supabase Auth（用户认证）<br/>
+            Supabase Edge Functions（API）<br/>
+            Supabase hosted PostgreSQL<br/>
+            Supabase Storage（图片）<br/>
+            Supabase Realtime（推送）
+          </div>
+        </div>
+        <div style="background:rgba(0,184,148,0.06);border:1px solid rgba(0,184,148,0.2);border-radius:8px;padding:12px;font-size:13px">
+          <div style="color:var(--green);font-size:11px;margin-bottom:6px">✅ 当前实际（自建）</div>
+          <div style="color:var(--txt-muted);line-height:1.8">
+            自建 JWT 认证（bcryptjs + jsonwebtoken）<br/>
+            Express.js 后端服务（端口 8787）<br/>
+            自建 PostgreSQL 数据库（云服务器）<br/>
+            本地磁盘存储（./storage/images）<br/>
+            自建 SSE 推送（events.js）
+          </div>
+        </div>
+      </div>
+      <p style="margin-top:10px;font-size:12px;color:var(--txt-dim)">项目里的 <code>server/functions/</code> 目录是早期 Supabase 时留下的旧代码，现已被 <code>backend/</code> 目录下的 Express 服务完全取代，不再实际运行。</p>
+    </div>
+
+    <div class="arch-diagram">
+      <div class="arch-layers">
+
+        <!-- Layer 1: Frontend -->
+        <div class="arch-layer layer-frontend">
+          <div class="arch-layer-label">① 前端 · 用户手机浏览器（看得见、摸得着）</div>
+          <div class="arch-layer-modules">
+            <div class="arch-module">🗺 地图 & 景点展示</div>
+            <div class="arch-module">💬 AI 对话窗口</div>
+            <div class="arch-module">📍 路线详情页</div>
+            <div class="arch-module">🏅 打卡记录</div>
+            <div class="arch-module">🌆 城市选择</div>
+            <div class="arch-module">🎭 导览人格设置</div>
+            <div class="arch-module">📁 旅程结束总结</div>
+          </div>
+        </div>
+
+        <div class="arch-arrow">↕ 通过 HTTP API 双向传递数据</div>
+
+        <!-- Layer 2: 自建后端 -->
+        <div class="arch-layer layer-edge">
+          <div class="arch-layer-label">② 后端服务 · 自建云服务器（Express.js，端口 8787）✅ 当前实际</div>
+          <div class="arch-layer-modules">
+            <div class="arch-module">🔐 JWT 用户认证（自建）</div>
+            <div class="arch-module">📊 PostgreSQL 数据库（自建）</div>
+            <div class="arch-module">🔗 REST API 路由（Express）</div>
+            <div class="arch-module">📡 SSE 实时推送（自建）</div>
+            <div class="arch-module">🗂 本地磁盘文件存储</div>
+            <div class="arch-module">🔁 转发 AI 请求给 Python</div>
+          </div>
+        </div>
+
+        <div class="arch-arrow">↕ Express 后端将 AI 请求转发给 Python Agent 服务</div>
+
+        <!-- Layer 3: AI Agent -->
+        <div class="arch-layer layer-ai">
+          <div class="arch-layer-label">③ AI 核心 · Python Agent 服务（大脑，端口 8000）</div>
+          <div class="arch-layer-modules">
+            <div class="arch-module">🤖 LangGraph 多步编排</div>
+            <div class="arch-module">🔍 知识库检索</div>
+            <div class="arch-module">🌐 实时网页搜索</div>
+            <div class="arch-module">📏 路线规划 & 校验</div>
+            <div class="arch-module">🎤 地理围栏触发讲解</div>
+            <div class="arch-module">📤 路线自助上传解析</div>
+          </div>
+        </div>
+
+        <div class="arch-arrow">↕ AI 调用外部 LLM（大语言模型）处理语言理解与生成</div>
+
+        <!-- Layer 4: Data -->
+        <div class="arch-layer layer-data">
+          <div class="arch-layer-label">④ 外部 API · 各类第三方服务（外部信息来源）</div>
+          <div class="arch-layer-modules">
+            <div class="arch-module">🧠 DeepSeek / Claude（语言理解，当前用 DeepSeek）</div>
+            <div class="arch-module">📍 高德地图 API（步行规划）</div>
+            <div class="arch-module">🔎 Tavily 搜索（实时票价/营业）</div>
+            <div class="arch-module">📐 OpenAI Embedding（语义向量化）</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="highlight-box mt-20">
+      <h3>🍽 类比"餐厅模型"理解架构</h3>
+      <ul>
+        <li><strong>前端（用户手机）</strong> = 餐厅前厅，你坐在这里点餐、看菜单、吃饭。</li>
+        <li><strong>Express 后端（云服务器）</strong> = 前台服务员 + 收银台，负责验证你的身份、记录你的点单、并把需求传递给厨房。</li>
+        <li><strong>AI Agent（Python 服务）</strong> = 主厨，真正在思考「该做什么菜、怎么组合」。</li>
+        <li><strong>DeepSeek / 高德 / Tavily</strong> = 各类食材供应商，主厨按需采购调用。</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="separator"></div>
+
+  <!-- ═══════════════ 2. 前端页面 ═══════════════ -->
+  <section class="section" id="frontend">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(108,92,231,0.15)">📱</div>
+      <div>
+        <h2>前端页面 — 用户实际看到什么</h2>
+        <p>WeGO 用纯 HTML + JavaScript 编写，无需安装 App，手机浏览器直接打开即可。</p>
+      </div>
+    </div>
+
+    <div class="grid-3">
+
+      <div class="card">
+        <div style="font-size:28px;margin-bottom:12px">🏠</div>
+        <div style="font-weight:700;margin-bottom:8px">首页（index.html）</div>
+        <p class="text-sm text-muted">展示城市路线卡片列表。自动定位城市，支持手动切换。顶部轮播图由运营后台配置。</p>
+        <div class="mt-12">
+          <span class="label-tag tag-purple">路线列表</span>
+          <span class="label-tag tag-teal" style="margin-left:4px">城市定位</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:28px;margin-bottom:12px">🗺</div>
+        <div style="font-weight:700;margin-bottom:8px">路线详情（route-detail.html）</div>
+        <p class="text-sm text-muted">核心体验页。展示地图 + 景点列表，提供实时 GPS 跟踪、地理围栏触发 AI 讲解、打卡按钮。</p>
+        <div class="mt-12">
+          <span class="label-tag tag-purple">核心页面</span>
+          <span class="label-tag tag-coral" style="margin-left:4px">地图 + AI</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:28px;margin-bottom:12px">💬</div>
+        <div style="font-weight:700;margin-bottom:8px">AI 对话（ai-chat.html）</div>
+        <p class="text-sm text-muted">用户与 AI 导游实时对话的界面。支持问文化历史、查营业时间、让 AI 重新规划路线。</p>
+        <div class="mt-12">
+          <span class="label-tag tag-orange">AI 对话</span>
+          <span class="label-tag tag-sky" style="margin-left:4px">流式输出</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:28px;margin-bottom:12px">🎭</div>
+        <div style="font-weight:700;margin-bottom:8px">导游人格（personality.html）</div>
+        <p class="text-sm text-muted">用户选择 AI 导游的讲解风格。不同人格对应不同的系统提示词（Prompt），影响 AI 说话方式。</p>
+        <div class="mt-12">
+          <span class="label-tag tag-teal">个性化</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:28px;margin-bottom:12px">🏆</div>
+        <div style="font-weight:700;margin-bottom:8px">旅程结束（trip-end.html）</div>
+        <p class="text-sm text-muted">游览结束后展示个人旅程总结：打卡景点回顾、AI 生成的专属感悟、收藏夹管理。</p>
+        <div class="mt-12">
+          <span class="label-tag tag-green">旅程归档</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:28px;margin-bottom:12px">🌆</div>
+        <div style="font-weight:700;margin-bottom:8px">城市选择（city-select.html）</div>
+        <p class="text-sm text-muted">手动选择或切换城市。选择结果保存在浏览器本地，下次访问自动记忆。7 天后若位置变化会提示切换。</p>
+        <div class="mt-12">
+          <span class="label-tag tag-sky">本地记忆</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <div class="separator"></div>
+
+  <!-- ═══════════════ 3. 地图引擎 ═══════════════ -->
+  <section class="section" id="map">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(0,206,201,0.1)">🗺</div>
+      <div>
+        <h2>地图引擎 — 三地图全接入</h2>
+        <p>WeGO 同时支持高德、Mapbox、百度三款地图。架构上使用「适配器模式」统一调用，业务代码不感知差异。</p>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div class="card" style="border-color:rgba(255,165,0,0.3)">
+        <div style="font-size:28px;margin-bottom:12px">🟠</div>
+        <div style="font-weight:700;margin-bottom:6px;color:#fdcb6e">高德地图（默认推荐）</div>
+        <p class="text-sm text-muted">国内 POI 数据最全，步行导航精度最高，合规备案。WeGO 默认使用。</p>
+        <div class="mt-12"><span class="label-tag tag-orange">GCJ-02 坐标系</span></div>
+      </div>
+      <div class="card" style="border-color:rgba(116,185,255,0.3)">
+        <div style="font-size:28px;margin-bottom:12px">🔵</div>
+        <div style="font-weight:700;margin-bottom:6px;color:#74b9ff">Mapbox（设计感版）</div>
+        <p class="text-sm text-muted">视觉定制能力最强，支持 Studio 自定义样式。追求设计感的用户可选。</p>
+        <div class="mt-12"><span class="label-tag tag-sky">WGS-84 坐标系</span></div>
+      </div>
+      <div class="card" style="border-color:rgba(253,121,168,0.3)">
+        <div style="font-size:28px;margin-bottom:12px">🔴</div>
+        <div style="font-weight:700;margin-bottom:6px;color:#fd79a8">百度地图（街景版）</div>
+        <p class="text-sm text-muted">街景数据丰富，国内用户基数大。需要街景能力时使用。</p>
+        <div class="mt-12"><span class="label-tag tag-coral">BD-09 坐标系</span></div>
+      </div>
+    </div>
+
+    <div class="highlight-box mt-20">
+      <h3>⚠️ 最难解决的问题：坐标系不统一</h3>
+      <p>三家地图用的是<strong>不同的经纬度标准</strong>，同一个地点在三套坐标系里的数字不一样，直接混用会导致「标记偏移」（标记打在了河里、墙上）。WeGO 的解决方案：</p>
+      <ul style="margin-top:10px">
+        <li>数据库统一存储<strong>国际标准 WGS-84</strong>（GPS 原始坐标）</li>
+        <li>前端使用 <strong>gcoord 库</strong>在渲染时实时转换（送进高德就转成 GCJ-02，送进百度就转 BD-09）</li>
+        <li>业务代码只需传 WGS-84 坐标，适配器自动处理转换，产品侧完全透明</li>
+      </ul>
+    </div>
+
+    <div class="card mt-20">
+      <h3 style="font-size:15px;font-weight:700;margin-bottom:16px">🔌 适配器模式：统一接口设计</h3>
+      <p class="text-sm text-muted" style="margin-bottom:16px">不管底层用哪家地图，业务代码只调用统一的"WeGO 地图接口"，切换地图引擎时无需修改任何业务逻辑。</p>
+      <div style="background:rgba(0,0,0,0.3);border-radius:10px;padding:16px;font-family:monospace;font-size:12px;color:#a29bfe;line-height:1.8">
+        map.setCenter(lng, lat)         <span style="color:#636e72">// 移动地图中心</span><br/>
+        map.addMarker(lng, lat, opts)   <span style="color:#636e72">// 添加景点标记（自动坐标转换）</span><br/>
+        map.drawRoute(coords)           <span style="color:#636e72">// 绘制步行路线</span><br/>
+        map.addGeofence(lng, lat, r)    <span style="color:#636e72">// 添加地理围栏</span><br/>
+        map.switchProvider('amap')      <span style="color:#636e72">// 实时切换地图引擎</span>
+      </div>
+    </div>
+
+    <div class="card mt-20">
+      <h3 style="font-size:15px;font-weight:700;margin-bottom:16px">🧭 AI 路线规划的三步分离原则</h3>
+      <p class="text-sm text-muted" style="margin-bottom:20px">AI 擅长理解语言，但没有空间感知能力（不知道两点之间实际走多远）。WeGO 把「AI 决策」和「地图计算」严格分开：</p>
+      <div class="flow">
+        <div class="flow-step">
+          <div class="flow-num" style="background:rgba(108,92,231,0.2);color:var(--brand-light)">1</div>
+          <div class="flow-content">
+            <h4>AI 决策选点（语言理解）</h4>
+            <p>用户说「我想看非遗，半天时间别太累」→ AI 理解意图，输出结构化 JSON：选哪几个景点、时间约束、体力约束。</p>
+            <div class="flow-tag tag-purple">LLM 负责</div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num" style="background:rgba(0,206,201,0.2);color:var(--teal)">2</div>
+          <div class="flow-content">
+            <h4>地图 API 计算真实路径</h4>
+            <p>拿着 AI 给出的景点列表，调用高德步行规划 API，得到：真实步行距离 2.1km、预计 28 分钟、真实路网折线坐标集合。</p>
+            <div class="flow-tag tag-teal">地图 API 负责</div>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num" style="background:rgba(0,184,148,0.2);color:var(--green)">3</div>
+          <div class="flow-content">
+            <h4>约束校验 + 前端渲染路线</h4>
+            <p>验证：停留时间(45+35+30=110min) + 步行(28min) = 138min ＜ 240min → 通过！AI 生成口语化路线说明，前端根据真实坐标在地图上画出路线。</p>
+            <div class="flow-tag tag-green">校验通过，渲染地图</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="separator"></div>
+
+  <!-- ═══════════════ 4. AI Agent ═══════════════ -->
+  <section class="section" id="ai-agent">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(253,203,110,0.12)">🤖</div>
+      <div>
+        <h2>AI 导览 Agent — 大脑怎么工作</h2>
+        <p>WeGO 使用 LangGraph 框架搭建多工具 AI Agent，能根据问题类型自动选择合适的工具作答。</p>
+      </div>
+    </div>
+
+    <div class="highlight-box" style="margin-bottom:24px">
+      <h3>🧠 什么是「Agent」？</h3>
+      <p>普通 AI 像计算器——你问什么它就答什么。<br/>
+      WeGO 的 Agent 更像一位<strong>有工具箱的助理</strong>。它收到问题后会先<em>判断</em>——这个问题需要「查内部知识库」还是「搜互联网」还是「规划地图路线」——然后<em>主动调用工具</em>获取答案，最后综合生成回复。</p>
+    </div>
+
+    <!-- 工具集 -->
+    <h3 style="font-size:15px;font-weight:700;margin-bottom:16px;color:var(--txt-muted)">Agent 的工具箱（7 个工具）</h3>
+    <div class="grid-3">
+
+      <div class="tool-card">
+        <div class="tool-card-name">search_knowledge()</div>
+        <div class="tool-card-desc">在本地知识库中语义检索景点故事、历史文化内容。结合用户所在位置，只返回附近 500 米内的知识。</div>
+        <div class="tool-card-src">📚 数据源：PostgreSQL 知识库向量表（pgvector）</div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-name">web_search()</div>
+        <div class="tool-card-desc">搜索最新的票价、营业时间、排队状况等即时信息，补充知识库里没有的实时内容。</div>
+        <div class="tool-card-src">🌐 数据源：Tavily / Exa 搜索 API</div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-name">plan_route()</div>
+        <div class="tool-card-desc">根据 AI 选出的景点列表，调用地图 API 规划最优步行路线，并校验体力/时间约束。</div>
+        <div class="tool-card-src">🗺 数据源：高德地图 Directions API</div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-name">geofence_narration()</div>
+        <div class="tool-card-desc">当用户进入景点围栏时自动触发，拉取该景点的深度知识，生成主动讲解内容。</div>
+        <div class="tool-card-src">📍 触发类型：geofence（系统触发）</div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-name">upload_route()</div>
+        <div class="tool-card-desc">解析用户上传的路线文件（JSON / Markdown / 文本 / URL），自动补全缺失字段，检测信息缺口。</div>
+        <div class="tool-card-src">📤 输入：任意格式路线文档</div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-name">confirm_route_upload()</div>
+        <div class="tool-card-desc">用户二次确认路线数据无误后，执行数据库写入（routes + spots），完成闭环。</div>
+        <div class="tool-card-src">✅ 输出：写入 PostgreSQL 数据库（自建）</div>
+      </div>
+
+      <div class="tool-card">
+        <div class="tool-card-name">auto_query()</div>
+        <div class="tool-card-desc">自动查询景点坐标（调用高德地理编码 API）、推断标签类型和建议停留时长，直接帮用户填信息。</div>
+        <div class="tool-card-src">🔍 辅助工具：非对话工具，内部调用</div>
+      </div>
+
+    </div>
+
+    <!-- 智能路由 -->
+    <div class="card mt-20">
+      <h3 style="font-size:15px;font-weight:700;margin-bottom:20px">🧭 AI 智能意图路由 — 怎么判断用哪个工具</h3>
+      <div class="grid-2">
+        <div>
+          <div class="flow">
+            <div class="flow-step">
+              <div class="flow-num" style="background:rgba(108,92,231,0.2);color:var(--brand-light)">Q</div>
+              <div class="flow-content">
+                <h4>「兔儿爷为什么骑老虎？」</h4>
+                <p>→ 文化/历史问题 → 调用 <code style="color:var(--brand-light)">search_knowledge()</code> 查本地知识库</p>
+                <div class="flow-tag tag-purple">📚 知识库回答</div>
+              </div>
+            </div>
+            <div class="flow-step">
+              <div class="flow-num" style="background:rgba(0,206,201,0.2);color:var(--teal)">Q</div>
+              <div class="flow-content">
+                <h4>「前面那家卤煮今天开门吗？」</h4>
+                <p>→ 即时信息问题 → 调用 <code style="color:var(--teal)">web_search()</code> 搜实时信息</p>
+                <div class="flow-tag tag-teal">🌐 实时搜索</div>
+              </div>
+            </div>
+            <div class="flow-step">
+              <div class="flow-num" style="background:rgba(253,203,110,0.2);color:var(--orange)">Q</div>
+              <div class="flow-content">
+                <h4>「帮我重新规划一条不走回头路的线」</h4>
+                <p>→ 路线规划问题 → 调用 <code style="color:var(--orange)">plan_route()</code> 重新规划</p>
+                <div class="flow-tag tag-orange">🗺 路线重算</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div class="highlight-box" style="height:100%;align-content:center;display:grid">
+            <h3>💡 混合问题怎么办？</h3>
+            <p>「这家店有什么推荐？现在还营业吗？」</p>
+            <p style="margin-top:10px">Agent 会<strong>先</strong>查知识库获取推荐内容，<strong>再</strong>调用 web_search 确认当前营业状态，<strong>最后</strong>把两份信息合并成一个完整回答。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 对话流程 -->
+    <div class="card mt-20">
+      <h3 style="font-size:15px;font-weight:700;margin-bottom:16px">📡 一次对话的完整数据流</h3>
+      <div class="dataflow">
+        <div class="df-node">
+          <div class="df-node-icon">📱</div>
+          <div class="df-node-label">用户输入</div>
+          <div class="df-node-name">手机浏览器</div>
+        </div>
+        <div class="df-arrow">→</div>
+        <div class="df-node">
+          <div class="df-node-icon">🔗</div>
+          <div class="df-node-label">SSE 流式请求</div>
+          <div class="df-node-name">chat-client.js</div>
+        </div>
+        <div class="df-arrow">→</div>
+        <div class="df-node">
+          <div class="df-node-icon">🖥</div>
+          <div class="df-node-label">Express 后端</div>
+          <div class="df-node-name">8787 端口</div>
+        </div>
+        <div class="df-arrow">→</div>
+        <div class="df-node">
+          <div class="df-node-icon">🐍</div>
+          <div class="df-node-label">Python 服务</div>
+          <div class="df-node-name">FastAPI Server</div>
+        </div>
+        <div class="df-arrow">→</div>
+        <div class="df-node">
+          <div class="df-node-icon">🤖</div>
+          <div class="df-node-label">AI 编排</div>
+          <div class="df-node-name">LangGraph</div>
+        </div>
+        <div class="df-arrow">→</div>
+        <div class="df-node">
+          <div class="df-node-icon">🧠</div>
+          <div class="df-node-label">大语言模型</div>
+          <div class="df-node-name">Claude / GPT-4o</div>
+        </div>
+      </div>
+      <p class="text-sm text-muted" style="margin-top:16px">
+        AI 回答以「流式输出（SSE）」方式逐字返回给前端，用户会看到文字一字一字地出现，体验上更像真人回复。若流式失败，自动回退为普通 JSON 请求（双保险机制）。
+      </p>
+    </div>
+  </section>
+
+  <div class="separator"></div>
+
+  <!-- ═══════════════ 5. 知识库 ═══════════════ -->
+  <section class="section" id="knowledge">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(0,184,148,0.1)">📚</div>
+      <div>
+        <h2>知识库 — AI 的"记忆"从哪来</h2>
+        <p>RAG（检索增强生成）= 给 AI 配备专属知识库，让它不靠凭空想象，而是「有凭据」地回答。</p>
+      </div>
+    </div>
+
+    <div class="highlight-box" style="margin-bottom:24px">
+      <h3>📖 RAG 是什么？用一句话解释</h3>
+      <p>就像你考试前不光靠记忆，还可以<strong>带一本参考书</strong>——RAG 就是在 AI 回答之前，先去书（知识库）里找到相关内容，再结合这些内容生成回答。这样大大减少了 AI「瞎编」。</p>
+    </div>
+
+    <!-- 知识库构建流程 -->
+    <div class="knowledge-flow">
+      <div class="kf-node">
+        <div class="kf-icon">📝</div>
+        <div class="kf-name">原始内容</div>
+        <div class="kf-desc">运营整理的Markdown文稿、景点介绍、传承人故事</div>
+      </div>
+      <div class="kf-arrow">→</div>
+      <div class="kf-node">
+        <div class="kf-icon">✂️</div>
+        <div class="kf-name">文本切片</div>
+        <div class="kf-desc">按景点/主题切成每段约 400 字的小块（Chunk）</div>
+      </div>
+      <div class="kf-arrow">→</div>
+      <div class="kf-node">
+        <div class="kf-icon">🔢</div>
+        <div class="kf-name">向量化</div>
+        <div class="kf-desc">用 OpenAI 模型将每段文字转成 1536 维数字向量（语义指纹）</div>
+      </div>
+      <div class="kf-arrow">→</div>
+      <div class="kf-node">
+        <div class="kf-icon">🗄</div>
+        <div class="kf-name">存入数据库</div>
+        <div class="kf-desc">每条记录：文字 + 向量 + 坐标，存入 PostgreSQL（pgvector 插件）</div>
+      </div>
+    </div>
+
+    <div class="card mt-20">
+      <h3 style="font-size:15px;font-weight:700;margin-bottom:16px">🔍 三重混合检索 — 找准信息的三把钥匙</h3>
+      <p class="text-sm text-muted" style="margin-bottom:20px">单纯的关键词搜索或语义搜索都有盲区。WeGO 同时使用三种方式，互相补充：</p>
+      <div class="grid-3">
+        <div class="card" style="border-color:rgba(108,92,231,0.3)">
+          <div style="font-size:24px;margin-bottom:10px">🧠</div>
+          <div style="font-weight:700;margin-bottom:6px;color:var(--brand-light)">语义搜索</div>
+          <p class="text-sm text-muted">不依赖关键词，理解意思相同的问法。「这里有什么故事」等同于「这条街的历史是什么」。</p>
+          <div class="mt-12"><span class="label-tag tag-purple">权重 70%</span></div>
+        </div>
+        <div class="card" style="border-color:rgba(116,185,255,0.3)">
+          <div style="font-size:24px;margin-bottom:10px">📍</div>
+          <div style="font-weight:700;margin-bottom:6px;color:var(--sky)">空间过滤</div>
+          <p class="text-sm text-muted">只返回用户当前位置 500 米内的相关内容，防止讲错别处的故事。用 PostGIS 做地理计算。</p>
+          <div class="mt-12"><span class="label-tag tag-sky">必须通过</span></div>
+        </div>
+        <div class="card" style="border-color:rgba(0,184,148,0.3)">
+          <div style="font-size:24px;margin-bottom:10px">🔤</div>
+          <div style="font-weight:700;margin-bottom:6px;color:var(--green)">关键词增强</div>
+          <p class="text-sm text-muted">对「兔儿爷」「青云阁」等专有名词做精确匹配补充，防止语义搜索把独特名词模糊化。</p>
+          <div class="mt-12"><span class="label-tag tag-green">权重 30%</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="separator"></div>
+
+  <!-- ═══════════════ 6. 数据库 ═══════════════ -->
+  <section class="section" id="database">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(116,185,255,0.1)">🗄</div>
+      <div>
+        <h2>数据库 — 所有数据存在哪里</h2>
+        <p>WeGO 在云服务器上自建 PostgreSQL，安装 pgvector、PostGIS、pg_trgm 三个插件，一个数据库同时承担关系存储、向量检索、空间计算三大功能。</p>
+      </div>
+    </div>
+
+    <div class="highlight-box" style="margin-bottom:24px">
+      <h3>🎯 为什么选择自建 PostgreSQL（而非 Supabase 托管）？</h3>
+      <p>WeGO 最终选择在自己的云服务器上安装 PostgreSQL，核心原则依然是「一库搞定」：</p>
+      <ul style="margin-top:8px">
+        <li><strong>PostgreSQL</strong>：成熟可靠的关系数据库，存路线、景点、用户等结构化数据。数据完全在自己服务器上，不依赖第三方。</li>
+        <li><strong>pgvector 插件</strong>：在 PostgreSQL 里直接做知识库向量搜索，无需单独部署向量数据库。</li>
+        <li><strong>PostGIS 插件</strong>：在 PostgreSQL 里直接做地理空间计算（比如「找出半径 500 米内的知识」）。</li>
+        <li><strong>pg_trgm 插件</strong>：支持中文模糊搜索，路线标题搜索功能的基础。</li>
+        <li><strong>自建 API 服务</strong>：用 Express.js 写所有接口，完全自主控制，无平台锁定风险。</li>
+      </ul>
+      <p style="margin-top:10px;color:var(--txt-dim);font-size:13px">💡 与 Supabase 相比：自建方案成本更低（国内云服务器性价比高），国内访问延迟更小，且数据不出境，合规更安全。</p>
+    </div>
+
+    <h3 style="font-size:15px;font-weight:700;margin-bottom:16px;color:var(--txt-muted)">核心数据表说明（自建 PostgreSQL）</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
+      <div class="db-table">
+        <div class="db-table-head">📍 routes（路线表）</div>
+        <div class="db-row"><span class="db-field">title</span><span class="db-type">TEXT</span><span class="db-desc">路线名称</span></div>
+        <div class="db-row"><span class="db-field">category</span><span class="db-type">TEXT</span><span class="db-desc">分类（Citywalk/非遗…）</span></div>
+        <div class="db-row"><span class="db-field">city_adcode</span><span class="db-type">TEXT</span><span class="db-desc">城市行政区划码（支持多城市）</span></div>
+        <div class="db-row"><span class="db-field">duration_minutes</span><span class="db-type">INT</span><span class="db-desc">预计游览时长（分钟）</span></div>
+        <div class="db-row"><span class="db-field">heat_count</span><span class="db-type">INT</span><span class="db-desc">热度计数（用户行为驱动）</span></div>
+        <div class="db-row"><span class="db-field">is_visible</span><span class="db-type">BOOLEAN</span><span class="db-desc">是否展示给用户</span></div>
+        <div class="db-row"><span class="db-field">published_version</span><span class="db-type">INT</span><span class="db-desc">当前已发布版本号</span></div>
+      </div>
+
+      <div class="db-table">
+        <div class="db-table-head">🗺 spots（景点表）</div>
+        <div class="db-row"><span class="db-field">name</span><span class="db-type">TEXT</span><span class="db-desc">景点名称</span></div>
+        <div class="db-row"><span class="db-field">lat / lng</span><span class="db-type">DOUBLE PRECISION</span><span class="db-desc">景点坐标（WGS-84）</span></div>
+        <div class="db-row"><span class="db-field">geofence_radius_m</span><span class="db-type">INT</span><span class="db-desc">围栏半径（默认 30 米）</span></div>
+        <div class="db-row"><span class="db-field">estimated_stay_min</span><span class="db-type">INT</span><span class="db-desc">建议停留时长（分钟）</span></div>
+        <div class="db-row"><span class="db-field">is_easter_egg</span><span class="db-type">BOOLEAN</span><span class="db-desc">是否为隐藏彩蛋景点</span></div>
+        <div class="db-row"><span class="db-field">sort_order</span><span class="db-type">INT</span><span class="db-desc">游览顺序编号</span></div>
+      </div>
+
+      <div class="db-table">
+        <div class="db-table-head">🧠 knowledge_chunks（知识库向量表）</div>
+        <div class="db-row"><span class="db-field">chunk_text</span><span class="db-type">TEXT</span><span class="db-desc">知识文本片段</span></div>
+        <div class="db-row"><span class="db-field">embedding</span><span class="db-type">VECTOR(1536)</span><span class="db-desc">语义向量（pgvector 插件支持）</span></div>
+        <div class="db-row"><span class="db-field">chunk_type</span><span class="db-type">TEXT</span><span class="db-desc">note / history / craft / story</span></div>
+        <div class="db-row"><span class="db-field">metadata</span><span class="db-type">JSONB</span><span class="db-desc">附加元数据（JSON 灵活扩展）</span></div>
+        <div class="db-row"><span class="db-field">spot_id</span><span class="db-type">UUID</span><span class="db-desc">关联景点（可为空）</span></div>
+      </div>
+
+      <div class="db-table">
+        <div class="db-table-head">👤 app_users（用户表）</div>
+        <div class="db-row"><span class="db-field">email</span><span class="db-type">TEXT UNIQUE</span><span class="db-desc">邮箱（登录账号）</span></div>
+        <div class="db-row"><span class="db-field">password_hash</span><span class="db-type">TEXT</span><span class="db-desc">bcryptjs 加密后的密码</span></div>
+        <div class="db-row"><span class="db-field">role</span><span class="db-type">TEXT</span><span class="db-desc">user（普通用户）/ admin（管理员）</span></div>
+      </div>
+
+    </div>
+
+    <p class="text-sm text-muted" style="margin-top:16px">还有：<strong>user_checkins</strong>（打卡记录）、<strong>route_versions</strong>（路线版本快照）、<strong>route_drafts</strong>（上传草稿暂存）、<strong>home_carousel_configs</strong>（首页轮播配置）、<strong>app_public_settings</strong>（全局设置，含地图引擎）等。</p>
+  </section>
+
+  <div class="separator"></div>
+
+  <!-- ═══════════════ 7. 地理围栏 ═══════════════ -->
+  <section class="section" id="geofence">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(253,121,168,0.1)">📡</div>
+      <div>
+        <h2>地理围栏 — 走近景点自动讲解</h2>
+        <p>WeGO 最核心的体验：用户不需要主动问，走进景点 30 米范围，AI 自动开始讲解。</p>
+      </div>
+    </div>
+
+    <div class="highlight-box" style="margin-bottom:24px">
+      <h3>🎯 什么是地理围栏？</h3>
+      <p>想象每个景点周围有一个<strong>看不见的圆圈</strong>（默认半径 30 米）。当用户的 GPS 坐标进入这个圆圈，系统就触发事件。WeGO 用这个机制实现「走到哪里、讲到哪里」。</p>
+    </div>
+
+    <div class="card">
+      <h3 style="font-size:15px;font-weight:700;margin-bottom:20px">🔄 地理围栏触发全流程（6 步）</h3>
+      <div class="flow">
+        <div class="flow-step">
+          <div class="flow-num" style="background:rgba(253,121,168,0.2);color:var(--coral)">1</div>
+          <div class="flow-content">
+            <h4>持续 GPS 监听</h4>
+            <p>用户进入路线详情页后，前端用 <code>navigator.geolocation.watchPosition()</code> 每 5 秒更新一次 GPS 坐标（启用高精度模式）。</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num" style="background:rgba(253,121,168,0.2);color:var(--coral)">2</div>
+          <div class="flow-content">
+            <h4>计算与每个景点的距离</h4>
+            <p>用 Haversine 公式（地球曲面距离公式）计算用户当前坐标与路线上每个景点坐标的直线距离。</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num" style="background:rgba(253,121,168,0.2);color:var(--coral)">3</div>
+          <div class="flow-content">
+            <h4>检测是否进入围栏</h4>
+            <p>若距离 ＜ 围栏半径（默认 30 米）且该景点尚未触发过讲解，则标记为「已触发」并发出事件。每个景点只触发一次，防止重复播报。</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num" style="background:rgba(253,121,168,0.2);color:var(--coral)">4</div>
+          <div class="flow-content">
+            <h4>向 AI Agent 发送系统触发信号</h4>
+            <p>前端构造携带 <code>trigger_type: "geofence"</code> 和 <code>spot_id</code> 的请求，发送给 Agent 服务。</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num" style="background:rgba(253,121,168,0.2);color:var(--coral)">5</div>
+          <div class="flow-content">
+            <h4>Agent 生成专属讲解</h4>
+            <p>Agent 调用 <code>geofence_narration</code> 工具 → <code>search_knowledge(spot_id)</code> 获取深度知识 → 结合用户选择的导游人格，生成口语化讲解内容。</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num" style="background:rgba(253,121,168,0.2);color:var(--coral)">6</div>
+          <div class="flow-content">
+            <h4>流式推送到用户界面</h4>
+            <p>讲解内容以 SSE 流式方式逐字推送至前端对话界面，同时展示知识卡片。整次讲解记录写入 <code>agent_transcripts</code> 表（trigger_type = 'geofence'）。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="separator"></div>
+
+  <!-- ═══════════════ 8. 运营后台 ═══════════════ -->
+  <section class="section" id="admin">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(0,206,201,0.1)">⚙️</div>
+      <div>
+        <h2>运营后台 — 内容团队怎么管理内容</h2>
+        <p>admin-routes.html 是内容运营人员专用的管理工具，直接用浏览器打开，无需服务器部署。</p>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <div style="font-size:24px;margin-bottom:10px">🔐</div>
+        <h4 style="font-weight:700;margin-bottom:8px">两套权限密钥</h4>
+        <p class="text-sm text-muted">前台用户使用「只读密钥」，只能查看数据。运营后台使用「管理员密钥」，可以增删改路线和景点。两套密钥完全隔离，互不影响。</p>
+      </div>
+      <div class="card">
+        <div style="font-size:24px;margin-bottom:10px">📸</div>
+        <h4 style="font-weight:700;margin-bottom:8px">首页轮播配置</h4>
+        <p class="text-sm text-muted">运营可在后台调整首页大图轮播内容，支持全站通用配置或按城市覆盖配置。修改即时生效，无需等待开发。</p>
+      </div>
+      <div class="card">
+        <div style="font-size:24px;margin-bottom:10px">📦</div>
+        <h4 style="font-weight:700;margin-bottom:8px">路线版本管理</h4>
+        <p class="text-sm text-muted">每次「发布」路线都会保存一份完整快照（route_versions 表）。可以追溯历史版本，误操作可以回滚，数据安全。</p>
+      </div>
+      <div class="card">
+        <div style="font-size:24px;margin-bottom:10px">🤖</div>
+        <h4 style="font-weight:700;margin-bottom:8px">AI 辅助路线入库</h4>
+        <p class="text-sm text-muted">运营只需上传 Markdown 文稿，AI 自动解析结构、补全坐标、识别信息缺口，运营确认后一键写库。大幅降低数据录入成本。</p>
+      </div>
+    </div>
+
+    <div class="highlight-box mt-20">
+      <h3>📝 路线上传流程（AI 辅助入库）</h3>
+      <div class="flow" style="margin-top:12px">
+        <div class="flow-step">
+          <div class="flow-num" style="background:rgba(0,206,201,0.2);color:var(--teal)">①</div>
+          <div class="flow-content">
+            <h4>上传原始文稿</h4>
+            <p>运营上传 JSON / Markdown / 纯文本 / URL，或直接在 AI 对话框里描述路线。</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num" style="background:rgba(0,206,201,0.2);color:var(--teal)">②</div>
+          <div class="flow-content">
+            <h4>AI 自动解析 & 补全</h4>
+            <p>Agent 自动提取路线名称、景点列表、停留时长，调用高德地理编码 API 查询景点坐标，自动推断分类标签。</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num" style="background:rgba(0,206,201,0.2);color:var(--teal)">③</div>
+          <div class="flow-content">
+            <h4>展示缺口 & 用户补充</h4>
+            <p>若有无法自动填写的主观信息（如路线故事简介），AI 会列出「信息缺口」，询问用户补充。</p>
+          </div>
+        </div>
+        <div class="flow-step">
+          <div class="flow-num" style="background:rgba(0,206,201,0.2);color:var(--teal)">④</div>
+          <div class="flow-content">
+            <h4>用户二次确认，写入数据库</h4>
+            <p>运营确认数据无误后，AI 执行原子事务：routes 表 + spots 表同时写入，同时保存审计日志，失败自动回滚。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="separator"></div>
+
+  <!-- ═══════════════ 9. 发展路线 ═══════════════ -->
+  <section class="section" id="roadmap">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(0,184,148,0.1)">🚀</div>
+      <div>
+        <h2>发展路线 — 从 Web 到 App</h2>
+        <p>WeGO 采用「Web 先行验证，再渐进式迁移 App」策略，降低初期风险。</p>
+      </div>
+    </div>
+
+    <div class="phase-timeline">
+      <div class="phase-item phase-current">
+        <div class="phase-label" style="color:var(--brand-light)">Phase 1</div>
+        <div class="phase-title">Web MVP</div>
+        <ul class="phase-list">
+          <li>浏览器直接访问，无需安装</li>
+          <li>前台 GPS 定位监听</li>
+          <li>核心 AI 问答 & 地图功能</li>
+          <li>快速验证产品核心体验</li>
+        </ul>
+      </div>
+      <div class="phase-item">
+        <div class="phase-label" style="color:var(--teal)">Phase 2</div>
+        <div class="phase-title">Capacitor 打包 App</div>
+        <ul class="phase-list">
+          <li>99% 代码复用（几乎0重写）</li>
+          <li>生成 iOS / Android 安装包</li>
+          <li>上架应用商店</li>
+          <li>基础推送通知能力</li>
+        </ul>
+      </div>
+      <div class="phase-item">
+        <div class="phase-label" style="color:var(--orange)">Phase 3</div>
+        <div class="phase-title">Native 深度增强</div>
+        <ul class="phase-list">
+          <li>后台定位（锁屏可用）</li>
+          <li>息屏语音播报</li>
+          <li>本地 TTS 文字转语音</li>
+          <li>高性能地图渲染</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="highlight-box mt-20">
+      <h3>❓ 为什么用 Capacitor 而不是 React Native？</h3>
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>对比维度</th>
+            <th>Capacitor（WeGO 选择）</th>
+            <th>React Native</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>代码复用率</td>
+            <td>约 99%（直接包裹现有 Web 代码）<span class="tag-winner" style="margin-left:6px">✓ 优</span></td>
+            <td>需重写全部 UI 层</td>
+          </tr>
+          <tr>
+            <td>迁移成本</td>
+            <td>极低，添加依赖即可<span class="tag-winner" style="margin-left:6px">✓ 优</span></td>
+            <td>高，整体重构</td>
+          </tr>
+          <tr>
+            <td>Web 同步维护</td>
+            <td>同一套代码跑 Web + App<span class="tag-winner" style="margin-left:6px">✓ 优</span></td>
+            <td>需维护两套代码</td>
+          </tr>
+          <tr>
+            <td>适合阶段</td>
+            <td>MVP → 早期增长期<span class="tag-winner" style="margin-left:6px">✓ 当前</span></td>
+            <td>成熟期追求极致体验</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="separator"></div>
+
+  <!-- ═══════════════ 10. 技术栈总览 ═══════════════ -->
+  <section class="section" id="stack">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(253,203,110,0.1)">⚙️</div>
+      <div>
+        <h2>技术栈总览 — 用了哪些工具</h2>
+        <p>WeGO 全部技术选型一览，每一个都有明确的分工。</p>
+      </div>
+    </div>
+
+    <div class="stack-chips">
+      <div class="stack-chip">
+        <span class="stack-chip-label">前端框架</span>
+        <span class="stack-chip-name">Vanilla JS + HTML</span>
+      </div>
+      <div class="stack-chip">
+        <span class="stack-chip-label">地图引擎</span>
+        <span class="stack-chip-name">高德 / Mapbox / 百度</span>
+      </div>
+      <div class="stack-chip">
+        <span class="stack-chip-label">坐标转换</span>
+        <span class="stack-chip-name">gcoord 库</span>
+      </div>
+      <div class="stack-chip" style="border-color:rgba(0,184,148,0.3)">
+        <span class="stack-chip-label" style="color:var(--green)">✅ 后端服务器</span>
+        <span class="stack-chip-name">Express.js（自建）</span>
+      </div>
+      <div class="stack-chip" style="border-color:rgba(0,184,148,0.3)">
+        <span class="stack-chip-label" style="color:var(--green)">✅ 用户认证</span>
+        <span class="stack-chip-name">JWT（自建）</span>
+      </div>
+      <div class="stack-chip" style="border-color:rgba(0,184,148,0.3)">
+        <span class="stack-chip-label" style="color:var(--green)">✅ 关系数据库</span>
+        <span class="stack-chip-name">PostgreSQL（自托管）</span>
+      </div>
+      <div class="stack-chip">
+        <span class="stack-chip-label">向量搜索插件</span>
+        <span class="stack-chip-name">pgvector</span>
+      </div>
+      <div class="stack-chip">
+        <span class="stack-chip-label">地理空间计算</span>
+        <span class="stack-chip-name">PostGIS</span>
+      </div>
+      <div class="stack-chip" style="border-color:rgba(0,184,148,0.3)">
+        <span class="stack-chip-label" style="color:var(--green)">✅ 文件存储</span>
+        <span class="stack-chip-name">本地磁盘（自建）</span>
+      </div>
+      <div class="stack-chip" style="border-color:rgba(0,184,148,0.3)">
+        <span class="stack-chip-label" style="color:var(--green)">✅ 实时推送</span>
+        <span class="stack-chip-name">自建 SSE（events.js）</span>
+      </div>
+      <div class="stack-chip">
+        <span class="stack-chip-label">AI Agent 框架</span>
+        <span class="stack-chip-name">LangGraph</span>
+      </div>
+      <div class="stack-chip" style="border-color:rgba(0,184,148,0.3)">
+        <span class="stack-chip-label" style="color:var(--green)">✅ 当前 LLM</span>
+        <span class="stack-chip-name">DeepSeek Chat</span>
+      </div>
+      <div class="stack-chip">
+        <span class="stack-chip-label">知识向量化</span>
+        <span class="stack-chip-name">OpenAI Embedding</span>
+      </div>
+      <div class="stack-chip">
+        <span class="stack-chip-label">实时网络搜索</span>
+        <span class="stack-chip-name">Tavily / Exa</span>
+      </div>
+      <div class="stack-chip">
+        <span class="stack-chip-label">Agent HTTP 服务</span>
+        <span class="stack-chip-name">Python + FastAPI</span>
+      </div>
+      <div class="stack-chip">
+        <span class="stack-chip-label">跨平台打包（规划）</span>
+        <span class="stack-chip-name">Capacitor</span>
+      </div>
+    </div>
+    <p class="text-sm text-muted" style="margin-top:16px">✅ 标绿的是<strong>从 Supabase 计划改为完全自建实现</strong>的模块。</p>
+  </section>
+
+  <div class="separator"></div>
+
+  <!-- ═══════════════ 11. 常见疑问 ═══════════════ -->
+  <section class="section" id="qa">
+    <div class="section-header">
+      <div class="section-icon" style="background:rgba(108,92,231,0.15)">❓</div>
+      <div>
+        <h2>产品经理常见疑问</h2>
+        <p>当你向技术团队问出这些问题，你就是一个真正懂技术的 PM。</p>
+      </div>
+    </div>
+
+    <div id="qa-list">
+
+      <div class="qa-item" id="qa-1">
+        <div class="qa-q" onclick="toggleQa('qa-1')">AI 会「乱说」吗？用了什么机制防止幻觉？</div>
+        <div class="qa-a">
+          WeGO 用 RAG（检索增强生成）来减少幻觉：AI 在回答前会先去本地知识库找相关内容，基于找到的真实资料生成回答，而不是凭空编造。
+          对于知识库里没有的内容（如即时票价），会转而调用 web_search 获取实时信息，而不是瞎猜。
+          当然，RAG 不能 100% 消除幻觉，还需要持续维护知识库的内容质量。
+        </div>
+      </div>
+
+      <div class="qa-item" id="qa-2">
+        <div class="qa-q" onclick="toggleQa('qa-2')">用户没有网络时还能用吗？</div>
+        <div class="qa-a">
+          目前 WeGO 大部分功能依赖网络：地图瓦片加载、AI 对话、知识库检索都需要联网。
+          离线支持是 Phase 2+ 的规划，届时可以预缓存路线数据和知识内容到本地，实现部分离线体验。
+          目前建议在景区入口提前打开路线详情页，让地图预加载完成。
+        </div>
+      </div>
+
+      <div class="qa-item" id="qa-3">
+        <div class="qa-q" onclick="toggleQa('qa-3')">数据安全吗？用户隐私如何保护？</div>
+        <div class="qa-a">
+          GPS 坐标仅在会话期间使用，仅用于地理围栏判断，不持久化存储用户实时轨迹。
+          系统采用自建 JWT 认证（bcryptjs 加密密码 + jsonwebtoken 签发令牌），数据库通过 app_users 表的 role 字段区分普通用户和管理员权限，接口层通过 requireAuth / requireAdmin 中间件拦截。
+          对话记录（agent_transcripts）关联了 user_id，将来会实现用户可以删除自己的对话记录。
+        </div>
+      </div>
+
+      <div class="qa-item" id="qa-4">
+        <div class="qa-q" onclick="toggleQa('qa-4')">AI 响应速度慢怎么办？用户等待体验如何保证？</div>
+        <div class="qa-a">
+          主要通过「流式输出（SSE）」优化体验：AI 不是等全部生成完再返回，而是一个字一个字地推送给前端，用户会看到文字逐渐出现，感知上比一次性返回快很多。
+          技术上实现了「模型候选列表」：若主模型（如 Claude Sonnet）响应超时或限流，自动切换到备用模型重试，降低失败率。
+          长期优化方向：知识库检索结果预热缓存、热门问题答案缓存等。
+        </div>
+      </div>
+
+      <div class="qa-item" id="qa-5">
+        <div class="qa-q" onclick="toggleQa('qa-5')">运营想新增一条路线，需要开发参与吗？</div>
+        <div class="qa-a">
+          设计目标是：普通运营人员可以独立完成路线入库，无需开发介入。
+          路线可以以 Markdown / JSON / 纯文本上传，AI 自动解析并补全坐标、标签等信息，运营确认后一键写库。
+          但目前管理后台 UI 还在完善阶段，复杂路线仍建议技术 review 后再发布。
+        </div>
+      </div>
+
+      <div class="qa-item" id="qa-6">
+        <div class="qa-q" onclick="toggleQa('qa-6')">地理围栏精度有多高？会不会到了景点 AI 没触发？</div>
+        <div class="qa-a">
+          GPS 定位精度在开阔环境下约 ±5 米，但城市高层建筑环境可能误差到 ±20-30 米。
+          WeGO 默认围栏半径 30 米，可以在后台按景点调整。对于室内景点（如展厅、门店），可根据实际情况增大到 50-80 米。
+          城市 GPS 也会受「卫星信号反射」影响，在高楼峡谷中偶发偏移是正常现象，已在技术文档中标注为已知限制。
+        </div>
+      </div>
+
+      <div class="qa-item" id="qa-7">
+        <div class="qa-q" onclick="toggleQa('qa-7')">地图切换（高德 / Mapbox / 百度）对用户体验有什么影响？</div>
+        <div class="qa-a">
+          三套引擎使用统一的「适配器接口」，切换时路线数据和景点标记都会保留，只是底图样式和渲染风格不同。
+          切换地图引擎需要重新加载对应 SDK，可能有 1-3 秒的空白过渡。
+          目前默认高德，国内用户体验最稳定。Mapbox 在国内部分地区加载较慢（CDN 缘故），这是已知限制。
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ─── Footer ─── -->
+  <footer style="text-align:center;padding:40px 0 20px;color:var(--txt-dim);font-size:13px" role="contentinfo">
+    <div style="font-size:24px;margin-bottom:8px">🗺</div>
+    <div><strong style="color:var(--txt-muted)">WeGO AI 本地导览</strong> · 技术架构可视化</div>
+    <div style="margin-top:6px">面向产品经理 · 版本 2026.04</div>
+  </footer>
+
+</main>
+
+<script>
+  function toggleQa(id) {
+    const item = document.getElementById(id);
+    if (!item) return;
+    const wasOpen = item.classList.contains('open');
+    // close all
+    document.querySelectorAll('.qa-item.open').forEach(el => el.classList.remove('open'));
+    if (!wasOpen) item.classList.add('open');
+  }
+
+  // Smooth scroll for nav links
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(link.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+
+  // Intersection Observer for subtle entrance animation
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.card, .tool-card, .phase-item, .db-table, .kf-node').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(20px)';
+    el.style.transition = 'opacity 0.5s ease, transform 0.5s ease, border-color 0.3s, box-shadow 0.3s';
+    observer.observe(el);
+  });
+</script>
+</body>
+</html>
