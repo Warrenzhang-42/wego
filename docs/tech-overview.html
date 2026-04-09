@@ -654,9 +654,39 @@
     <div class="section-header">
       <div class="section-icon" style="background:rgba(108,92,231,0.15)">🏗</div>
       <div>
-        <h2>整体架构 — 三层结构</h2>
-        <p>WeGO 由「用户手机端」「云端服务」「AI 智能核心」三层构成，像一家餐厅的前厅、后厨和主厨。</p>
+        <h2>整体架构 — 三层结构（当前实际部署版）</h2>
+        <p>WeGO 已迁移到<strong>完全自建</strong>的云服务器部署，由「用户手机端」「自建后端服务」「AI 智能核心」三层构成。</p>
       </div>
+    </div>
+
+    <!-- 架构演变说明 -->
+    <div class="highlight-box" style="background:linear-gradient(135deg,rgba(253,203,110,0.08) 0%,rgba(253,121,168,0.05) 100%);border-color:rgba(253,203,110,0.3);margin-bottom:24px">
+      <h3>📌 为什么技术文档里提到 Supabase，但实际没在用？</h3>
+      <p>WeGO 在<strong>早期规划阶段</strong>选用了 Supabase 作为一站式后端平台。但在实际部署上线后，团队改为<strong>在云服务器上自建所有服务</strong>，好处是成本更低、数据完全自主控制、不依赖第三方平台限制。</p>
+      <p style="margin-top:8px">原来计划用 Supabase 提供的功能，现在都由自己的代码实现了：</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px">
+        <div style="background:rgba(0,0,0,0.2);border-radius:8px;padding:12px;font-size:13px">
+          <div style="color:var(--txt-dim);font-size:11px;margin-bottom:6px">❌ 原计划（Supabase）</div>
+          <div style="color:var(--txt-muted);line-height:1.8">
+            Supabase Auth（用户认证）<br/>
+            Supabase Edge Functions（API）<br/>
+            Supabase hosted PostgreSQL<br/>
+            Supabase Storage（图片）<br/>
+            Supabase Realtime（推送）
+          </div>
+        </div>
+        <div style="background:rgba(0,184,148,0.06);border:1px solid rgba(0,184,148,0.2);border-radius:8px;padding:12px;font-size:13px">
+          <div style="color:var(--green);font-size:11px;margin-bottom:6px">✅ 当前实际（自建）</div>
+          <div style="color:var(--txt-muted);line-height:1.8">
+            自建 JWT 认证（bcryptjs + jsonwebtoken）<br/>
+            Express.js 后端服务（端口 8787）<br/>
+            自建 PostgreSQL 数据库（云服务器）<br/>
+            本地磁盘存储（./storage/images）<br/>
+            自建 SSE 推送（events.js）
+          </div>
+        </div>
+      </div>
+      <p style="margin-top:10px;font-size:12px;color:var(--txt-dim)">项目里的 <code>server/functions/</code> 目录是早期 Supabase 时留下的旧代码，现已被 <code>backend/</code> 目录下的 Express 服务完全取代，不再实际运行。</p>
     </div>
 
     <div class="arch-diagram">
@@ -676,25 +706,26 @@
           </div>
         </div>
 
-        <div class="arch-arrow">↕ 通过网络请求双向传递数据</div>
+        <div class="arch-arrow">↕ 通过 HTTP API 双向传递数据</div>
 
-        <!-- Layer 2: Edge/BaaS -->
+        <!-- Layer 2: 自建后端 -->
         <div class="arch-layer layer-edge">
-          <div class="arch-layer-label">② 中间层 · Supabase 云服务（负责转发 & 存储）</div>
+          <div class="arch-layer-label">② 后端服务 · 自建云服务器（Express.js，端口 8787）✅ 当前实际</div>
           <div class="arch-layer-modules">
-            <div class="arch-module">🔐 用户登录认证</div>
-            <div class="arch-module">📊 PostgreSQL 数据库</div>
-            <div class="arch-module">⚡ Edge Functions（轻量 API）</div>
-            <div class="arch-module">📡 实时订阅推送</div>
-            <div class="arch-module">🗂 文件存储（图片）</div>
+            <div class="arch-module">🔐 JWT 用户认证（自建）</div>
+            <div class="arch-module">📊 PostgreSQL 数据库（自建）</div>
+            <div class="arch-module">🔗 REST API 路由（Express）</div>
+            <div class="arch-module">📡 SSE 实时推送（自建）</div>
+            <div class="arch-module">🗂 本地磁盘文件存储</div>
+            <div class="arch-module">🔁 转发 AI 请求给 Python</div>
           </div>
         </div>
 
-        <div class="arch-arrow">↕ Edge Function 将 AI 请求转发给 Python 服务</div>
+        <div class="arch-arrow">↕ Express 后端将 AI 请求转发给 Python Agent 服务</div>
 
         <!-- Layer 3: AI Agent -->
         <div class="arch-layer layer-ai">
-          <div class="arch-layer-label">③ AI 核心 · Python Agent 服务（大脑，负责思考）</div>
+          <div class="arch-layer-label">③ AI 核心 · Python Agent 服务（大脑，端口 8000）</div>
           <div class="arch-layer-modules">
             <div class="arch-module">🤖 LangGraph 多步编排</div>
             <div class="arch-module">🔍 知识库检索</div>
@@ -709,9 +740,9 @@
 
         <!-- Layer 4: Data -->
         <div class="arch-layer layer-data">
-          <div class="arch-layer-label">④ 数据层 · 各类 API（外部信息来源）</div>
+          <div class="arch-layer-label">④ 外部 API · 各类第三方服务（外部信息来源）</div>
           <div class="arch-layer-modules">
-            <div class="arch-module">🧠 Claude / GPT-4o（语言理解）</div>
+            <div class="arch-module">🧠 DeepSeek / Claude（语言理解，当前用 DeepSeek）</div>
             <div class="arch-module">📍 高德地图 API（步行规划）</div>
             <div class="arch-module">🔎 Tavily 搜索（实时票价/营业）</div>
             <div class="arch-module">📐 OpenAI Embedding（语义向量化）</div>
@@ -725,9 +756,9 @@
       <h3>🍽 类比"餐厅模型"理解架构</h3>
       <ul>
         <li><strong>前端（用户手机）</strong> = 餐厅前厅，你坐在这里点餐、看菜单、吃饭。</li>
-        <li><strong>Supabase 中间层</strong> = 前台服务员，负责把你的需求传递给厨房，并取回成品。</li>
+        <li><strong>Express 后端（云服务器）</strong> = 前台服务员 + 收银台，负责验证你的身份、记录你的点单、并把需求传递给厨房。</li>
         <li><strong>AI Agent（Python 服务）</strong> = 主厨，真正在思考「该做什么菜、怎么组合」。</li>
-        <li><strong>Claude / 高德 / Tavily</strong> = 各类食材供应商，主厨按需采购调用。</li>
+        <li><strong>DeepSeek / 高德 / Tavily</strong> = 各类食材供应商，主厨按需采购调用。</li>
       </ul>
     </div>
   </section>
@@ -918,7 +949,7 @@
       <div class="tool-card">
         <div class="tool-card-name">search_knowledge()</div>
         <div class="tool-card-desc">在本地知识库中语义检索景点故事、历史文化内容。结合用户所在位置，只返回附近 500 米内的知识。</div>
-        <div class="tool-card-src">📚 数据源：Supabase 知识库向量表</div>
+        <div class="tool-card-src">📚 数据源：PostgreSQL 知识库向量表（pgvector）</div>
       </div>
 
       <div class="tool-card">
@@ -948,7 +979,7 @@
       <div class="tool-card">
         <div class="tool-card-name">confirm_route_upload()</div>
         <div class="tool-card-desc">用户二次确认路线数据无误后，执行数据库写入（routes + spots），完成闭环。</div>
-        <div class="tool-card-src">✅ 输出：写入 Supabase 数据库</div>
+        <div class="tool-card-src">✅ 输出：写入 PostgreSQL 数据库（自建）</div>
       </div>
 
       <div class="tool-card">
@@ -1018,9 +1049,9 @@
         </div>
         <div class="df-arrow">→</div>
         <div class="df-node">
-          <div class="df-node-icon">⚡</div>
-          <div class="df-node-label">Supabase</div>
-          <div class="df-node-name">Edge Function</div>
+          <div class="df-node-icon">🖥</div>
+          <div class="df-node-label">Express 后端</div>
+          <div class="df-node-name">8787 端口</div>
         </div>
         <div class="df-arrow">→</div>
         <div class="df-node">
@@ -1087,7 +1118,7 @@
       <div class="kf-node">
         <div class="kf-icon">🗄</div>
         <div class="kf-name">存入数据库</div>
-        <div class="kf-desc">每条记录：文字 + 向量 + 坐标，存入 Supabase pgvector</div>
+        <div class="kf-desc">每条记录：文字 + 向量 + 坐标，存入 PostgreSQL（pgvector 插件）</div>
       </div>
     </div>
 
@@ -1125,30 +1156,33 @@
       <div class="section-icon" style="background:rgba(116,185,255,0.1)">🗄</div>
       <div>
         <h2>数据库 — 所有数据存在哪里</h2>
-        <p>WeGO 使用 Supabase（基于 PostgreSQL）作为唯一数据库，一个数据库同时承担关系存储、向量检索、空间计算三大功能。</p>
+        <p>WeGO 在云服务器上自建 PostgreSQL，安装 pgvector、PostGIS、pg_trgm 三个插件，一个数据库同时承担关系存储、向量检索、空间计算三大功能。</p>
       </div>
     </div>
 
     <div class="highlight-box" style="margin-bottom:24px">
-      <h3>🎯 为什么选 Supabase？</h3>
-      <p>数据库选型的核心原则是「一库搞定」：</p>
+      <h3>🎯 为什么选择自建 PostgreSQL（而非 Supabase 托管）？</h3>
+      <p>WeGO 最终选择在自己的云服务器上安装 PostgreSQL，核心原则依然是「一库搞定」：</p>
       <ul style="margin-top:8px">
-        <li><strong>PostgreSQL</strong>：成熟可靠的关系数据库，存路线、景点、用户等结构化数据。</li>
+        <li><strong>PostgreSQL</strong>：成熟可靠的关系数据库，存路线、景点、用户等结构化数据。数据完全在自己服务器上，不依赖第三方。</li>
         <li><strong>pgvector 插件</strong>：在 PostgreSQL 里直接做知识库向量搜索，无需单独部署向量数据库。</li>
         <li><strong>PostGIS 插件</strong>：在 PostgreSQL 里直接做地理空间计算（比如「找出半径 500 米内的知识」）。</li>
-        <li><strong>内置 Auth/Storage/Edge Functions</strong>：用户登录、图片存储、API 服务一站式解决。</li>
+        <li><strong>pg_trgm 插件</strong>：支持中文模糊搜索，路线标题搜索功能的基础。</li>
+        <li><strong>自建 API 服务</strong>：用 Express.js 写所有接口，完全自主控制，无平台锁定风险。</li>
       </ul>
+      <p style="margin-top:10px;color:var(--txt-dim);font-size:13px">💡 与 Supabase 相比：自建方案成本更低（国内云服务器性价比高），国内访问延迟更小，且数据不出境，合规更安全。</p>
     </div>
 
-    <h3 style="font-size:15px;font-weight:700;margin-bottom:16px;color:var(--txt-muted)">核心数据表说明</h3>
+    <h3 style="font-size:15px;font-weight:700;margin-bottom:16px;color:var(--txt-muted)">核心数据表说明（自建 PostgreSQL）</h3>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
 
       <div class="db-table">
         <div class="db-table-head">📍 routes（路线表）</div>
         <div class="db-row"><span class="db-field">title</span><span class="db-type">TEXT</span><span class="db-desc">路线名称</span></div>
         <div class="db-row"><span class="db-field">category</span><span class="db-type">TEXT</span><span class="db-desc">分类（Citywalk/非遗…）</span></div>
+        <div class="db-row"><span class="db-field">city_adcode</span><span class="db-type">TEXT</span><span class="db-desc">城市行政区划码（支持多城市）</span></div>
         <div class="db-row"><span class="db-field">duration_minutes</span><span class="db-type">INT</span><span class="db-desc">预计游览时长（分钟）</span></div>
-        <div class="db-row"><span class="db-field">heat_level</span><span class="db-type">INT</span><span class="db-desc">热度等级（系统自动计算）</span></div>
+        <div class="db-row"><span class="db-field">heat_count</span><span class="db-type">INT</span><span class="db-desc">热度计数（用户行为驱动）</span></div>
         <div class="db-row"><span class="db-field">is_visible</span><span class="db-type">BOOLEAN</span><span class="db-desc">是否展示给用户</span></div>
         <div class="db-row"><span class="db-field">published_version</span><span class="db-type">INT</span><span class="db-desc">当前已发布版本号</span></div>
       </div>
@@ -1156,7 +1190,7 @@
       <div class="db-table">
         <div class="db-table-head">🗺 spots（景点表）</div>
         <div class="db-row"><span class="db-field">name</span><span class="db-type">TEXT</span><span class="db-desc">景点名称</span></div>
-        <div class="db-row"><span class="db-field">lat / lng</span><span class="db-type">NUMERIC</span><span class="db-desc">景点坐标（WGS-84）</span></div>
+        <div class="db-row"><span class="db-field">lat / lng</span><span class="db-type">DOUBLE PRECISION</span><span class="db-desc">景点坐标（WGS-84）</span></div>
         <div class="db-row"><span class="db-field">geofence_radius_m</span><span class="db-type">INT</span><span class="db-desc">围栏半径（默认 30 米）</span></div>
         <div class="db-row"><span class="db-field">estimated_stay_min</span><span class="db-type">INT</span><span class="db-desc">建议停留时长（分钟）</span></div>
         <div class="db-row"><span class="db-field">is_easter_egg</span><span class="db-type">BOOLEAN</span><span class="db-desc">是否为隐藏彩蛋景点</span></div>
@@ -1164,26 +1198,24 @@
       </div>
 
       <div class="db-table">
-        <div class="db-table-head">🧠 knowledge_embeddings（知识库向量表）</div>
+        <div class="db-table-head">🧠 knowledge_chunks（知识库向量表）</div>
         <div class="db-row"><span class="db-field">chunk_text</span><span class="db-type">TEXT</span><span class="db-desc">知识文本片段</span></div>
-        <div class="db-row"><span class="db-field">embedding</span><span class="db-type">VECTOR(1536)</span><span class="db-desc">语义向量（用于相似性搜索）</span></div>
-        <div class="db-row"><span class="db-field">geom</span><span class="db-type">GEOMETRY</span><span class="db-desc">地理坐标（用于空间过滤）</span></div>
-        <div class="db-row"><span class="db-field">tsv</span><span class="db-type">TSVECTOR</span><span class="db-desc">全文搜索向量（关键词匹配）</span></div>
-        <div class="db-row"><span class="db-field">chunk_type</span><span class="db-type">TEXT</span><span class="db-desc">history / craft / story / tips</span></div>
+        <div class="db-row"><span class="db-field">embedding</span><span class="db-type">VECTOR(1536)</span><span class="db-desc">语义向量（pgvector 插件支持）</span></div>
+        <div class="db-row"><span class="db-field">chunk_type</span><span class="db-type">TEXT</span><span class="db-desc">note / history / craft / story</span></div>
+        <div class="db-row"><span class="db-field">metadata</span><span class="db-type">JSONB</span><span class="db-desc">附加元数据（JSON 灵活扩展）</span></div>
+        <div class="db-row"><span class="db-field">spot_id</span><span class="db-type">UUID</span><span class="db-desc">关联景点（可为空）</span></div>
       </div>
 
       <div class="db-table">
-        <div class="db-table-head">💬 agent_transcripts（对话记录表）</div>
-        <div class="db-row"><span class="db-field">session_id</span><span class="db-type">UUID</span><span class="db-desc">同一次旅程的会话标识</span></div>
-        <div class="db-row"><span class="db-field">role</span><span class="db-type">TEXT</span><span class="db-desc">user / ai / system</span></div>
-        <div class="db-row"><span class="db-field">content</span><span class="db-type">TEXT</span><span class="db-desc">对话内容</span></div>
-        <div class="db-row"><span class="db-field">inserts</span><span class="db-type">JSONB</span><span class="db-desc">结构化卡片数据（知识卡片等）</span></div>
-        <div class="db-row"><span class="db-field">trigger_type</span><span class="db-type">TEXT</span><span class="db-desc">user_input / geofence / proactive</span></div>
+        <div class="db-table-head">👤 app_users（用户表）</div>
+        <div class="db-row"><span class="db-field">email</span><span class="db-type">TEXT UNIQUE</span><span class="db-desc">邮箱（登录账号）</span></div>
+        <div class="db-row"><span class="db-field">password_hash</span><span class="db-type">TEXT</span><span class="db-desc">bcryptjs 加密后的密码</span></div>
+        <div class="db-row"><span class="db-field">role</span><span class="db-type">TEXT</span><span class="db-desc">user（普通用户）/ admin（管理员）</span></div>
       </div>
 
     </div>
 
-    <p class="text-sm text-muted" style="margin-top:16px">还有：<strong>user_checkins</strong>（打卡记录）、<strong>route_versions</strong>（路线版本快照）、<strong>route_drafts</strong>（上传草稿暂存）、<strong>home_carousel_configs</strong>（首页轮播配置）等。</p>
+    <p class="text-sm text-muted" style="margin-top:16px">还有：<strong>user_checkins</strong>（打卡记录）、<strong>route_versions</strong>（路线版本快照）、<strong>route_drafts</strong>（上传草稿暂存）、<strong>home_carousel_configs</strong>（首页轮播配置）、<strong>app_public_settings</strong>（全局设置，含地图引擎）等。</p>
   </section>
 
   <div class="separator"></div>
@@ -1418,7 +1450,7 @@
     <div class="stack-chips">
       <div class="stack-chip">
         <span class="stack-chip-label">前端框架</span>
-        <span class="stack-chip-name">Vanilla JS</span>
+        <span class="stack-chip-name">Vanilla JS + HTML</span>
       </div>
       <div class="stack-chip">
         <span class="stack-chip-label">地图引擎</span>
@@ -1428,29 +1460,41 @@
         <span class="stack-chip-label">坐标转换</span>
         <span class="stack-chip-name">gcoord 库</span>
       </div>
-      <div class="stack-chip">
-        <span class="stack-chip-label">后端 BaaS</span>
-        <span class="stack-chip-name">Supabase</span>
+      <div class="stack-chip" style="border-color:rgba(0,184,148,0.3)">
+        <span class="stack-chip-label" style="color:var(--green)">✅ 后端服务器</span>
+        <span class="stack-chip-name">Express.js（自建）</span>
+      </div>
+      <div class="stack-chip" style="border-color:rgba(0,184,148,0.3)">
+        <span class="stack-chip-label" style="color:var(--green)">✅ 用户认证</span>
+        <span class="stack-chip-name">JWT（自建）</span>
+      </div>
+      <div class="stack-chip" style="border-color:rgba(0,184,148,0.3)">
+        <span class="stack-chip-label" style="color:var(--green)">✅ 关系数据库</span>
+        <span class="stack-chip-name">PostgreSQL（自托管）</span>
       </div>
       <div class="stack-chip">
-        <span class="stack-chip-label">关系数据库</span>
-        <span class="stack-chip-name">PostgreSQL</span>
-      </div>
-      <div class="stack-chip">
-        <span class="stack-chip-label">向量搜索</span>
+        <span class="stack-chip-label">向量搜索插件</span>
         <span class="stack-chip-name">pgvector</span>
       </div>
       <div class="stack-chip">
         <span class="stack-chip-label">地理空间计算</span>
         <span class="stack-chip-name">PostGIS</span>
       </div>
+      <div class="stack-chip" style="border-color:rgba(0,184,148,0.3)">
+        <span class="stack-chip-label" style="color:var(--green)">✅ 文件存储</span>
+        <span class="stack-chip-name">本地磁盘（自建）</span>
+      </div>
+      <div class="stack-chip" style="border-color:rgba(0,184,148,0.3)">
+        <span class="stack-chip-label" style="color:var(--green)">✅ 实时推送</span>
+        <span class="stack-chip-name">自建 SSE（events.js）</span>
+      </div>
       <div class="stack-chip">
         <span class="stack-chip-label">AI Agent 框架</span>
         <span class="stack-chip-name">LangGraph</span>
       </div>
-      <div class="stack-chip">
-        <span class="stack-chip-label">大语言模型</span>
-        <span class="stack-chip-name">Claude / GPT-4o</span>
+      <div class="stack-chip" style="border-color:rgba(0,184,148,0.3)">
+        <span class="stack-chip-label" style="color:var(--green)">✅ 当前 LLM</span>
+        <span class="stack-chip-name">DeepSeek Chat</span>
       </div>
       <div class="stack-chip">
         <span class="stack-chip-label">知识向量化</span>
@@ -1461,11 +1505,7 @@
         <span class="stack-chip-name">Tavily / Exa</span>
       </div>
       <div class="stack-chip">
-        <span class="stack-chip-label">流式推送</span>
-        <span class="stack-chip-name">SSE</span>
-      </div>
-      <div class="stack-chip">
-        <span class="stack-chip-label">Agent 服务器</span>
+        <span class="stack-chip-label">Agent HTTP 服务</span>
         <span class="stack-chip-name">Python + FastAPI</span>
       </div>
       <div class="stack-chip">
@@ -1473,6 +1513,7 @@
         <span class="stack-chip-name">Capacitor</span>
       </div>
     </div>
+    <p class="text-sm text-muted" style="margin-top:16px">✅ 标绿的是<strong>从 Supabase 计划改为完全自建实现</strong>的模块。</p>
   </section>
 
   <div class="separator"></div>
@@ -1511,7 +1552,7 @@
         <div class="qa-q" onclick="toggleQa('qa-3')">数据安全吗？用户隐私如何保护？</div>
         <div class="qa-a">
           GPS 坐标仅在会话期间使用，仅用于地理围栏判断，不持久化存储用户实时轨迹。
-          系统采用 Supabase Auth 做用户身份验证，数据库通过 RLS（行级安全策略）控制数据访问权限，前台用户只能读取自己的 checkin 数据。
+          系统采用自建 JWT 认证（bcryptjs 加密密码 + jsonwebtoken 签发令牌），数据库通过 app_users 表的 role 字段区分普通用户和管理员权限，接口层通过 requireAuth / requireAdmin 中间件拦截。
           对话记录（agent_transcripts）关联了 user_id，将来会实现用户可以删除自己的对话记录。
         </div>
       </div>

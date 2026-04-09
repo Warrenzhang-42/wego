@@ -12,6 +12,7 @@ REMOTE="${REMOTE:-origin}"
 PROJECT_DIR="${PROJECT_DIR:-$(cd "$(dirname "$0")/.." && pwd)}"
 HEALTH_URL="${HEALTH_URL:-http://127.0.0.1:8787/healthz}"
 CHECK_URLS="${CHECK_URLS:-}"
+SKIP_GIT="${SKIP_GIT:-0}"
 
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -48,6 +49,7 @@ usage() {
   PROJECT_DIR=/home/deploy/WeGO
   HEALTH_URL=http://127.0.0.1:8787/healthz
   CHECK_URLS="https://your-domain/index.html https://your-domain/route-detail.html?route=xxx"
+  SKIP_GIT=0   # 设为 1 时跳过 git fetch/pull（离线部署）
 
 示例:
   BRANCH=main CHECK_URLS="https://zhangxianyue.cn/index.html https://zhangxianyue.cn/search.html" ./scripts/deploy.sh
@@ -76,10 +78,14 @@ if [[ ! -f "docker-compose.yml" ]]; then
 fi
 
 log "当前目录: $PROJECT_DIR"
-log "拉取代码: $REMOTE/$BRANCH"
-git fetch "$REMOTE" "$BRANCH"
-git checkout "$BRANCH"
-git pull --ff-only "$REMOTE" "$BRANCH"
+if [[ "$SKIP_GIT" == "1" ]]; then
+  warn "SKIP_GIT=1，跳过代码拉取步骤"
+else
+  log "拉取代码: $REMOTE/$BRANCH"
+  git fetch "$REMOTE" "$BRANCH"
+  git checkout "$BRANCH"
+  git pull --ff-only "$REMOTE" "$BRANCH"
+fi
 
 log "启动容器（含重建）"
 docker compose up -d --build

@@ -612,6 +612,24 @@
     .kf-desc { font-size: 11px; color: var(--txt-muted); line-height: 1.5; }
     .kf-arrow { text-align: center; font-size: 20px; color: var(--txt-dim); padding: 0 6px; }
 
+    /* ───────────── Deploy Version Badge ───────────── */
+    .deploy-version-badge {
+      position: fixed;
+      right: 14px;
+      bottom: 14px;
+      z-index: 9999;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(108, 92, 231, 0.45);
+      background: rgba(13, 14, 26, 0.9);
+      color: #c9c2ff;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(6px);
+    }
+
     @media (max-width: 700px) {
       .phase-timeline { flex-direction: column; }
       .knowledge-flow { grid-template-columns: 1fr; gap: 8px; }
@@ -1604,6 +1622,10 @@
   </footer>
 
 </main>
+
+<div class="deploy-version-badge" aria-label="当前页面版本">
+  版本 v2026.04.09-01
+</div>
 
 <script>
   function toggleQa(id) {
