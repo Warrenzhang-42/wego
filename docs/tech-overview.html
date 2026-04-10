@@ -588,6 +588,46 @@
     .mt-12 { margin-top: 12px; }
     .mt-20 { margin-top: 20px; }
 
+    /* ───────────── 文档评审标注 ───────────── */
+    .doc-warn {
+      background: linear-gradient(135deg, rgba(253,72,72,0.10) 0%, rgba(253,150,72,0.07) 100%);
+      border: 1.5px solid rgba(253,100,72,0.55);
+      border-left: 4px solid #fd6448;
+      border-radius: 10px;
+      padding: 12px 16px;
+      margin-top: 10px;
+      font-size: 12.5px;
+      line-height: 1.7;
+      color: #ffa07a;
+    }
+    .doc-warn .warn-title {
+      font-weight: 700;
+      font-size: 13px;
+      color: #fd6448;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+    .doc-warn code {
+      background: rgba(253,100,72,0.15);
+      border-radius: 4px;
+      padding: 1px 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: #ffb347;
+    }
+    .doc-warn .warn-evidence {
+      margin-top: 6px;
+      padding: 6px 10px;
+      background: rgba(0,0,0,0.25);
+      border-radius: 6px;
+      font-size: 11.5px;
+      color: rgba(255,163,122,0.8);
+      font-family: 'Courier New', monospace;
+      white-space: pre-wrap;
+    }
+
     /* ───────────── Knowledge Flow SVG-style ───────────── */
     .knowledge-flow {
       display: grid;
@@ -742,7 +782,7 @@
         <div class="arch-layer layer-data">
           <div class="arch-layer-label">④ 外部 API · 各类第三方服务（外部信息来源）</div>
           <div class="arch-layer-modules">
-            <div class="arch-module">🧠 DeepSeek / Claude（语言理解，当前用 DeepSeek）</div>
+            <div class="arch-module">🧠 OpenAI 兼容接口（模型由 env 决定，动态 Fallback 备选）</div>
             <div class="arch-module">📍 高德地图 API（步行规划）</div>
             <div class="arch-module">🔎 Tavily 搜索（实时票价/营业）</div>
             <div class="arch-module">📐 OpenAI Embedding（语义向量化）</div>
@@ -758,7 +798,7 @@
         <li><strong>前端（用户手机）</strong> = 餐厅前厅，你坐在这里点餐、看菜单、吃饭。</li>
         <li><strong>Express 后端（云服务器）</strong> = 前台服务员 + 收银台，负责验证你的身份、记录你的点单、并把需求传递给厨房。</li>
         <li><strong>AI Agent（Python 服务）</strong> = 主厨，真正在思考「该做什么菜、怎么组合」。</li>
-        <li><strong>DeepSeek / 高德 / Tavily</strong> = 各类食材供应商，主厨按需采购调用。</li>
+        <li><strong>OpenAI / DeepSeek / MiniMax</strong> = 各类食材供应商，主厨按需采购调用。</li>
       </ul>
     </div>
   </section>
@@ -875,8 +915,8 @@
       <p>三家地图用的是<strong>不同的经纬度标准</strong>，同一个地点在三套坐标系里的数字不一样，直接混用会导致「标记偏移」（标记打在了河里、墙上）。WeGO 的解决方案：</p>
       <ul style="margin-top:10px">
         <li>数据库统一存储<strong>国际标准 WGS-84</strong>（GPS 原始坐标）</li>
-        <li>前端使用 <strong>gcoord 库</strong>在渲染时实时转换（送进高德就转成 GCJ-02，送进百度就转 BD-09）</li>
-        <li>业务代码只需传 WGS-84 坐标，适配器自动处理转换，产品侧完全透明</li>
+        <li>前端地图适配器（Adaptors）在渲染时根据当前底图需求实时转换坐标（如高德 GCJ-02，百度 BD-09）</li>
+        <li>业务代码只需要处理 WGS-84 坐标，底层适配器自动抹平差异，产品侧完全透明</li>
       </ul>
     </div>
 
@@ -955,7 +995,7 @@
       <div class="tool-card">
         <div class="tool-card-name">web_search()</div>
         <div class="tool-card-desc">搜索最新的票价、营业时间、排队状况等即时信息，补充知识库里没有的实时内容。</div>
-        <div class="tool-card-src">🌐 数据源：Tavily / Exa 搜索 API</div>
+        <div class="tool-card-src">🌐 数据源：Tavily Search API (无 Key 时自动降级 Mock)</div>
       </div>
 
       <div class="tool-card">
@@ -1044,8 +1084,8 @@
         <div class="df-arrow">→</div>
         <div class="df-node">
           <div class="df-node-icon">🔗</div>
-          <div class="df-node-label">SSE 流式请求</div>
-          <div class="df-node-name">chat-client.js</div>
+          <div class="df-node-label">API 客户端调用</div>
+          <div class="df-node-name">fetch() 请求</div>
         </div>
         <div class="df-arrow">→</div>
         <div class="df-node">
@@ -1069,11 +1109,11 @@
         <div class="df-node">
           <div class="df-node-icon">🧠</div>
           <div class="df-node-label">大语言模型</div>
-          <div class="df-node-name">Claude / GPT-4o</div>
+          <div class="df-node-name">动态 (env 配置)</div>
         </div>
       </div>
       <p class="text-sm text-muted" style="margin-top:16px">
-        AI 回答以「流式输出（SSE）」方式逐字返回给前端，用户会看到文字一字一字地出现，体验上更像真人回复。若流式失败，自动回退为普通 JSON 请求（双保险机制）。
+        AI 服务提供流式（SSE）和普通 JSON 两个独立端点。前端优先尝试流式输出，让用户看到文字逐渐出现，提升交互速度感。
       </p>
     </div>
   </section>
@@ -1242,7 +1282,7 @@
           <div class="flow-num" style="background:rgba(253,121,168,0.2);color:var(--coral)">1</div>
           <div class="flow-content">
             <h4>持续 GPS 监听</h4>
-            <p>用户进入路线详情页后，前端用 <code>navigator.geolocation.watchPosition()</code> 每 5 秒更新一次 GPS 坐标（启用高精度模式）。</p>
+            <p>用户进入路线详情页后，前端通过 <code>navigator.geolocation.watchPosition()</code> 开启高精度监听，当设备位置变动时自动触发回调更新坐标。</p>
           </div>
         </div>
         <div class="flow-step">
@@ -1256,7 +1296,7 @@
           <div class="flow-num" style="background:rgba(253,121,168,0.2);color:var(--coral)">3</div>
           <div class="flow-content">
             <h4>检测是否进入围栏</h4>
-            <p>若距离 ＜ 围栏半径（默认 30 米）且该景点尚未触发过讲解，则标记为「已触发」并发出事件。每个景点只触发一次，防止重复播报。</p>
+            <p>若距离 ＜ 围栏半径（默认 30 米），系统会自动触发讲解。具备 5 分钟冷却机制：短暂离开后重新进入不会重复播报，确保游览体验流畅。</p>
           </div>
         </div>
         <div class="flow-step">
@@ -1492,9 +1532,9 @@
         <span class="stack-chip-label">AI Agent 框架</span>
         <span class="stack-chip-name">LangGraph</span>
       </div>
-      <div class="stack-chip" style="border-color:rgba(0,184,148,0.3)">
-        <span class="stack-chip-label" style="color:var(--green)">✅ 当前 LLM</span>
-        <span class="stack-chip-name">DeepSeek Chat</span>
+      <div class="stack-chip">
+        <span class="stack-chip-label">✅ 当前 LLM</span>
+        <span class="stack-chip-name">基于 Env 动态切换</span>
       </div>
       <div class="stack-chip">
         <span class="stack-chip-label">知识向量化</span>
@@ -1502,7 +1542,7 @@
       </div>
       <div class="stack-chip">
         <span class="stack-chip-label">实时网络搜索</span>
-        <span class="stack-chip-name">Tavily / Exa</span>
+        <span class="stack-chip-name">Tavily Search API</span>
       </div>
       <div class="stack-chip">
         <span class="stack-chip-label">Agent HTTP 服务</span>
@@ -1561,7 +1601,7 @@
         <div class="qa-q" onclick="toggleQa('qa-4')">AI 响应速度慢怎么办？用户等待体验如何保证？</div>
         <div class="qa-a">
           主要通过「流式输出（SSE）」优化体验：AI 不是等全部生成完再返回，而是一个字一个字地推送给前端，用户会看到文字逐渐出现，感知上比一次性返回快很多。
-          技术上实现了「模型候选列表」：若主模型（如 Claude Sonnet）响应超时或限流，自动切换到备用模型重试，降低失败率。
+          技术上实现了「自动降级机制」：若主模型（定义在 env 中）连接超时或失败，会自动切换到备用模型重试（如从 GPT-4 降级到 DeepSeek 或 MiniMax），确保回复不中断。
           长期优化方向：知识库检索结果预热缓存、热门问题答案缓存等。
         </div>
       </div>
