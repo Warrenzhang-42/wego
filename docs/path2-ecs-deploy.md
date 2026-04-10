@@ -1,6 +1,6 @@
 # WeGO 路径2单机部署（ECS + 域名 + HTTPS）
 
-面向：**已安装 Docker 的 Ubuntu ECS**、域名 **`zhangxianyue.cn`**、需要 **HTTPS**。数据库可选 **Compose 内 PostgreSQL** 或 **阿里云 RDS**。
+面向：**已安装 Docker 的 Ubuntu ECS**、域名 **`wego.zhangxianyue.cn`**、需要 **HTTPS**。数据库可选 **Compose 内 PostgreSQL** 或 **阿里云 RDS**。
 
 > 本地联调与同 WiFi 访问请先看：`docs/local-dev-runbook.md`（端口冲突、`.env`、401、数据恢复）。
 
@@ -42,7 +42,7 @@
 
 ---
 
-## 2. 域名 DNS（`zhangxianyue.cn`）
+## 2. 域名 DNS（`wego.zhangxianyue.cn`）
 
 在域名注册商或 **阿里云云解析 DNS** 中新增：
 
@@ -54,7 +54,7 @@
 验证（任意电脑终端）：
 
 ```bash
-dig +short zhangxianyue.cn A
+dig +short wego.zhangxianyue.cn A
 ```
 
 应返回你的 ECS 公网 IP。
@@ -111,7 +111,7 @@ cp env.example .env
 - `JWT_SECRET`、`JWT_REFRESH_SECRET`：长随机字符串  
 - `INTERNAL_API_TOKEN`：长随机字符串（backend 与 agent 需一致）  
 - `POSTGRES_PASSWORD` + `DATABASE_URL`（方案 A）或仅 `DATABASE_URL`（方案 B）  
-- **`docker-compose.yml` 里 `backend.environment.PUBLIC_BASE_URL`**：`https://zhangxianyue.cn`  
+- **`docker-compose.yml` 里 `backend.environment.PUBLIC_BASE_URL`**：`https://wego.zhangxianyue.cn`  
 
 `env.example` 供本地参考；**Compose 实际以 `docker-compose.yml` 里 `environment` 为准**，请两处不要互相矛盾。
 
@@ -160,15 +160,15 @@ sudo apt install -y certbot
 **若当前没有任何程序占用 80**（已按第 6 节把 Docker Nginx 绑到 8080）：
 
 ```bash
-sudo certbot certonly --standalone -d zhangxianyue.cn -d www.zhangxianyue.cn
+sudo certbot certonly --standalone -d wego.zhangxianyue.cn
 ```
 
 若 **80 仍被占用**，可二选一：临时 `docker compose stop nginx` 再执行上面命令；或改用 **阿里云 DNS 验证插件** / **手动 DNS TXT**（见 Certbot 文档）。
 
 证书默认路径：
 
-- `/etc/letsencrypt/live/zhangxianyue.cn/fullchain.pem`  
-- `/etc/letsencrypt/live/zhangxianyue.cn/privkey.pem`  
+- `/etc/letsencrypt/live/wego.zhangxianyue.cn/fullchain.pem`  
+- `/etc/letsencrypt/live/wego.zhangxianyue.cn/privkey.pem`  
 
 自动续期：
 
@@ -181,7 +181,7 @@ sudo systemctl enable certbot.timer   # 若发行版提供
 
 ### 7.2 阿里云免费 DV 证书
 
-在 **SSL 证书控制台** 申请域名证书，下载 **Nginx** 格式，上传到 ECS（例如 `/etc/nginx/ssl/zhangxianyue.cn.pem` 与 `.key`），在下面 Nginx 配置里把 `ssl_certificate` 路径改成你的文件路径。
+在 **SSL 证书控制台** 申请域名证书，下载 **Nginx** 格式，上传到 ECS（例如 `/etc/nginx/ssl/wego.zhangxianyue.cn.pem` 与 `.key`），在下面 Nginx 配置里把 `ssl_certificate` 路径改成你的文件路径。
 
 ---
 
@@ -200,7 +200,7 @@ sudo apt install -y nginx
 server {
     listen 80;
     listen [::]:80;
-    server_name zhangxianyue.cn www.zhangxianyue.cn;
+    server_name wego.zhangxianyue.cn;
 
     location /.well-known/acme-challenge/ {
         root /var/www/certbot;
@@ -215,10 +215,10 @@ server {
 server {
     listen 443 ssl http2;
     listen [::]:443 ssl http2;
-    server_name zhangxianyue.cn www.zhangxianyue.cn;
+    server_name wego.zhangxianyue.cn;
 
-    ssl_certificate     /etc/letsencrypt/live/zhangxianyue.cn/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/zhangxianyue.cn/privkey.pem;
+    ssl_certificate     /etc/letsencrypt/live/wego.zhangxianyue.cn/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/wego.zhangxianyue.cn/privkey.pem;
 
     location / {
         proxy_pass http://127.0.0.1:8080;
@@ -236,7 +236,7 @@ server {
 
 ```bash
 sudo mkdir -p /var/www/certbot
-# certbot certonly --webroot -w /var/www/certbot -d zhangxianyue.cn -d www.zhangxianyue.cn
+# certbot certonly --webroot -w /var/www/certbot -d wego.zhangxianyue.cn
 ```
 
 启用配置并重载：
@@ -272,14 +272,14 @@ docker compose exec backend npm run backend:seed
 docker compose exec backend wget -qO- http://127.0.0.1:8787/healthz
 
 # 经宿主机 HTTPS（证书 OK 后）
-curl -sS https://zhangxianyue.cn/api/routes | head
+curl -sS https://wego.zhangxianyue.cn/api/routes | head
 ```
 
 ---
 
 ## 11. 前端生产地址（必改）
 
-以下 HTML/JS 中若仍为 `http://127.0.0.1:8787`，请改为与线上一致（推荐 **`https://zhangxianyue.cn`**，或与站点同源时用 **`location.origin`**）：
+以下 HTML/JS 中若仍为 `http://127.0.0.1:8787`，请改为与线上一致（推荐 **`https://wego.zhangxianyue.cn`**，或与站点同源时用 **`location.origin`**）：
 
 - `src/index.html`  
 - `src/ai-chat.html`  

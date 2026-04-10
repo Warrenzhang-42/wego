@@ -52,7 +52,7 @@ usage() {
   SKIP_GIT=0   # 设为 1 时跳过 git fetch/pull（离线部署）
 
 示例:
-  BRANCH=main CHECK_URLS="https://zhangxianyue.cn/index.html https://zhangxianyue.cn/search.html" ./scripts/deploy.sh
+  BRANCH=main CHECK_URLS="https://wego.zhangxianyue.cn/index.html https://wego.zhangxianyue.cn/search.html" ./scripts/deploy.sh
 EOF
 }
 

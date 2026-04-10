@@ -35,29 +35,24 @@
 
 ---
 
-## 线上（生产）
+### 生产环境入口（推荐）
 
-### 域名可用时（HTTPS）
+| 用途              | 地址                                                                       |
+| ----------------- | -------------------------------------------------------------------------- |
+| **站点（HTTPS）** | [https://wego.zhangxianyue.cn](https://wego.zhangxianyue.cn)               |
+| 后台管理          | [https://wego.zhangxianyue.cn/admin](https://wego.zhangxianyue.cn/admin)   |
+| API 验证（后端）  | [https://wego.zhangxianyue.cn/api/routes](https://wego.zhangxianyue.cn/api/routes) |
+| Agent 验证（AI）  | [https://wego.zhangxianyue.cn/chat/stream](https://wego.zhangxianyue.cn/chat/stream) |
 
+### 备用/调试（公网 IP，数字地址）
 
-| 用途        | 地址                                                                       |
-| --------- | ------------------------------------------------------------------------ |
-| 站点（HTTPS） | [https://zhangxianyue.cn](https://zhangxianyue.cn)                       |
-| API 验证示例  | [https://zhangxianyue.cn/api/routes](https://zhangxianyue.cn/api/routes) |
-
-
-### 域名不可用时（公网 IP，数字地址）
-
-当前 ECS **公网 IPv4**：`47.95.123.115`（若实例更换或弹性 IP 变更，请同步改本节）。  
-默认按 **Nginx 监听 80/443**、站点由网关反代到本机服务（与 `path2-ecs-deploy` 一致）；若你只在安全组开放了其它端口，请改用对应端口。
-
+当前 ECS **公网 IPv4**：`47.95.123.115`（若域名无法解析，可用此 IP 紧急访问，但 HTTPS 证书会失效）。
 
 | 用途              | 地址                                                                           |
 | --------------- | ---------------------------------------------------------------------------- |
-| 站点（HTTP，80 端口）  | [http://47.95.123.115/](http://47.95.123.115/)                               |
-| 若必须带端口（示例 8080） | [http://47.95.123.115:8080/](http://47.95.123.115:8080/)                     |
-| API 验证示例（80）    | [http://47.95.123.115/api/routes](http://47.95.123.115/api/routes)           |
-| API 验证示例（8080）  | [http://47.95.123.115:8080/api/routes](http://47.95.123.115:8080/api/routes) |
+| 站点（HTTP，80） | [http://47.95.123.115/](http://47.95.123.115/)                               |
+| API 验证（80）   | [http://47.95.123.115/api/routes](http://47.95.123.115/api/routes)           |
+| 若带 8080 端口   | [http://47.95.123.115:8080/](http://47.95.123.115:8080/)                     |
 
 
 说明：
