@@ -15,6 +15,7 @@
 | 后端 API（Node）           | [http://127.0.0.1:8787](http://127.0.0.1:8787)                       |
 | 健康检查                   | [http://127.0.0.1:8787/healthz](http://127.0.0.1:8787/healthz)       |
 | 路线列表示例                 | [http://127.0.0.1:8787/api/routes](http://127.0.0.1:8787/api/routes) |
+| 技术概览（可视化）           | [http://127.0.0.1:5173/tech-overview.html](http://127.0.0.1:5173/tech-overview.html) |
 
 
 ---
@@ -43,6 +44,7 @@
 | 后台管理          | [https://wego.zhangxianyue.cn/admin](https://wego.zhangxianyue.cn/admin)   |
 | API 验证（后端）  | [https://wego.zhangxianyue.cn/api/routes](https://wego.zhangxianyue.cn/api/routes) |
 | Agent 验证（AI）  | [https://wego.zhangxianyue.cn/chat/stream](https://wego.zhangxianyue.cn/chat/stream) |
+| 技术概览（可视化）| [https://wego.zhangxianyue.cn/tech-overview.html](https://wego.zhangxianyue.cn/tech-overview.html) |
 
 ### 备用/调试（公网 IP，数字地址）
 
@@ -51,7 +53,10 @@
 | 用途              | 地址                                                                           |
 | --------------- | ---------------------------------------------------------------------------- |
 | 站点（HTTP，80） | [http://47.95.123.115/](http://47.95.123.115/)                               |
-| API 验证（80）   | [http://47.95.123.115/api/routes](http://47.95.123.115/api/routes)           |
+| 后台管理        | [http://47.95.123.115/admin](http://47.95.123.115/admin)                     |
+| API 验证        | [http://47.95.123.115/api/routes](http://47.95.123.115/api/routes)           |
+| Agent 验证      | [http://47.95.123.115/chat/stream](http://47.95.123.115/chat/stream)         |
+| 技术概览        | [http://47.95.123.115/tech-overview.html](http://47.95.123.115/tech-overview.html) |
 | 若带 8080 端口   | [http://47.95.123.115:8080/](http://47.95.123.115:8080/)                     |
 
 
